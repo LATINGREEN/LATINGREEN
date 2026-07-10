@@ -1,0 +1,935 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EcoArcade LatinGreen — ¡Lanza el residuo a la caneca correcta!</title>
+<style>
+  :root {
+    --bg: #0b1f16;
+    --panel: #12291d;
+    --accent: #4ade80;
+    --white-bin: #f1f5f9;
+    --black-bin: #1e293b;
+    --green-bin: #22c55e;
+    --danger: #ef4444;
+    --gold: #fbbf24;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body {
+    width: 100%; height: 100%;
+    background: var(--bg);
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    color: #e2e8f0;
+    overflow: hidden;
+  }
+  #game-container {
+    position: relative;
+    width: 100vw; height: 100vh;
+    display: flex; align-items: center; justify-content: center;
+  }
+  canvas {
+    background: linear-gradient(180deg, #0e2a1c 0%, #0b1f16 60%, #08160f 100%);
+    border-radius: 12px;
+    box-shadow: 0 0 60px rgba(74, 222, 128, 0.15);
+    max-width: 100%;
+    max-height: 100%;
+  }
+  .overlay {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: rgba(4, 15, 10, 0.88);
+    backdrop-filter: blur(6px);
+    z-index: 10;
+    text-align: center;
+    padding: 24px;
+  }
+  .overlay.hidden { display: none; }
+  h1 {
+    font-size: clamp(28px, 5vw, 56px);
+    color: var(--accent);
+    text-shadow: 0 0 30px rgba(74, 222, 128, 0.5);
+    letter-spacing: 2px;
+    margin-bottom: 8px;
+  }
+  .subtitle {
+    font-size: clamp(14px, 2vw, 20px);
+    color: #94a3b8;
+    margin-bottom: 28px;
+  }
+  .rules {
+    display: flex;
+    gap: 18px;
+    flex-wrap: wrap;
+    justify-content: center;
+    margin-bottom: 28px;
+  }
+  .rule-card {
+    background: var(--panel);
+    border: 2px solid rgba(255,255,255,0.08);
+    border-radius: 14px;
+    padding: 16px 20px;
+    width: 200px;
+  }
+  .rule-card .bin-icon { font-size: 40px; margin-bottom: 8px; }
+  .rule-card h3 { font-size: 16px; margin-bottom: 6px; }
+  .rule-card p { font-size: 12.5px; color: #94a3b8; line-height: 1.4; }
+  .rule-card.white h3 { color: var(--white-bin); }
+  .rule-card.black h3 { color: #94a3b8; }
+  .rule-card.green h3 { color: var(--green-bin); }
+  .controls-row {
+    display: flex;
+    gap: 40px;
+    flex-wrap: wrap;
+    justify-content: center;
+    margin-bottom: 30px;
+  }
+  .player-controls {
+    background: var(--panel);
+    border-radius: 14px;
+    padding: 14px 22px;
+    border: 2px solid rgba(255,255,255,0.08);
+  }
+  .player-controls h3 { margin-bottom: 10px; font-size: 15px; }
+  .player-controls.p1 h3 { color: #60a5fa; }
+  .player-controls.p2 h3 { color: #f472b6; }
+  .keys { display: flex; gap: 10px; justify-content: center; }
+  .key-group { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+  kbd {
+    background: #263c2e;
+    border: 1px solid rgba(255,255,255,0.2);
+    border-bottom: 3px solid rgba(0,0,0,0.5);
+    border-radius: 6px;
+    padding: 6px 12px;
+    font-size: 16px;
+    font-weight: bold;
+    color: #fff;
+    min-width: 38px;
+    display: inline-block;
+  }
+  .key-label { font-size: 11px; color: #94a3b8; }
+  button.big-btn {
+    background: linear-gradient(180deg, #34d399, #059669);
+    color: #052e1b;
+    font-size: clamp(18px, 2.5vw, 26px);
+    font-weight: 800;
+    border: none;
+    border-radius: 50px;
+    padding: 16px 52px;
+    cursor: pointer;
+    letter-spacing: 1px;
+    box-shadow: 0 6px 0 #036c47, 0 0 40px rgba(52, 211, 153, 0.35);
+    transition: transform 0.1s ease;
+  }
+  button.big-btn:hover { transform: scale(1.05); }
+  button.big-btn:active { transform: translateY(4px); box-shadow: 0 2px 0 #036c47; }
+  .result-scores {
+    display: flex;
+    gap: 30px;
+    margin: 20px 0 30px;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  .result-card {
+    background: var(--panel);
+    border-radius: 16px;
+    padding: 22px 34px;
+    border: 2px solid rgba(255,255,255,0.08);
+    min-width: 220px;
+  }
+  .result-card.winner {
+    border-color: var(--gold);
+    box-shadow: 0 0 40px rgba(251, 191, 36, 0.3);
+  }
+  .result-card h3 { font-size: 18px; margin-bottom: 8px; }
+  .result-card .score-big { font-size: 44px; font-weight: 900; color: var(--accent); }
+  .result-card .stats { font-size: 13px; color: #94a3b8; margin-top: 8px; line-height: 1.6; }
+  .winner-banner {
+    font-size: clamp(22px, 3.5vw, 36px);
+    color: var(--gold);
+    font-weight: 900;
+    text-shadow: 0 0 30px rgba(251, 191, 36, 0.5);
+    margin-bottom: 6px;
+  }
+  .eco-tip {
+    max-width: 620px;
+    background: rgba(74, 222, 128, 0.1);
+    border: 1px solid rgba(74, 222, 128, 0.3);
+    border-radius: 12px;
+    padding: 14px 20px;
+    font-size: 14px;
+    color: #bbf7d0;
+    margin-bottom: 26px;
+    line-height: 1.5;
+  }
+  .brand { position: absolute; bottom: 12px; font-size: 12px; color: #3f6152; letter-spacing: 2px; }
+</style>
+</head>
+<body>
+<div id="game-container">
+  <canvas id="canvas" width="1280" height="720"></canvas>
+
+  <!-- Pantalla de inicio -->
+  <div id="start-screen" class="overlay">
+    <h1>♻️ ECO-ARCADE LATINGREEN</h1>
+    <p class="subtitle">¡Lanza cada residuo a la caneca correcta! · 3 rondas de 45 segundos, cada una más rápida.<br>Gana quien conquiste más rondas ⭐ (desempata el puntaje total).</p>
+    <div class="rules">
+      <div class="rule-card white">
+        <div class="bin-icon">🗑️⚪</div>
+        <h3>CANECA BLANCA</h3>
+        <p>Residuos <b>aprovechables</b>: plástico, vidrio, cartón, papel, metales.</p>
+      </div>
+      <div class="rule-card black">
+        <div class="bin-icon">🗑️⚫</div>
+        <h3>CANECA NEGRA</h3>
+        <p>Residuos <b>no aprovechables</b>: papel higiénico, servilletas usadas, icopor sucio.</p>
+      </div>
+      <div class="rule-card green">
+        <div class="bin-icon">🗑️🟢</div>
+        <h3>CANECA VERDE</h3>
+        <p>Residuos <b>orgánicos</b>: restos de comida, cáscaras, residuos de jardín.</p>
+      </div>
+    </div>
+    <div class="controls-row">
+      <div class="player-controls p1">
+        <h3>🎮 JUGADOR 1</h3>
+        <div class="keys">
+          <div class="key-group"><kbd>A</kbd><span class="key-label">Blanca</span></div>
+          <div class="key-group"><kbd>S</kbd><span class="key-label">Negra</span></div>
+          <div class="key-group"><kbd>D</kbd><span class="key-label">Verde</span></div>
+        </div>
+      </div>
+      <div class="player-controls p2">
+        <h3>🎮 JUGADOR 2</h3>
+        <div class="keys">
+          <div class="key-group"><kbd>J</kbd><span class="key-label">Blanca</span></div>
+          <div class="key-group"><kbd>K</kbd><span class="key-label">Negra</span></div>
+          <div class="key-group"><kbd>L</kbd><span class="key-label">Verde</span></div>
+        </div>
+      </div>
+    </div>
+    <button class="big-btn" id="start-btn">▶ ¡A JUGAR!</button>
+  </div>
+
+  <!-- Pantalla intermedia entre rondas -->
+  <div id="round-screen" class="overlay hidden">
+    <div class="winner-banner" id="round-title">FIN DE LA RONDA 1</div>
+    <p class="subtitle" id="round-winner-text"></p>
+    <div class="result-scores">
+      <div class="result-card">
+        <h3 style="color:#60a5fa">JUGADOR 1</h3>
+        <div class="stats" id="round-stats-p1"></div>
+      </div>
+      <div class="result-card">
+        <h3 style="color:#f472b6">JUGADOR 2</h3>
+        <div class="stats" id="round-stats-p2"></div>
+      </div>
+    </div>
+    <button class="big-btn" id="next-round-btn">▶ SIGUIENTE RONDA</button>
+  </div>
+
+  <!-- Pantalla de resultados -->
+  <div id="end-screen" class="overlay hidden">
+    <div class="winner-banner" id="winner-text">🏆 ¡GANA EL JUGADOR 1!</div>
+    <p class="subtitle">Resultados de la partida</p>
+    <div class="result-scores">
+      <div class="result-card" id="result-p1">
+        <h3 style="color:#60a5fa">JUGADOR 1</h3>
+        <div class="score-big" id="final-score-p1">0</div>
+        <div class="stats" id="stats-p1"></div>
+      </div>
+      <div class="result-card" id="result-p2">
+        <h3 style="color:#f472b6">JUGADOR 2</h3>
+        <div class="score-big" id="final-score-p2">0</div>
+        <div class="stats" id="stats-p2"></div>
+      </div>
+    </div>
+    <div class="eco-tip" id="eco-tip"></div>
+    <button class="big-btn" id="restart-btn">🔄 JUGAR DE NUEVO</button>
+  </div>
+
+  <div class="brand">LATINGREEN · SEPARAR ES CUIDAR EL PLANETA</div>
+</div>
+
+<script>
+'use strict';
+
+// ============================================================
+//  ECO-ARCADE LATINGREEN — Juego arcade de separación de residuos
+//  2 jugadores · Caneca blanca (aprovechables), negra (no
+//  aprovechables) y verde (orgánicos) — código de colores CO.
+// ============================================================
+
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
+const W = canvas.width;
+const H = canvas.height;
+
+const ROUNDS = 3;          // rondas por partida
+const ROUND_DURATION = 45; // segundos por ronda
+
+// --- Catálogo de residuos -----------------------------------
+// bin: 'white' = aprovechable, 'black' = no aprovechable, 'green' = orgánico
+const WASTE_ITEMS = [
+  // Aprovechables (caneca blanca)
+  { emoji: '🍾', name: 'Botella de vidrio',   bin: 'white' },
+  { emoji: '🥤', name: 'Botella plástica',    bin: 'white' },
+  { emoji: '📦', name: 'Caja de cartón',      bin: 'white' },
+  { emoji: '📰', name: 'Periódico',           bin: 'white' },
+  { emoji: '🥫', name: 'Lata metálica',       bin: 'white' },
+  { emoji: '📄', name: 'Papel limpio',        bin: 'white' },
+  { emoji: '🍶', name: 'Frasco de vidrio',    bin: 'white' },
+  // No aprovechables (caneca negra)
+  { emoji: '🧻', name: 'Papel higiénico',     bin: 'black' },
+  { emoji: '🧷', name: 'Pañal usado',         bin: 'black' },
+  { emoji: '🥡', name: 'Icopor sucio',        bin: 'black' },
+  { emoji: '🩹', name: 'Curita usada',        bin: 'black' },
+  { emoji: '🚬', name: 'Colilla',             bin: 'black' },
+  { emoji: '🧤', name: 'Guante desechable',   bin: 'black' },
+  // Orgánicos (caneca verde)
+  { emoji: '🍌', name: 'Cáscara de banano',   bin: 'green' },
+  { emoji: '🍎', name: 'Restos de manzana',   bin: 'green' },
+  { emoji: '🥚', name: 'Cáscara de huevo',    bin: 'green' },
+  { emoji: '🌽', name: 'Tusa de maíz',        bin: 'green' },
+  { emoji: '🍂', name: 'Hojas secas',         bin: 'green' },
+  { emoji: '🥕', name: 'Restos de verdura',   bin: 'green' },
+  { emoji: '☕', name: 'Borra de café',       bin: 'green' },
+];
+
+const BIN_INFO = {
+  white: { label: 'BLANCA', body: '#e8edf2', lid: '#cbd5e1', text: '#334155' },
+  black: { label: 'NEGRA',  body: '#242f3e', lid: '#0f172a', text: '#e2e8f0' },
+  green: { label: 'VERDE',  body: '#22a04e', lid: '#15803d', text: '#f0fdf4' },
+};
+const BIN_ORDER = ['white', 'black', 'green'];
+
+const ECO_TIPS = [
+  '💡 Dato LatinGreen: una botella de vidrio puede tardar más de 4.000 años en degradarse. ¡Recíclala en la caneca blanca!',
+  '💡 Dato LatinGreen: los residuos orgánicos de la caneca verde pueden convertirse en compost para nutrir la tierra.',
+  '💡 Dato LatinGreen: separar bien los residuos reduce hasta un 80% lo que llega a los rellenos sanitarios.',
+  '💡 Dato LatinGreen: el papel sucio o engrasado ya no es reciclable: va en la caneca negra.',
+  '💡 Dato LatinGreen: reciclar una lata de aluminio ahorra energía suficiente para 3 horas de televisión.',
+];
+
+// --- Estado del juego ---------------------------------------
+const STATE = { MENU: 0, PLAYING: 1, INTERMISSION: 2, ENDED: 3 };
+let gameState = STATE.MENU;
+let currentRound = 1;
+let timeLeft = ROUND_DURATION;
+let roundBanner = 0; // segundos restantes del anuncio "¡RONDA X!"
+let lastTime = 0;
+let spawnTimers = [0, 0];
+let spawnIntervals = [2.2, 2.2]; // se acelera con el tiempo y las rondas
+
+function makePlayer(id, xOffset, keys, color) {
+  return {
+    id, xOffset, keys, color,
+    score: 0,          // puntaje de la ronda en curso
+    roundScores: [],   // puntaje de cada ronda terminada
+    roundsWon: 0,
+    hits: 0, misses: 0, combo: 0, bestCombo: 0,
+    items: [],        // residuos esperando en la banda
+    projectiles: [],  // residuos volando hacia una caneca
+    effects: [],      // partículas y textos flotantes
+    shake: 0,
+  };
+}
+
+let players = [];
+
+function totalScore(p) {
+  return p.roundScores.reduce((a, b) => a + b, 0) + (gameState === STATE.PLAYING ? p.score : 0);
+}
+
+function resetGame() {
+  players = [
+    makePlayer(1, 0,     { KeyA: 0, KeyS: 1, KeyD: 2 }, '#60a5fa'),
+    makePlayer(2, W / 2, { KeyJ: 0, KeyK: 1, KeyL: 2 }, '#f472b6'),
+  ];
+  currentRound = 1;
+}
+
+function startRound() {
+  players.forEach(p => {
+    p.items = []; p.projectiles = []; p.effects = [];
+    p.score = 0; p.combo = 0; p.shake = 0;
+  });
+  timeLeft = ROUND_DURATION;
+  spawnTimers = [0, 0];
+  roundBanner = 1.6;
+  gameState = STATE.PLAYING;
+}
+
+// --- Geometría de cada mitad de pantalla --------------------
+const HALF_W = W / 2;
+const CONVEYOR_Y = 190;     // banda transportadora donde espera el residuo
+const LAUNCH_X_REL = HALF_W / 2; // el residuo activo se centra en la mitad
+const BINS_Y = H - 150;
+
+function binPositions(xOffset) {
+  const margin = 90;
+  const usable = HALF_W - margin * 2;
+  return BIN_ORDER.map((_, i) => xOffset + margin + usable * (i / 2));
+}
+
+// --- Generación de residuos ---------------------------------
+function spawnItem(player) {
+  const def = WASTE_ITEMS[Math.floor(Math.random() * WASTE_ITEMS.length)];
+  player.items.push({
+    def,
+    x: player.xOffset + HALF_W + 60, // entra por la derecha de su zona
+    y: CONVEYOR_Y,
+    targetX: player.xOffset + LAUNCH_X_REL,
+    state: 'entering', // entering -> ready
+  });
+}
+
+// --- Lanzamiento --------------------------------------------
+function throwItem(player, binIndex) {
+  const idx = player.items.findIndex(it => it.state === 'ready');
+  if (idx === -1) return;
+  const item = player.items.splice(idx, 1)[0];
+  const bins = binPositions(player.xOffset);
+  const targetX = bins[binIndex];
+  const targetY = BINS_Y - 40;
+
+  player.projectiles.push({
+    def: item.def,
+    x: item.x, y: item.y,
+    startX: item.x, startY: item.y,
+    targetX, targetY,
+    binIndex,
+    t: 0,
+    duration: 0.45,
+    rotation: 0,
+  });
+}
+
+function resolveThrow(player, proj) {
+  const targetBin = BIN_ORDER[proj.binIndex];
+  const correct = proj.def.bin === targetBin;
+  if (correct) {
+    player.combo++;
+    player.bestCombo = Math.max(player.bestCombo, player.combo);
+    const points = 100 + (player.combo >= 3 ? (player.combo - 2) * 25 : 0);
+    player.score += points;
+    player.hits++;
+    addFloatText(player, proj.targetX, proj.targetY - 60, `+${points}`, '#4ade80');
+    if (player.combo >= 3) {
+      addFloatText(player, proj.targetX, proj.targetY - 90, `¡COMBO x${player.combo}!`, '#fbbf24');
+    }
+    addParticles(player, proj.targetX, proj.targetY, '#4ade80');
+  } else {
+    player.combo = 0;
+    player.score = Math.max(0, player.score - 50);
+    player.misses++;
+    player.shake = 0.35;
+    const correctBin = BIN_INFO[proj.def.bin].label;
+    addFloatText(player, proj.targetX, proj.targetY - 60, '-50', '#ef4444');
+    addFloatText(player, proj.targetX, proj.targetY - 90, `¡Era la ${correctBin}!`, '#fca5a5');
+    addParticles(player, proj.targetX, proj.targetY, '#ef4444');
+  }
+}
+
+// --- Efectos visuales ---------------------------------------
+function addFloatText(player, x, y, text, color) {
+  // mantener el texto dentro de la zona del jugador para que no se corte
+  const clampedX = Math.min(player.xOffset + HALF_W - 110, Math.max(player.xOffset + 110, x));
+  player.effects.push({ type: 'text', x: clampedX, y, text, color, life: 1.1, maxLife: 1.1 });
+}
+
+function addParticles(player, x, y, color) {
+  for (let i = 0; i < 14; i++) {
+    const ang = Math.random() * Math.PI * 2;
+    const speed = 90 + Math.random() * 160;
+    player.effects.push({
+      type: 'particle', x, y,
+      vx: Math.cos(ang) * speed,
+      vy: Math.sin(ang) * speed - 90,
+      color, life: 0.7, maxLife: 0.7,
+      size: 3 + Math.random() * 4,
+    });
+  }
+}
+
+// --- Entrada de teclado -------------------------------------
+document.addEventListener('keydown', (e) => {
+  if (gameState !== STATE.PLAYING) return;
+  for (const player of players) {
+    if (e.code in player.keys) {
+      throwItem(player, player.keys[e.code]);
+      e.preventDefault();
+    }
+  }
+});
+
+// --- Actualización ------------------------------------------
+function update(dt) {
+  timeLeft -= dt;
+  if (roundBanner > 0) roundBanner -= dt;
+  if (timeLeft <= 0) {
+    timeLeft = 0;
+    endRound();
+    return;
+  }
+
+  // La dificultad sube dentro de la ronda y de ronda en ronda:
+  // los residuos llegan cada vez más rápido
+  const progress = 1 - timeLeft / ROUND_DURATION;
+  const roundBase = 2.3 - (currentRound - 1) * 0.5;
+  const interval = Math.max(0.65, roundBase - progress * 0.9);
+
+  players.forEach((player, pi) => {
+    spawnIntervals[pi] = interval;
+    spawnTimers[pi] += dt;
+    const waiting = player.items.length;
+    if (spawnTimers[pi] >= spawnIntervals[pi] && waiting < 4) {
+      spawnTimers[pi] = 0;
+      spawnItem(player);
+    }
+
+    // Mover residuos por la banda hasta su puesto en la fila
+    player.items.forEach((item, i) => {
+      const queueX = player.xOffset + LAUNCH_X_REL + i * 85;
+      item.targetX = queueX;
+      const dx = item.targetX - item.x;
+      item.x += dx * Math.min(1, dt * 6);
+      item.state = (i === 0 && Math.abs(dx) < 4) ? 'ready' : 'entering';
+    });
+
+    // Proyectiles en vuelo (trayectoria parabólica)
+    for (let i = player.projectiles.length - 1; i >= 0; i--) {
+      const p = player.projectiles[i];
+      p.t += dt / p.duration;
+      p.rotation += dt * 10;
+      if (p.t >= 1) {
+        resolveThrow(player, p);
+        player.projectiles.splice(i, 1);
+      } else {
+        const t = p.t;
+        p.x = p.startX + (p.targetX - p.startX) * t;
+        const arc = Math.sin(t * Math.PI) * 140;
+        p.y = p.startY + (p.targetY - p.startY) * t - arc;
+      }
+    }
+
+    // Efectos
+    for (let i = player.effects.length - 1; i >= 0; i--) {
+      const fx = player.effects[i];
+      fx.life -= dt;
+      if (fx.life <= 0) { player.effects.splice(i, 1); continue; }
+      if (fx.type === 'particle') {
+        fx.vy += 500 * dt;
+        fx.x += fx.vx * dt;
+        fx.y += fx.vy * dt;
+      } else {
+        fx.y -= 45 * dt;
+      }
+    }
+
+    if (player.shake > 0) player.shake = Math.max(0, player.shake - dt);
+  });
+}
+
+// --- Dibujo -------------------------------------------------
+function drawBin(x, y, type, highlight) {
+  const info = BIN_INFO[type];
+  const w = 110, h = 95;
+  ctx.save();
+  ctx.translate(x, y);
+
+  // sombra
+  ctx.fillStyle = 'rgba(0,0,0,0.35)';
+  ctx.beginPath();
+  ctx.ellipse(0, h / 2 + 8, w / 2 + 8, 12, 0, 0, Math.PI * 2);
+  ctx.fill();
+
+  // cuerpo (trapecio)
+  ctx.fillStyle = info.body;
+  ctx.beginPath();
+  ctx.moveTo(-w / 2, -h / 2);
+  ctx.lineTo(w / 2, -h / 2);
+  ctx.lineTo(w / 2 - 12, h / 2);
+  ctx.lineTo(-w / 2 + 12, h / 2);
+  ctx.closePath();
+  ctx.fill();
+  ctx.strokeStyle = 'rgba(0,0,0,0.25)';
+  ctx.lineWidth = 2;
+  ctx.stroke();
+
+  // franjas del cuerpo
+  ctx.strokeStyle = 'rgba(0,0,0,0.12)';
+  for (let i = -1; i <= 1; i++) {
+    ctx.beginPath();
+    ctx.moveTo(i * 22, -h / 2 + 10);
+    ctx.lineTo(i * 20, h / 2 - 10);
+    ctx.stroke();
+  }
+
+  // tapa
+  ctx.fillStyle = info.lid;
+  ctx.beginPath();
+  ctx.roundRect(-w / 2 - 8, -h / 2 - 18, w + 16, 18, 5);
+  ctx.fill();
+
+  // etiqueta
+  ctx.fillStyle = info.text;
+  ctx.font = 'bold 15px "Segoe UI", sans-serif';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(info.label, 0, 6);
+
+  if (highlight) {
+    ctx.strokeStyle = '#fbbf24';
+    ctx.lineWidth = 4;
+    ctx.beginPath();
+    ctx.roundRect(-w / 2 - 14, -h / 2 - 26, w + 28, h + 40, 10);
+    ctx.stroke();
+  }
+  ctx.restore();
+}
+
+function drawPlayerZone(player) {
+  const ox = player.xOffset;
+  ctx.save();
+  if (player.shake > 0) {
+    const s = player.shake * 10;
+    ctx.translate((Math.random() - 0.5) * s, (Math.random() - 0.5) * s);
+  }
+
+  // Banda transportadora
+  ctx.fillStyle = '#1d3527';
+  ctx.fillRect(ox + 20, CONVEYOR_Y + 34, HALF_W - 40, 16);
+  ctx.fillStyle = '#294a36';
+  for (let x = 24; x < HALF_W - 40; x += 34) {
+    ctx.fillRect(ox + x, CONVEYOR_Y + 36, 18, 12);
+  }
+
+  // Canecas
+  const bins = binPositions(ox);
+  bins.forEach((bx, i) => drawBin(bx, BINS_Y, BIN_ORDER[i], false));
+
+  // Teclas guía bajo cada caneca
+  const keyNames = player.id === 1 ? ['A', 'S', 'D'] : ['J', 'K', 'L'];
+  ctx.font = 'bold 16px "Segoe UI", sans-serif';
+  ctx.textAlign = 'center';
+  bins.forEach((bx, i) => {
+    ctx.fillStyle = 'rgba(255,255,255,0.12)';
+    ctx.beginPath();
+    ctx.roundRect(bx - 16, BINS_Y + 72, 32, 26, 6);
+    ctx.fill();
+    ctx.fillStyle = '#cbd5e1';
+    ctx.fillText(keyNames[i], bx, BINS_Y + 90);
+  });
+
+  // Residuos en la banda
+  player.items.forEach((item, i) => {
+    const isActive = item.state === 'ready';
+    ctx.save();
+    ctx.translate(item.x, item.y);
+    if (isActive) {
+      const pulse = 1 + Math.sin(performance.now() / 180) * 0.08;
+      ctx.scale(pulse, pulse);
+      // aro indicador del residuo activo
+      ctx.strokeStyle = player.color;
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.arc(0, 0, 40, 0, Math.PI * 2);
+      ctx.stroke();
+    } else {
+      ctx.globalAlpha = 0.55;
+      ctx.scale(0.75, 0.75);
+    }
+    ctx.font = '52px serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(item.def.emoji, 0, 2);
+    ctx.restore();
+
+    if (isActive) {
+      ctx.fillStyle = '#e2e8f0';
+      ctx.font = 'bold 15px "Segoe UI", sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText(item.def.name, item.x, item.y + 62);
+    }
+  });
+
+  // Proyectiles
+  player.projectiles.forEach(p => {
+    ctx.save();
+    ctx.translate(p.x, p.y);
+    ctx.rotate(p.rotation);
+    ctx.font = '46px serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(p.def.emoji, 0, 0);
+    ctx.restore();
+  });
+
+  // Efectos
+  player.effects.forEach(fx => {
+    const alpha = Math.max(0, fx.life / fx.maxLife);
+    if (fx.type === 'particle') {
+      ctx.globalAlpha = alpha;
+      ctx.fillStyle = fx.color;
+      ctx.beginPath();
+      ctx.arc(fx.x, fx.y, fx.size, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.globalAlpha = 1;
+    } else {
+      ctx.globalAlpha = alpha;
+      ctx.fillStyle = fx.color;
+      ctx.font = 'bold 24px "Segoe UI", sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText(fx.text, fx.x, fx.y);
+      ctx.globalAlpha = 1;
+    }
+  });
+
+  ctx.restore();
+
+  // HUD del jugador (P1 a la izquierda de su zona, P2 a la derecha,
+  // para que el temporizador central no lo tape)
+  const hudRight = player.id === 2;
+  const hudX = hudRight ? ox + HALF_W - 28 : ox + 28;
+  ctx.textAlign = hudRight ? 'right' : 'left';
+  ctx.fillStyle = player.color;
+  ctx.font = 'bold 20px "Segoe UI", sans-serif';
+  ctx.fillText(`JUGADOR ${player.id}`, hudX, 42);
+  ctx.fillStyle = '#f8fafc';
+  ctx.font = 'bold 34px "Segoe UI", sans-serif';
+  ctx.fillText(String(player.score), hudX, 82);
+  // estrellas por rondas ganadas + puntaje acumulado
+  ctx.fillStyle = '#fbbf24';
+  ctx.font = '16px "Segoe UI", sans-serif';
+  const stars = '★'.repeat(player.roundsWon) + '☆'.repeat(Math.max(0, ROUNDS - player.roundsWon));
+  ctx.fillText(stars, hudX, 106);
+  ctx.fillStyle = '#94a3b8';
+  ctx.font = 'bold 14px "Segoe UI", sans-serif';
+  ctx.fillText(`Total: ${totalScore(player)}`, hudX, 128);
+  if (player.combo >= 3) {
+    ctx.fillStyle = '#fbbf24';
+    ctx.font = 'bold 18px "Segoe UI", sans-serif';
+    ctx.fillText(`🔥 Combo x${player.combo}`, hudX, 152);
+  }
+}
+
+// --- Hojas flotantes de ambientación ------------------------
+const leaves = Array.from({ length: 14 }, () => ({
+  x: Math.random() * W,
+  y: Math.random() * H,
+  speed: 12 + Math.random() * 22,
+  drift: 20 + Math.random() * 30,
+  phase: Math.random() * Math.PI * 2,
+  size: 16 + Math.random() * 14,
+  emoji: Math.random() < 0.6 ? '🍃' : '♻️',
+}));
+
+function drawLeaves(dt) {
+  ctx.save();
+  ctx.globalAlpha = 0.16;
+  leaves.forEach(l => {
+    l.y += l.speed * dt;
+    l.phase += dt;
+    if (l.y > H + 30) { l.y = -30; l.x = Math.random() * W; }
+    ctx.font = `${l.size}px serif`;
+    ctx.textAlign = 'center';
+    ctx.fillText(l.emoji, l.x + Math.sin(l.phase) * l.drift, l.y);
+  });
+  ctx.restore();
+}
+
+function drawCenterHUD() {
+  // divisor central
+  ctx.strokeStyle = 'rgba(255,255,255,0.15)';
+  ctx.lineWidth = 3;
+  ctx.setLineDash([12, 10]);
+  ctx.beginPath();
+  ctx.moveTo(W / 2, 0);
+  ctx.lineTo(W / 2, H);
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  // temporizador
+  const secs = Math.ceil(timeLeft);
+  const urgent = secs <= 10;
+  ctx.fillStyle = urgent ? '#ef4444' : '#0f2a1c';
+  if (urgent && Math.floor(performance.now() / 300) % 2 === 0) ctx.fillStyle = '#7f1d1d';
+  ctx.beginPath();
+  ctx.roundRect(W / 2 - 60, 18, 120, 56, 14);
+  ctx.fill();
+  ctx.strokeStyle = urgent ? '#fca5a5' : 'rgba(255,255,255,0.2)';
+  ctx.lineWidth = 2;
+  ctx.stroke();
+  ctx.fillStyle = '#f8fafc';
+  ctx.font = 'bold 32px "Segoe UI", sans-serif';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(`⏱ ${secs}`, W / 2, 47);
+  ctx.textBaseline = 'alphabetic';
+
+  // indicador de ronda
+  ctx.fillStyle = '#86efac';
+  ctx.font = 'bold 16px "Segoe UI", sans-serif';
+  ctx.fillText(`RONDA ${currentRound} / ${ROUNDS}`, W / 2, 96);
+
+  // anuncio de inicio de ronda
+  if (roundBanner > 0) {
+    const a = Math.min(1, roundBanner / 0.4);
+    const scale = 1 + (1.6 - roundBanner) * 0.15;
+    ctx.save();
+    ctx.globalAlpha = a;
+    ctx.translate(W / 2, H / 2 - 40);
+    ctx.scale(scale, scale);
+    ctx.fillStyle = 'rgba(4, 15, 10, 0.75)';
+    ctx.beginPath();
+    ctx.roundRect(-220, -55, 440, 110, 20);
+    ctx.fill();
+    ctx.strokeStyle = '#4ade80';
+    ctx.lineWidth = 3;
+    ctx.stroke();
+    ctx.fillStyle = '#4ade80';
+    ctx.font = 'bold 56px "Segoe UI", sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(`¡RONDA ${currentRound}!`, 0, 0);
+    ctx.restore();
+    ctx.textBaseline = 'alphabetic';
+  }
+}
+
+function render(dt) {
+  ctx.clearRect(0, 0, W, H);
+  drawLeaves(dt);
+  players.forEach(drawPlayerZone);
+  drawCenterHUD();
+}
+
+// --- Bucle principal ----------------------------------------
+function loop(ts) {
+  const dt = Math.min(0.05, (ts - lastTime) / 1000 || 0);
+  lastTime = ts;
+  if (gameState === STATE.PLAYING) {
+    update(dt);
+    if (gameState === STATE.PLAYING) render(dt);
+  }
+  requestAnimationFrame(loop);
+}
+
+// --- Flujo de pantallas -------------------------------------
+const startScreen = document.getElementById('start-screen');
+const roundScreen = document.getElementById('round-screen');
+const endScreen = document.getElementById('end-screen');
+
+function startGame() {
+  resetGame();
+  startScreen.classList.add('hidden');
+  roundScreen.classList.add('hidden');
+  endScreen.classList.add('hidden');
+  startRound();
+}
+
+function endRound() {
+  // resolver de inmediato los residuos que quedaron en el aire
+  players.forEach(p => {
+    p.projectiles.forEach(proj => resolveThrow(p, proj));
+    p.projectiles = [];
+    p.roundScores.push(p.score);
+  });
+  const [p1, p2] = players;
+  if (p1.score > p2.score) p1.roundsWon++;
+  else if (p2.score > p1.score) p2.roundsWon++;
+
+  if (currentRound >= ROUNDS) {
+    endGame();
+    return;
+  }
+
+  // pantalla intermedia entre rondas
+  gameState = STATE.INTERMISSION;
+  document.getElementById('round-title').textContent = `FIN DE LA RONDA ${currentRound}`;
+  const winText = document.getElementById('round-winner-text');
+  if (p1.score > p2.score) winText.textContent = '⭐ El Jugador 1 se lleva la ronda';
+  else if (p2.score > p1.score) winText.textContent = '⭐ El Jugador 2 se lleva la ronda';
+  else winText.textContent = '🤝 Ronda empatada: nadie suma estrella';
+
+  const roundStat = (p) => `Ronda: <b>${p.score}</b> pts · Acumulado: <b>${totalScore(p)}</b><br>` +
+    `Rondas ganadas: ${'★'.repeat(p.roundsWon) || '—'}`;
+  document.getElementById('round-stats-p1').innerHTML = roundStat(p1);
+  document.getElementById('round-stats-p2').innerHTML = roundStat(p2);
+  document.getElementById('next-round-btn').textContent = `▶ RONDA ${currentRound + 1} (¡más rápida!)`;
+  roundScreen.classList.remove('hidden');
+}
+
+function nextRound() {
+  currentRound++;
+  roundScreen.classList.add('hidden');
+  startRound();
+}
+
+function endGame() {
+  gameState = STATE.ENDED;
+  const [p1, p2] = players;
+  const t1 = totalScore(p1), t2 = totalScore(p2);
+
+  document.getElementById('final-score-p1').textContent = t1;
+  document.getElementById('final-score-p2').textContent = t2;
+
+  const statFor = (p) => {
+    const total = p.hits + p.misses;
+    const acc = total ? Math.round((p.hits / total) * 100) : 0;
+    return `⭐ Rondas ganadas: ${'★'.repeat(p.roundsWon) || '—'} · Por ronda: ${p.roundScores.join(' / ')}<br>` +
+      `✅ Aciertos: ${p.hits} · ❌ Errores: ${p.misses}<br>🎯 Precisión: ${acc}% · 🔥 Mejor combo: x${p.bestCombo}`;
+  };
+  document.getElementById('stats-p1').innerHTML = statFor(p1);
+  document.getElementById('stats-p2').innerHTML = statFor(p2);
+
+  // Gana quien conquiste más rondas; si empatan, decide el puntaje total
+  const winnerText = document.getElementById('winner-text');
+  const card1 = document.getElementById('result-p1');
+  const card2 = document.getElementById('result-p2');
+  card1.classList.remove('winner');
+  card2.classList.remove('winner');
+  let winner = 0;
+  if (p1.roundsWon !== p2.roundsWon) winner = p1.roundsWon > p2.roundsWon ? 1 : 2;
+  else if (t1 !== t2) winner = t1 > t2 ? 1 : 2;
+
+  if (winner === 1) {
+    winnerText.textContent = '🏆 ¡GANA EL JUGADOR 1!';
+    card1.classList.add('winner');
+  } else if (winner === 2) {
+    winnerText.textContent = '🏆 ¡GANA EL JUGADOR 2!';
+    card2.classList.add('winner');
+  } else {
+    winnerText.textContent = '🤝 ¡EMPATE! El planeta gana con ambos.';
+  }
+
+  document.getElementById('eco-tip').textContent =
+    ECO_TIPS[Math.floor(Math.random() * ECO_TIPS.length)];
+
+  endScreen.classList.remove('hidden');
+}
+
+document.getElementById('start-btn').addEventListener('click', startGame);
+document.getElementById('next-round-btn').addEventListener('click', nextRound);
+document.getElementById('restart-btn').addEventListener('click', startGame);
+
+// Escalado responsivo del canvas manteniendo proporción 16:9
+function fitCanvas() {
+  const scale = Math.min(window.innerWidth / W, window.innerHeight / H) * 0.98;
+  canvas.style.width = `${W * scale}px`;
+  canvas.style.height = `${H * scale}px`;
+}
+window.addEventListener('resize', fitCanvas);
+fitCanvas();
+
+resetGame();
+render(0);
+requestAnimationFrame(loop);
+</script>
+</body>
+</html>
