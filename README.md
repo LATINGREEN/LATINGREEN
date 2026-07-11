@@ -10,14 +10,23 @@ de colores de separación en la fuente:
 | ⚫ **Negra** | No aprovechables | Papel higiénico, servilletas usadas, icopor sucio, colillas |
 | 🟢 **Verde** | Orgánicos | Restos de comida, cáscaras, residuos de jardín, borra de café |
 
+Cada caneca está claramente identificada en pantalla con su **color en la tapa**
+(BLANCA / NEGRA / VERDE), un **ícono** (♻️ / 🚫 / 🌱) y su **rótulo de
+categoría** (APROVECHABLES / NO APROVECHABLES / ORGÁNICOS).
+
 ## 🎮 Cómo jugar
 
 1. Abre `index.html` en cualquier navegador moderno (Chrome, Firefox, Edge).
    No requiere instalación ni conexión a internet.
-2. Presiona **¡A JUGAR!**.
-3. Cada jugador ve su zona con su banda de residuos y sus 3 canecas.
+2. **Escribe el nombre de cada jugador** en su tarjeta (opcional; hasta 12
+   caracteres). Los nombres aparecen en el marcador, en los resultados de cada
+   ronda y en la pantalla final.
+3. Presiona **¡A JUGAR!**.
+4. Cada jugador ve su zona con su banda de residuos y sus 3 canecas.
    El residuo activo (resaltado con un aro de color) muestra su nombre;
-   decide rápido a qué caneca lanzarlo.
+   decide rápido a qué caneca lanzarlo. Hay **34 tipos de residuos**:
+   12 aprovechables (plástico, vidrio, metales, papel, cartón y tetrapak),
+   10 no aprovechables y 12 orgánicos.
 
 ### Controles
 
@@ -42,6 +51,9 @@ con el botón 🔊 de la esquina superior derecha o con la tecla `M`.
 - 🏆 **Gana la partida quien conquiste más rondas**; si empatan en rondas,
   decide el puntaje total. La pantalla final muestra el ganador, la precisión
   de cada jugador, el detalle por ronda y un dato ecológico.
+- 🥳 En la escena final, el ganador **celebra con confeti y saltos de alegría**
+  mientras el perdedor **llora desconsolado** (con su respectivo "trombón
+  triste" 🎺). Si hay empate, ambos celebran por el planeta.
 
 ## 🌱 Objetivo educativo
 
