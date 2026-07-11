@@ -27,6 +27,10 @@ de colores de separación en la fuente:
 | Lanzar a caneca **NEGRA** | `S` | `K` |
 | Lanzar a caneca **VERDE** | `D` | `L` |
 
+🔊 El juego incluye **efectos de sonido y música de fondo estilo arcade**
+(generados con la Web Audio API, sin archivos externos). Puedes silenciarlos
+con el botón 🔊 de la esquina superior derecha o con la tecla `M`.
+
 ### Rondas y puntuación
 
 - 🕹️ La partida se juega a **3 rondas de 45 segundos** (partidas cortas, ~2½ minutos).
