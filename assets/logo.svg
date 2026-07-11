@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="440" height="210" viewBox="0 0 440 210">
+  <!-- Logo Latin Green E.S.P. (versión vectorial recreada; reemplazar por el archivo oficial si se desea) -->
+  <!-- Silueta de Suramérica en trazo de pincel -->
+  <path fill="#a6ce39" d="
+    M305,30
+    C315,18 335,14 355,20
+    C370,24 385,20 398,30
+    C415,42 430,55 428,72
+    C426,90 410,102 398,114
+    C388,124 378,132 372,142
+    C364,156 358,172 350,186
+    C346,193 338,198 334,190
+    C330,182 334,170 331,160
+    C326,144 320,130 318,112
+    C316,96 308,80 305,64
+    C303,52 300,40 305,30 Z"/>
+  <!-- Letra manuscrita -->
+  <text x="16" y="88" font-family="'Segoe Script','Brush Script MT','Lucida Handwriting',cursive"
+        font-size="62" font-style="italic" font-weight="bold" fill="#a6ce39">Latin</text>
+  <text x="52" y="158" font-family="'Segoe Script','Brush Script MT','Lucida Handwriting',cursive"
+        font-size="62" font-style="italic" font-weight="bold" fill="#a6ce39">Green</text>
+  <text x="130" y="196" font-family="'Segoe UI',Arial,sans-serif"
+        font-size="26" font-weight="bold" letter-spacing="8" fill="#a6ce39">E.S.P.</text>
+</svg>

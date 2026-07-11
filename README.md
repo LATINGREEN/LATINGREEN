@@ -1,4 +1,4 @@
-# ♻️ Eco-Arcade LatinGreen
+# ♻️ Eco-Arcade Latin Green E.S.P.
 
 Videojuego arcade **para 2 jugadores** donde cada jugador debe lanzar los residuos
 que llegan por la banda transportadora a la caneca correcta, siguiendo el código
@@ -13,6 +13,17 @@ de colores de separación en la fuente:
 Cada caneca está claramente identificada en pantalla con su **color en la tapa**
 (BLANCA / NEGRA / VERDE), un **ícono** (♻️ / 🚫 / 🌱) y su **rótulo de
 categoría** (APROVECHABLES / NO APROVECHABLES / ORGÁNICOS).
+
+## 📁 Archivos
+
+| Archivo | Descripción |
+|---------|-------------|
+| `index.html` | El juego completo |
+| `assets/logo.svg` | Logo Latin Green E.S.P. (versión vectorial recreada; puedes reemplazarla por tu archivo oficial conservando el nombre) |
+| `assets/latin-green.m4a` | Pista musical de Latin Green (música ambiental de la pantalla de inicio) |
+
+> 💡 Para compartir el juego, copia la carpeta completa (con `assets/`),
+> no solo el `index.html`.
 
 ## 🎮 Cómo jugar
 
@@ -36,9 +47,19 @@ categoría** (APROVECHABLES / NO APROVECHABLES / ORGÁNICOS).
 | Lanzar a caneca **NEGRA** | `S` | `K` |
 | Lanzar a caneca **VERDE** | `D` | `L` |
 
-🔊 El juego incluye **efectos de sonido y música de fondo estilo arcade**
-(generados con la Web Audio API, sin archivos externos). Puedes silenciarlos
-con el botón 🔊 de la esquina superior derecha o con la tecla `M`.
+🔊 **Sonido y música:**
+- En la **pantalla de personalización** suena la pista oficial de Latin Green
+  como música ambiental (arranca con tu primer clic o tecla, como lo exigen
+  los navegadores).
+- Durante la **partida** suena un tema chiptune estilo arcade, y en la
+  **escena de premiación** un tema festivo especial (ambos generados con la
+  Web Audio API).
+- Efectos de lanzamiento, acierto, error, combos y cuenta regresiva.
+- Silencia todo con el botón 🔊 de la esquina superior derecha o la tecla `M`.
+
+🎨 **Zonas diferenciadas:** el lado del Jugador 1 es **azul** y el del
+Jugador 2 es **rosa** (fondo, franja superior y teclas), para identificar
+cada lado de un vistazo durante la partida.
 
 ### Rondas y puntuación
 
