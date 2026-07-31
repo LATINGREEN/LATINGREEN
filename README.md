@@ -29,10 +29,16 @@ categoría** (APROVECHABLES / NO APROVECHABLES / ORGÁNICOS).
 
 1. Abre `index.html` en cualquier navegador moderno (Chrome, Firefox, Edge).
    No requiere instalación ni conexión a internet.
-2. **Escribe el nombre de cada jugador** en su tarjeta (opcional; hasta 12
+2. **Elige el modo de juego** en el menú:
+   - 🕹️ **1 Jugador (individual)**: toda la pantalla para ti; al final el
+     juego evalúa tu desempeño según tu precisión (🏆 excelente / 💪 buen
+     intento / 😢 sigue practicando). Puedes usar `A`/`S`/`D` o `J`/`K`/`L`.
+   - ⚔️ **2 Jugadores (VS)**: duelo en pantalla dividida; gana quien
+     conquiste más rondas.
+3. **Escribe el nombre de cada jugador** en su tarjeta (opcional; hasta 12
    caracteres). Los nombres aparecen en el marcador, en los resultados de cada
    ronda y en la pantalla final.
-3. Presiona **¡A JUGAR!**.
+4. Presiona **¡A JUGAR!**.
 4. Cada jugador ve su zona con su banda de residuos y sus 3 canecas.
    El residuo activo (resaltado con un aro de color) muestra su nombre;
    decide rápido a qué caneca lanzarlo. Hay **34 tipos de residuos**:
