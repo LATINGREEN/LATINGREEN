@@ -41,8 +41,8 @@ categoría** (APROVECHABLES / NO APROVECHABLES / ORGÁNICOS).
 4. Presiona **¡A JUGAR!**.
 4. Cada jugador ve su zona con su banda de residuos y sus 3 canecas.
    El residuo activo (resaltado con un aro de color) muestra su nombre;
-   decide rápido a qué caneca lanzarlo. Hay **34 tipos de residuos**:
-   12 aprovechables (plástico, vidrio, metales, papel, cartón y tetrapak),
+   decide rápido a qué caneca lanzarlo. Hay **35 tipos de residuos**:
+   13 aprovechables (plástico, vidrio, metales, papel, cartón, tetrapak y CD),
    10 no aprovechables y 12 orgánicos.
 
 ### Controles

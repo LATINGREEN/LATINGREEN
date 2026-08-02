@@ -448,6 +448,7 @@ const WASTE_ITEMS = [
   { emoji: '🗞️', name: 'Revista vieja',       bin: 'white' },
   { emoji: '📦', name: 'Caja de cartón',      bin: 'white' },
   { emoji: '🧃', name: 'Caja de jugo (tetrapak)', bin: 'white' },
+  { emoji: '💿', name: 'CD usado',            bin: 'white' },
   // No aprovechables (caneca negra)
   { emoji: '🧻', name: 'Papel higiénico',     bin: 'black' },
   { emoji: '🧷', name: 'Pañal usado',         bin: 'black' },
@@ -458,7 +459,7 @@ const WASTE_ITEMS = [
   { emoji: '🍬', name: 'Envoltura de dulce',  bin: 'black' },
   { emoji: '🧽', name: 'Esponja usada',       bin: 'black' },
   { emoji: '🖊️', name: 'Esfero gastado',      bin: 'black' },
-  { emoji: '💿', name: 'CD rayado',           bin: 'black' },
+  { emoji: '🪥', name: 'Cepillo de dientes',  bin: 'black' },
   // Orgánicos (caneca verde)
   { emoji: '🍌', name: 'Cáscara de banano',   bin: 'green' },
   { emoji: '🍎', name: 'Restos de manzana',   bin: 'green' },
@@ -879,7 +880,7 @@ function update(dt) {
 
     // Mover residuos por la banda hasta su puesto en la fila
     player.items.forEach((item, i) => {
-      const queueX = player.xOffset + player.zoneW / 2 + i * 85;
+      const queueX = player.xOffset + player.zoneW / 2 + i * 105; // separación acorde al nuevo tamaño
       item.targetX = queueX;
       const dx = item.targetX - item.x;
       item.x += dx * Math.min(1, dt * 6);
@@ -1062,15 +1063,15 @@ function drawPlayerZone(player) {
       ctx.scale(pulse, pulse);
       // aro indicador del residuo activo
       ctx.strokeStyle = player.color;
-      ctx.lineWidth = 3;
+      ctx.lineWidth = 3.5;
       ctx.beginPath();
-      ctx.arc(0, 0, 40, 0, Math.PI * 2);
+      ctx.arc(0, 0, 54, 0, Math.PI * 2);
       ctx.stroke();
     } else {
       ctx.globalAlpha = 0.55;
       ctx.scale(0.75, 0.75);
     }
-    ctx.font = '52px serif';
+    ctx.font = '72px serif';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     ctx.fillText(item.def.emoji, 0, 2);
@@ -1078,9 +1079,9 @@ function drawPlayerZone(player) {
 
     if (isActive) {
       ctx.fillStyle = '#e2e8f0';
-      ctx.font = 'bold 15px "Segoe UI", sans-serif';
+      ctx.font = 'bold 17px "Segoe UI", sans-serif';
       ctx.textAlign = 'center';
-      ctx.fillText(item.def.name, item.x, item.y + 62);
+      ctx.fillText(item.def.name, item.x, item.y + 82);
     }
   });
 
@@ -1089,7 +1090,7 @@ function drawPlayerZone(player) {
     ctx.save();
     ctx.translate(p.x, p.y);
     ctx.rotate(p.rotation);
-    ctx.font = '46px serif';
+    ctx.font = '62px serif';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     ctx.fillText(p.def.emoji, 0, 0);
