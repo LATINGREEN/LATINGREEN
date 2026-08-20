@@ -53,6 +53,36 @@ categoría** (APROVECHABLES / NO APROVECHABLES / ORGÁNICOS).
 | Lanzar a caneca **NEGRA** | `S` | `K` |
 | Lanzar a caneca **VERDE** | `D` | `L` |
 
+### 🎮 Jugar con control (gamepad)
+
+Conecta un control **USB o Bluetooth** (Xbox, PlayStation 4/5, genérico) al
+computador y el juego lo detecta automáticamente (aparece el aviso
+"🎮 control conectado"). Mapeo:
+
+| Botón | Acción |
+|-------|--------|
+| ⬜ / X (botón izquierdo) o cruceta ⬅ | Lanzar a caneca **BLANCA** |
+| ✕ / A (botón inferior) o cruceta ⬇ | Lanzar a caneca **NEGRA** |
+| ⭕ / B (botón derecho) o cruceta ➡ | Lanzar a caneca **VERDE** |
+| START / OPTIONS | Iniciar partida · siguiente ronda · jugar de nuevo |
+
+- **Control 1 = Jugador 1, Control 2 = Jugador 2** (pueden convivir con el
+  teclado: un jugador con control y otro con teclado).
+- El control DualShock 3 (PS3) conectado por USB también puede funcionar,
+  aunque según el sistema operativo puede requerir drivers adicionales.
+
+### 🕹️ ¿Se puede instalar en una PlayStation 3?
+
+No: la PS3 no permite instalar juegos propios y su navegador no soporta la
+tecnología del juego. Alternativas para lograr la misma experiencia de
+"consola" en un evento:
+
+1. **Computador o portátil + televisor por HDMI + 2 controles USB** — la
+   opción más sencilla: pantalla grande y controles, como una consola.
+2. **Raspberry Pi conectada al televisor** con el juego en modo kiosco —
+   económica y compacta para stands educativos.
+3. **Android TV / Smart TV** con navegador moderno también puede ejecutarlo.
+
 🔊 **Sonido y música:**
 - En la **pantalla de personalización** suena la pista oficial de Latin Green
   como música ambiental (arranca con tu primer clic o tecla, como lo exigen

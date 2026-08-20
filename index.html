@@ -298,6 +298,25 @@
     transition: transform 0.1s ease, border-color 0.2s ease;
   }
   #mute-btn:hover { transform: scale(1.1); border-color: var(--accent); }
+  #gamepad-status {
+    position: absolute;
+    bottom: 12px; right: 18px;
+    z-index: 20;
+    background: var(--panel);
+    border: 1px solid rgba(74, 222, 128, 0.4);
+    border-radius: 20px;
+    padding: 6px 14px;
+    font-size: 13px;
+    color: #86efac;
+  }
+  .gamepad-hint {
+    max-width: 640px;
+    font-size: 13px;
+    color: #94a3b8;
+    margin-bottom: 22px;
+    line-height: 1.5;
+  }
+  .gamepad-hint b { color: #cbd5e1; }
 </style>
 </head>
 <body>
@@ -358,6 +377,9 @@
         </div>
       </div>
     </div>
+    <p class="gamepad-hint">🎮 ¿Tienes un control USB o Bluetooth? Conéctalo y juega con él:
+      <b>⬜/X → Blanca</b> · <b>✕/A → Negra</b> · <b>⭕/B → Verde</b> (o la cruceta ⬅⬇➡).
+      <b>START</b> avanza las pantallas. Control 1 = Jugador 1, Control 2 = Jugador 2.</p>
     <button class="big-btn" id="start-btn">▶ ¡A JUGAR!</button>
   </div>
 
@@ -408,6 +430,7 @@
   </div>
 
   <button id="mute-btn" title="Activar/silenciar sonido (tecla M)">🔊</button>
+  <div id="gamepad-status" style="display:none">🎮</div>
   <div class="brand">
     <img src="assets/logo.svg" alt="Latin Green E.S.P.">
     <span>SEPARAR ES CUIDAR EL PLANETA</span>
@@ -1243,10 +1266,61 @@ function render(dt) {
   drawCenterHUD();
 }
 
+// --- Soporte de control (Gamepad API) ------------------------
+// Control 1 -> Jugador 1, Control 2 -> Jugador 2 (en modo individual,
+// cualquier control maneja al jugador). Mapeo pensado para mandos tipo
+// PlayStation/Xbox con disposición estándar:
+//   ⬜ / X (botón izquierdo)  o cruceta izquierda -> caneca BLANCA
+//   ✕ / A (botón inferior)   o cruceta abajo     -> caneca NEGRA
+//   ⭕ / B (botón derecho)    o cruceta derecha   -> caneca VERDE
+//   START / OPTIONS -> iniciar partida, siguiente ronda, jugar de nuevo
+const gamepadPrev = [];
+
+function pressMainButton() {
+  if (gameState === STATE.MENU) startGame();
+  else if (gameState === STATE.INTERMISSION) nextRound();
+  else if (gameState === STATE.ENDED) startGame();
+}
+
+function pollGamepads() {
+  if (!navigator.getGamepads) return;
+  const pads = navigator.getGamepads();
+  for (let gi = 0; gi < pads.length; gi++) {
+    const pad = pads[gi];
+    if (!pad || !pad.connected) continue;
+    const prev = gamepadPrev[gi] || [];
+    const pressed = pad.buttons.map(b => b.pressed);
+    const justPressed = (i) => pressed[i] && !prev[i];
+
+    if (justPressed(9)) pressMainButton(); // START / OPTIONS
+
+    if (gameState === STATE.PLAYING && players.length) {
+      const player = players[Math.min(gi, players.length - 1)];
+      if (justPressed(2) || justPressed(14)) throwItem(player, 0); // ⬜/X o ⬅
+      if (justPressed(0) || justPressed(13)) throwItem(player, 1); // ✕/A o ⬇
+      if (justPressed(1) || justPressed(15)) throwItem(player, 2); // ⭕/B o ➡
+    }
+    gamepadPrev[gi] = pressed;
+  }
+}
+
+// indicador de controles conectados
+function updateGamepadBadge() {
+  const el = document.getElementById('gamepad-status');
+  const n = navigator.getGamepads
+    ? Array.from(navigator.getGamepads()).filter(p => p && p.connected).length
+    : 0;
+  el.style.display = n ? '' : 'none';
+  el.textContent = n === 1 ? '🎮 1 control conectado' : `🎮 ${n} controles conectados`;
+}
+window.addEventListener('gamepadconnected', updateGamepadBadge);
+window.addEventListener('gamepaddisconnected', updateGamepadBadge);
+
 // --- Bucle principal ----------------------------------------
 function loop(ts) {
   const dt = Math.min(0.05, (ts - lastTime) / 1000 || 0);
   lastTime = ts;
+  pollGamepads(); // los controles se leen por sondeo en cada cuadro
   if (gameState === STATE.PLAYING) {
     update(dt);
     if (gameState === STATE.PLAYING) render(dt);
