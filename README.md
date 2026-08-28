@@ -53,6 +53,22 @@ categoría** (APROVECHABLES / NO APROVECHABLES / ORGÁNICOS).
 | Lanzar a caneca **NEGRA** | `S` | `K` |
 | Lanzar a caneca **VERDE** | `D` | `L` |
 
+### 📱 Jugar en celular o tableta
+
+El juego funciona en dispositivos móviles con **controles táctiles**:
+
+- **Toca la caneca** donde quieras lanzar el residuo activo (la caneca
+  tocada se resalta un instante). En modo VS cada jugador toca en su mitad,
+  con soporte multitáctil para jugar a la vez.
+- Al iniciar la partida, el juego pasa a **pantalla completa** automáticamente.
+- Se recomienda jugar con el dispositivo en **horizontal** (el juego lo
+  sugiere si está en vertical).
+- En computador, el **clic del mouse** sobre las canecas también lanza.
+
+Para usarlo en el celular sin servidor: copia la carpeta al teléfono y abre
+`index.html` con Chrome/Firefox, o publícalo en cualquier hosting
+(GitHub Pages, Netlify) y compártelo como enlace.
+
 ### 🎮 Jugar con control (gamepad)
 
 Conecta un control **USB o Bluetooth** (Xbox, PlayStation 4/5, genérico) al

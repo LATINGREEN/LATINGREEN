@@ -34,6 +34,31 @@
     box-shadow: 0 0 60px rgba(74, 222, 128, 0.15);
     max-width: 100%;
     max-height: 100%;
+    touch-action: none;       /* evita zoom y desplazamiento al tocar */
+    -webkit-user-select: none;
+    user-select: none;
+  }
+  body { -webkit-tap-highlight-color: transparent; }
+  #rotate-hint {
+    display: none;
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    z-index: 30;
+    background: rgba(180, 83, 9, 0.95);
+    color: #fff;
+    text-align: center;
+    padding: 9px 12px;
+    font-size: 13px;
+    font-weight: 600;
+  }
+  /* solo en dispositivos táctiles en vertical */
+  @media (orientation: portrait) and (pointer: coarse) {
+    #rotate-hint { display: block; }
+  }
+  /* en pantallas bajas (celular horizontal) se despeja la interfaz */
+  @media (max-height: 500px) {
+    .brand { display: none; }
+    #mute-btn { width: 38px; height: 38px; font-size: 17px; top: 8px; right: 10px; }
   }
   .overlay {
     position: absolute;
@@ -377,9 +402,10 @@
         </div>
       </div>
     </div>
-    <p class="gamepad-hint">🎮 ¿Tienes un control USB o Bluetooth? Conéctalo y juega con él:
-      <b>⬜/X → Blanca</b> · <b>✕/A → Negra</b> · <b>⭕/B → Verde</b> (o la cruceta ⬅⬇➡).
-      <b>START</b> avanza las pantallas. Control 1 = Jugador 1, Control 2 = Jugador 2.</p>
+    <p class="gamepad-hint">📱 <b>En celular o tableta:</b> toca la caneca donde quieras lanzar el residuo
+      (en computador también funciona el clic). 🎮 <b>¿Tienes un control USB o Bluetooth?</b> Conéctalo:
+      <b>⬜/X → Blanca</b> · <b>✕/A → Negra</b> · <b>⭕/B → Verde</b> (o la cruceta ⬅⬇➡),
+      y <b>START</b> avanza las pantallas. Control 1 = Jugador 1, Control 2 = Jugador 2.</p>
     <button class="big-btn" id="start-btn">▶ ¡A JUGAR!</button>
   </div>
 
@@ -431,6 +457,7 @@
 
   <button id="mute-btn" title="Activar/silenciar sonido (tecla M)">🔊</button>
   <div id="gamepad-status" style="display:none">🎮</div>
+  <div id="rotate-hint">🔄 Para jugar mejor, gira tu dispositivo a horizontal</div>
   <div class="brand">
     <img src="assets/logo.svg" alt="Latin Green E.S.P.">
     <span>SEPARAR ES CUIDAR EL PLANETA</span>
@@ -722,6 +749,7 @@ function makePlayer(id, name, xOffset, zoneW, keys, color) {
     projectiles: [],  // residuos volando hacia una caneca
     effects: [],      // partículas y textos flotantes
     shake: 0,
+    tapFlash: null,   // destello de la caneca tocada (táctil/clic)
   };
 }
 
@@ -941,6 +969,10 @@ function update(dt) {
     }
 
     if (player.shake > 0) player.shake = Math.max(0, player.shake - dt);
+    if (player.tapFlash) {
+      player.tapFlash.t -= dt;
+      if (player.tapFlash.t <= 0) player.tapFlash = null;
+    }
   });
 }
 
@@ -1053,9 +1085,10 @@ function drawPlayerZone(player) {
     ctx.fillRect(ox + x, CONVEYOR_Y + 36, 18, 12);
   }
 
-  // Canecas
+  // Canecas (la tocada se resalta un instante)
   const bins = binPositions(player);
-  bins.forEach((bx, i) => drawBin(bx, BINS_Y, BIN_ORDER[i], false));
+  bins.forEach((bx, i) => drawBin(bx, BINS_Y, BIN_ORDER[i],
+    player.tapFlash !== null && player.tapFlash.bin === i));
 
   // Teclas guía bajo cada caneca (en modo individual sirven ambas manos)
   const keyNames = gameMode === 'solo'
@@ -1266,6 +1299,34 @@ function render(dt) {
   drawCenterHUD();
 }
 
+// --- Soporte táctil y de mouse (celulares, tabletas y clic) --
+// Tocar (o hacer clic en) una caneca lanza el residuo activo hacia
+// ella. Funciona con varios dedos a la vez para el modo VS.
+function canvasCoords(clientX, clientY) {
+  const rect = canvas.getBoundingClientRect();
+  return {
+    x: (clientX - rect.left) * (W / rect.width),
+    y: (clientY - rect.top) * (H / rect.height),
+  };
+}
+
+canvas.addEventListener('pointerdown', (e) => {
+  if (gameState !== STATE.PLAYING) return;
+  e.preventDefault();
+  const { x, y } = canvasCoords(e.clientX, e.clientY);
+  if (y < 330) return; // solo la franja inferior, donde están las canecas
+  const player = players.find(p => x >= p.xOffset && x < p.xOffset + p.zoneW);
+  if (!player) return;
+  const bins = binPositions(player);
+  let best = 0, bestDist = Infinity;
+  bins.forEach((bx, i) => {
+    const d = Math.abs(bx - x);
+    if (d < bestDist) { bestDist = d; best = i; }
+  });
+  player.tapFlash = { bin: best, t: 0.3 }; // destello de confirmación
+  throwItem(player, best);
+});
+
 // --- Soporte de control (Gamepad API) ------------------------
 // Control 1 -> Jugador 1, Control 2 -> Jugador 2 (en modo individual,
 // cualquier control maneja al jugador). Mapeo pensado para mandos tipo
@@ -1334,6 +1395,11 @@ const roundScreen = document.getElementById('round-screen');
 const endScreen = document.getElementById('end-screen');
 
 function startGame() {
+  // en celulares y tabletas, pasar a pantalla completa para jugar cómodo
+  if (window.matchMedia('(pointer: coarse)').matches) {
+    const container = document.getElementById('game-container');
+    if (container.requestFullscreen) container.requestFullscreen().catch(() => {});
+  }
   AudioFX.init();       // el clic del usuario habilita el audio del navegador
   brandMusic.pause();   // la pista ambiental cede el paso al tema de juego
   brandMusic.currentTime = 0;
@@ -1557,6 +1623,7 @@ function fitCanvas() {
   canvas.style.height = `${H * scale}px`;
 }
 window.addEventListener('resize', fitCanvas);
+document.addEventListener('fullscreenchange', fitCanvas);
 fitCanvas();
 
 resetGame();
