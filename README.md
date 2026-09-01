@@ -65,9 +65,17 @@ El juego funciona en dispositivos móviles con **controles táctiles**:
   sugiere si está en vertical).
 - En computador, el **clic del mouse** sobre las canecas también lanza.
 
-Para usarlo en el celular sin servidor: copia la carpeta al teléfono y abre
-`index.html` con Chrome/Firefox, o publícalo en cualquier hosting
-(GitHub Pages, Netlify) y compártelo como enlace.
+En celular, en **modo individual el juego se muestra en vertical** de forma
+nativa (no hace falta girar el teléfono); el modo VS se juega en horizontal.
+
+**Formas de llevarlo al celular** (de más fácil a menos):
+1. **Publicarlo como enlace** (GitHub Pages, Netlify o un artifact de Claude)
+   y abrirlo desde el navegador del teléfono: funciona en Android y iPhone
+   sin instalar nada.
+2. **Un solo archivo**: ejecuta `node build-single-file.mjs` para generar
+   `eco-arcade-latin-green.html` con el logo y la música incrustados, y
+   compártelo por WhatsApp o correo. En Android se abre con Chrome; en iPhone
+   los archivos locales no ejecutan juegos, así que usa la opción 1.
 
 ### 🎮 Jugar con control (gamepad)
 
