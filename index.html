@@ -51,15 +51,6 @@
     font-size: 13px;
     font-weight: 600;
   }
-  /* solo en dispositivos táctiles en vertical */
-  @media (orientation: portrait) and (pointer: coarse) {
-    #rotate-hint { display: block; }
-  }
-  /* en pantallas bajas (celular horizontal) se despeja la interfaz */
-  @media (max-height: 500px) {
-    .brand { display: none; }
-    #mute-btn { width: 38px; height: 38px; font-size: 17px; top: 8px; right: 10px; }
-  }
   .overlay {
     position: absolute;
     inset: 0;
@@ -72,6 +63,7 @@
     z-index: 10;
     text-align: center;
     padding: 24px;
+    overflow-y: auto; /* en pantallas pequeñas el contenido se desplaza */
   }
   .overlay.hidden { display: none; }
   h1 {
@@ -163,7 +155,7 @@
     border: 2px solid rgba(255,255,255,0.15);
     border-radius: 8px;
     color: #f8fafc;
-    font-size: 15px;
+    font-size: 16px; /* mínimo 16px: evita el zoom automático de iOS al escribir */
     font-weight: 600;
     text-align: center;
     outline: none;
@@ -342,6 +334,54 @@
     line-height: 1.5;
   }
   .gamepad-hint b { color: #cbd5e1; }
+
+  /* ============================================================
+     Reglas responsivas para celular (al final para tener prioridad)
+     ============================================================ */
+  /* el aviso de girar solo aplica al modo VS en táctil vertical
+     (el modo individual juega en vertical de forma nativa) */
+  @media (orientation: portrait) and (pointer: coarse) {
+    body.vs-mode #rotate-hint { display: block; }
+  }
+  /* en pantallas bajas (celular horizontal) se despeja la interfaz */
+  @media (max-height: 500px) {
+    .brand { display: none; }
+    #mute-btn { width: 38px; height: 38px; font-size: 17px; top: 8px; right: 10px; }
+  }
+  /* menús compactos para celular: todo cabe y se puede desplazar */
+  @media (max-width: 760px), (max-height: 760px) {
+    .overlay { justify-content: flex-start; padding: 14px 12px 30px; }
+    .logo-main { width: 150px; margin-bottom: 2px; }
+    .logo-award { width: 110px; }
+    h1 { font-size: 24px; margin-bottom: 4px; }
+    .subtitle { font-size: 12.5px; margin-bottom: 12px; }
+    .rules { gap: 8px; margin-bottom: 14px; }
+    .rule-card { width: 112px; padding: 8px 8px; border-radius: 10px; }
+    .rule-card .bin-icon { font-size: 22px; margin-bottom: 4px; }
+    .rule-card h3 { font-size: 11px; margin-bottom: 3px; }
+    .rule-card p { font-size: 9.5px; }
+    .mode-select { gap: 10px; margin-bottom: 14px; }
+    .mode-btn { width: 165px; padding: 8px 10px; }
+    .mode-btn .mode-icon { font-size: 22px; }
+    .mode-btn .mode-title { font-size: 13px; }
+    .mode-btn .mode-desc { font-size: 9.5px; }
+    .gamepad-hint { display: none; }
+    .controls-row { gap: 12px; margin-bottom: 16px; }
+    .player-controls { padding: 10px 14px; }
+    .player-controls h3 { font-size: 13px; margin-bottom: 6px; }
+    .result-scores { gap: 12px; margin: 10px 0 16px; }
+    .result-card { padding: 12px 16px; min-width: 170px; }
+    .result-card .score-big { font-size: 30px; }
+    .avatar-zone { height: 64px; }
+    .avatar { font-size: 42px; line-height: 64px; }
+    .winner-banner { font-size: 19px; }
+    .eco-tip { font-size: 12px; padding: 10px 14px; margin-bottom: 14px; }
+    button.big-btn { font-size: 17px; padding: 12px 34px; }
+  }
+  /* en pantallas táctiles las teclas del teclado no aplican */
+  @media (pointer: coarse) {
+    .keys { display: none; }
+  }
 </style>
 </head>
 <body>
@@ -350,7 +390,7 @@
 
   <!-- Pantalla de inicio -->
   <div id="start-screen" class="overlay">
-    <img class="logo-main" src="assets/logo.svg" alt="Latin Green E.S.P.">
+    <img class="logo-main" src="assets/logo.svg" alt="Latin Green E.S.P." onerror="this.style.display='none'">
     <h1>♻️ ECO-ARCADE</h1>
     <p class="subtitle">¡Lanza cada residuo a la caneca correcta! · 3 rondas de 45 segundos, cada una más rápida.<br>Gana quien conquiste más rondas ⭐ (desempata el puntaje total).</p>
     <div class="rules">
@@ -371,12 +411,12 @@
       </div>
     </div>
     <div class="mode-select">
-      <button class="mode-btn" id="mode-solo">
+      <button class="mode-btn selected" id="mode-solo">
         <span class="mode-icon">🕹️</span>
         <span class="mode-title">1 JUGADOR</span>
         <span class="mode-desc">Modo individual: supera tu propio récord</span>
       </button>
-      <button class="mode-btn selected" id="mode-vs">
+      <button class="mode-btn" id="mode-vs">
         <span class="mode-icon">⚔️</span>
         <span class="mode-title">2 JUGADORES</span>
         <span class="mode-desc">Modo VS: duelo en pantalla dividida</span>
@@ -428,7 +468,7 @@
 
   <!-- Pantalla de resultados -->
   <div id="end-screen" class="overlay hidden">
-    <img class="logo-award" src="assets/logo.svg" alt="Latin Green E.S.P.">
+    <img class="logo-award" src="assets/logo.svg" alt="Latin Green E.S.P." onerror="this.style.display='none'">
     <div class="winner-banner" id="winner-text">🏆 ¡GANA EL JUGADOR 1!</div>
     <p class="subtitle">Resultados de la partida</p>
     <div class="result-scores">
@@ -459,7 +499,7 @@
   <div id="gamepad-status" style="display:none">🎮</div>
   <div id="rotate-hint">🔄 Para jugar mejor, gira tu dispositivo a horizontal</div>
   <div class="brand">
-    <img src="assets/logo.svg" alt="Latin Green E.S.P.">
+    <img src="assets/logo.svg" alt="Latin Green E.S.P." onerror="this.style.display='none'">
     <span>SEPARAR ES CUIDAR EL PLANETA</span>
   </div>
   <audio id="brand-music" src="assets/latin-green.m4a" loop preload="auto"></audio>
@@ -476,8 +516,10 @@
 
 const canvas = document.getElementById('canvas');
 const ctx = canvas.getContext('2d');
-const W = canvas.width;
-const H = canvas.height;
+// El lienzo cambia de orientación: horizontal (1280x720) en computador
+// y en modo VS; vertical (720x1180) en celulares en modo individual.
+let W = canvas.width;
+let H = canvas.height;
 
 const ROUNDS = 3;          // rondas por partida
 const ROUND_DURATION = 45; // segundos por ronda
@@ -730,7 +772,7 @@ document.addEventListener('keydown', tryStartAmbient, true);
 // --- Estado del juego ---------------------------------------
 const STATE = { MENU: 0, PLAYING: 1, INTERMISSION: 2, ENDED: 3 };
 let gameState = STATE.MENU;
-let gameMode = 'vs'; // 'solo' (1 jugador) | 'vs' (2 jugadores)
+let gameMode = 'solo'; // 'solo' (1 jugador, predeterminado) | 'vs' (2 jugadores)
 let currentRound = 1;
 let timeLeft = ROUND_DURATION;
 let roundBanner = 0; // segundos restantes del anuncio "¡RONDA X!"
@@ -795,7 +837,7 @@ function startRound() {
 // Cada jugador tiene xOffset y zoneW: media pantalla en modo VS,
 // pantalla completa en modo individual.
 const CONVEYOR_Y = 190;     // banda transportadora donde espera el residuo
-const BINS_Y = H - 150;
+let BINS_Y = H - 150;       // se recalcula al cambiar la orientación
 
 function binPositions(player) {
   const usable = Math.min(player.zoneW - 180, 620);
@@ -1067,7 +1109,7 @@ function drawPlayerZone(player) {
     ctx.save();
     ctx.globalAlpha = 0.07;
     const lw = 230, lh = lw * (logoImg.naturalHeight / logoImg.naturalWidth);
-    ctx.drawImage(logoImg, ox + player.zoneW / 2 - lw / 2, 370, lw, lh);
+    ctx.drawImage(logoImg, ox + player.zoneW / 2 - lw / 2, H * 0.5 - 60, lw, lh);
     ctx.restore();
   }
 
@@ -1314,7 +1356,7 @@ canvas.addEventListener('pointerdown', (e) => {
   if (gameState !== STATE.PLAYING) return;
   e.preventDefault();
   const { x, y } = canvasCoords(e.clientX, e.clientY);
-  if (y < 330) return; // solo la franja inferior, donde están las canecas
+  if (y < H * 0.45) return; // solo la mitad inferior, donde están las canecas
   const player = players.find(p => x >= p.xOffset && x < p.xOffset + p.zoneW);
   if (!player) return;
   const bins = binPositions(player);
@@ -1400,6 +1442,7 @@ function startGame() {
     const container = document.getElementById('game-container');
     if (container.requestFullscreen) container.requestFullscreen().catch(() => {});
   }
+  updateOrientation();  // fija la orientación del lienzo para esta partida
   AudioFX.init();       // el clic del usuario habilita el audio del navegador
   brandMusic.pause();   // la pista ambiental cede el paso al tema de juego
   brandMusic.currentTime = 0;
@@ -1591,10 +1634,14 @@ function setMode(mode) {
   modeVsBtn.classList.toggle('selected', mode === 'vs');
   // en modo individual se oculta la tarjeta del jugador 2
   document.querySelector('.player-controls.p2').style.display = mode === 'solo' ? 'none' : '';
+  // el aviso de girar el celular solo aplica al modo VS (el individual es vertical)
+  document.body.classList.toggle('vs-mode', mode === 'vs');
+  updateOrientation();
   AudioFX.clickFx();
 }
 modeSoloBtn.addEventListener('click', () => setMode('solo'));
 modeVsBtn.addEventListener('click', () => setMode('vs'));
+setMode('solo'); // modo individual predeterminado
 
 document.getElementById('start-btn').addEventListener('click', startGame);
 document.getElementById('next-round-btn').addEventListener('click', nextRound);
@@ -1616,15 +1663,34 @@ document.addEventListener('keydown', (e) => {
   if (e.code === 'KeyM') toggleSound();
 });
 
-// Escalado responsivo del canvas manteniendo proporción 16:9
+// Escalado responsivo del canvas a la ventana
 function fitCanvas() {
   const scale = Math.min(window.innerWidth / W, window.innerHeight / H) * 0.98;
   canvas.style.width = `${W * scale}px`;
   canvas.style.height = `${H * scale}px`;
 }
-window.addEventListener('resize', fitCanvas);
-document.addEventListener('fullscreenchange', fitCanvas);
-fitCanvas();
+
+// Elige la orientación del lienzo según la pantalla y el modo:
+// vertical para celular en modo individual, horizontal en el resto.
+// Nunca cambia a mitad de partida.
+function updateOrientation() {
+  if (gameState === STATE.PLAYING || gameState === STATE.INTERMISSION) { fitCanvas(); return; }
+  const portrait = window.innerHeight > window.innerWidth && gameMode === 'solo';
+  const nw = portrait ? 720 : 1280;
+  const nh = portrait ? 1180 : 720;
+  if (canvas.width !== nw) {
+    canvas.width = nw;
+    canvas.height = nh;
+    W = nw; H = nh;
+    BINS_Y = H - 150;
+    leaves.forEach(l => { l.x = Math.random() * W; l.y = Math.random() * H; });
+    if (gameState !== STATE.PLAYING) { resetGame(); render(0); }
+  }
+  fitCanvas();
+}
+window.addEventListener('resize', updateOrientation);
+document.addEventListener('fullscreenchange', updateOrientation);
+updateOrientation();
 
 resetGame();
 render(0);
