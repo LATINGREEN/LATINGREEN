@@ -1,12 +1,12 @@
 # ♻️ Eco-Arcade Latin Green E.S.P.
 
-Videojuego arcade **para 2 jugadores** donde cada jugador debe lanzar los residuos
-que llegan por la banda transportadora a la caneca correcta, siguiendo el código
-de colores de separación en la fuente:
+Videojuego arcade educativo **para un jugador** en el que debes lanzar los
+residuos que llegan por la banda transportadora a la caneca correcta,
+siguiendo el código de colores de separación en la fuente aplicado en Colombia:
 
 | Caneca | Color | Residuos |
 |--------|-------|----------|
-| ⚪ **Blanca** | Aprovechables | Plástico, vidrio, cartón, papel, metales |
+| ⚪ **Blanca** | Aprovechables | Plástico, vidrio, cartón, papel, metales, tetrapak, CD |
 | ⚫ **Negra** | No aprovechables | Papel higiénico, servilletas usadas, icopor sucio, colillas |
 | 🟢 **Verde** | Orgánicos | Restos de comida, cáscaras, residuos de jardín, borra de café |
 
@@ -19,122 +19,71 @@ categoría** (APROVECHABLES / NO APROVECHABLES / ORGÁNICOS).
 | Archivo | Descripción |
 |---------|-------------|
 | `index.html` | El juego completo |
-| `assets/logo.svg` | Logo Latin Green E.S.P. (versión vectorial recreada; puedes reemplazarla por tu archivo oficial conservando el nombre) |
+| `assets/logo.svg` | Logo Latin Green E.S.P. (recreación vectorial fiel al original; puede reemplazarse por el archivo oficial conservando el nombre) |
 | `assets/latin-green.m4a` | Pista musical de Latin Green (música ambiental de la pantalla de inicio) |
+| `build-single-file.mjs` | Genera `eco-arcade-latin-green.html`: el juego en un solo archivo con logo y música incrustados |
 
-> 💡 Para compartir el juego, copia la carpeta completa (con `assets/`),
-> no solo el `index.html`.
+> 💡 Para compartir el juego, copia la carpeta completa (con `assets/`) o
+> genera la versión de un solo archivo con `node build-single-file.mjs`.
 
 ## 🎮 Cómo jugar
 
-1. Abre `index.html` en cualquier navegador moderno (Chrome, Firefox, Edge).
-   No requiere instalación ni conexión a internet.
-2. **Elige el modo de juego** en el menú:
-   - 🕹️ **1 Jugador (individual)**: toda la pantalla para ti; al final el
-     juego evalúa tu desempeño según tu precisión (🏆 excelente / 💪 buen
-     intento / 😢 sigue practicando). Puedes usar `A`/`S`/`D` o `J`/`K`/`L`.
-   - ⚔️ **2 Jugadores (VS)**: duelo en pantalla dividida; gana quien
-     conquiste más rondas.
-3. **Escribe el nombre de cada jugador** en su tarjeta (opcional; hasta 12
-   caracteres). Los nombres aparecen en el marcador, en los resultados de cada
-   ronda y en la pantalla final.
-4. Presiona **¡A JUGAR!**.
-4. Cada jugador ve su zona con su banda de residuos y sus 3 canecas.
-   El residuo activo (resaltado con un aro de color) muestra su nombre;
-   decide rápido a qué caneca lanzarlo. Hay **35 tipos de residuos**:
-   13 aprovechables (plástico, vidrio, metales, papel, cartón, tetrapak y CD),
+1. Abre `index.html` en cualquier navegador moderno (Chrome, Firefox, Edge,
+   Safari), en computador, tableta o celular. No requiere instalación ni
+   conexión a internet.
+2. **Escribe tu nombre** (opcional, hasta 12 caracteres): aparece en el
+   marcador, en los resultados de cada ronda y en la premiación.
+3. Presiona **¡A JUGAR!**.
+4. El residuo activo (resaltado con un aro) muestra su nombre; decide rápido
+   a qué caneca lanzarlo. Hay **35 tipos de residuos**: 13 aprovechables,
    10 no aprovechables y 12 orgánicos.
 
 ### Controles
 
-| Acción | Jugador 1 | Jugador 2 |
-|--------|-----------|-----------|
-| Lanzar a caneca **BLANCA** | `A` | `J` |
-| Lanzar a caneca **NEGRA** | `S` | `K` |
-| Lanzar a caneca **VERDE** | `D` | `L` |
+| Dispositivo | Cómo lanzar |
+|-------------|-------------|
+| 📱 **Celular / tableta** | **Toca la caneca** donde quieras lanzar (la caneca tocada se resalta) |
+| ⌨️ **Teclado** | `A`/`S`/`D` o `J`/`K`/`L` → caneca blanca / negra / verde |
+| 🖱️ **Mouse** | Clic sobre la caneca |
+| 🎮 **Control** (USB o Bluetooth) | ⬜/X o cruceta ⬅ → blanca · ✕/A o ⬇ → negra · ⭕/B o ➡ → verde · START avanza pantallas |
 
-### 📱 Jugar en celular o tableta
+- Tecla `M` o botón 🔊: silenciar / activar sonido.
+- En celular, el juego se muestra en **vertical** de forma nativa y pasa a
+  pantalla completa al iniciar.
 
-El juego funciona en dispositivos móviles con **controles táctiles**:
+### Rondas, puntuación y récord
 
-- **Toca la caneca** donde quieras lanzar el residuo activo (la caneca
-  tocada se resalta un instante). En modo VS cada jugador toca en su mitad,
-  con soporte multitáctil para jugar a la vez.
-- Al iniciar la partida, el juego pasa a **pantalla completa** automáticamente.
-- Se recomienda jugar con el dispositivo en **horizontal** (el juego lo
-  sugiere si está en vertical).
-- En computador, el **clic del mouse** sobre las canecas también lanza.
+- 🕹️ Partida de **3 rondas de 45 segundos** (~2½ minutos). Cada ronda es
+  más rápida, y dentro de cada ronda los residuos llegan con más frecuencia.
+- ✅ Acierto: **+100 puntos** (bonificación por combo desde 3 aciertos seguidos).
+- ❌ Error: **−50 puntos**, se reinicia el combo y el juego muestra cuál era
+  la caneca correcta.
+- 🏆 **Récord personal** guardado en el dispositivo: el juego lo muestra en
+  el inicio y celebra cuando lo superas.
+- 🎭 La **escena final** evalúa tu desempeño según la precisión: con 60 % o
+  más celebras con confeti y fanfarria (🏆 "¡Excelente!"), entre 40 % y 59 %
+  recibes ánimo (💪 "¡Buen intento!"), y por debajo aparece la animación de
+  llanto con trombón triste (😢 "¡Sigue practicando!").
 
-En celular, en **modo individual el juego se muestra en vertical** de forma
-nativa (no hace falta girar el teléfono); el modo VS se juega en horizontal.
+## 🔊 Sonido y música
 
-**Formas de llevarlo al celular** (de más fácil a menos):
+- En la **pantalla de inicio** suena la pista oficial de Latin Green como
+  música ambiental (arranca con tu primer toque o clic, como exigen los
+  navegadores).
+- Durante la **partida** suena un tema chiptune estilo arcade, y en la
+  **premiación** un tema festivo especial (ambos generados con la Web Audio
+  API, sin archivos externos).
+- Efectos de lanzamiento, acierto, error, combos y cuenta regresiva.
+
+## 📲 Cómo llevarlo al celular
+
 1. **Publicarlo como enlace** (GitHub Pages, Netlify o un artifact de Claude)
    y abrirlo desde el navegador del teléfono: funciona en Android y iPhone
-   sin instalar nada.
-2. **Un solo archivo**: ejecuta `node build-single-file.mjs` para generar
-   `eco-arcade-latin-green.html` con el logo y la música incrustados, y
-   compártelo por WhatsApp o correo. En Android se abre con Chrome; en iPhone
-   los archivos locales no ejecutan juegos, así que usa la opción 1.
-
-### 🎮 Jugar con control (gamepad)
-
-Conecta un control **USB o Bluetooth** (Xbox, PlayStation 4/5, genérico) al
-computador y el juego lo detecta automáticamente (aparece el aviso
-"🎮 control conectado"). Mapeo:
-
-| Botón | Acción |
-|-------|--------|
-| ⬜ / X (botón izquierdo) o cruceta ⬅ | Lanzar a caneca **BLANCA** |
-| ✕ / A (botón inferior) o cruceta ⬇ | Lanzar a caneca **NEGRA** |
-| ⭕ / B (botón derecho) o cruceta ➡ | Lanzar a caneca **VERDE** |
-| START / OPTIONS | Iniciar partida · siguiente ronda · jugar de nuevo |
-
-- **Control 1 = Jugador 1, Control 2 = Jugador 2** (pueden convivir con el
-  teclado: un jugador con control y otro con teclado).
-- El control DualShock 3 (PS3) conectado por USB también puede funcionar,
-  aunque según el sistema operativo puede requerir drivers adicionales.
-
-### 🕹️ ¿Se puede instalar en una PlayStation 3?
-
-No: la PS3 no permite instalar juegos propios y su navegador no soporta la
-tecnología del juego. Alternativas para lograr la misma experiencia de
-"consola" en un evento:
-
-1. **Computador o portátil + televisor por HDMI + 2 controles USB** — la
-   opción más sencilla: pantalla grande y controles, como una consola.
-2. **Raspberry Pi conectada al televisor** con el juego en modo kiosco —
-   económica y compacta para stands educativos.
-3. **Android TV / Smart TV** con navegador moderno también puede ejecutarlo.
-
-🔊 **Sonido y música:**
-- En la **pantalla de personalización** suena la pista oficial de Latin Green
-  como música ambiental (arranca con tu primer clic o tecla, como lo exigen
-  los navegadores).
-- Durante la **partida** suena un tema chiptune estilo arcade, y en la
-  **escena de premiación** un tema festivo especial (ambos generados con la
-  Web Audio API).
-- Efectos de lanzamiento, acierto, error, combos y cuenta regresiva.
-- Silencia todo con el botón 🔊 de la esquina superior derecha o la tecla `M`.
-
-🎨 **Zonas diferenciadas:** el lado del Jugador 1 es **azul** y el del
-Jugador 2 es **rosa** (fondo, franja superior y teclas), para identificar
-cada lado de un vistazo durante la partida.
-
-### Rondas y puntuación
-
-- 🕹️ La partida se juega a **3 rondas de 45 segundos** (partidas cortas, ~2½ minutos).
-- ⚡ Cada ronda es **más rápida** que la anterior, y dentro de cada ronda los
-  residuos también llegan cada vez con mayor frecuencia.
-- ✅ Acierto: **+100 puntos** (y bonificación por combo a partir de 3 aciertos seguidos).
-- ❌ Error: **−50 puntos**, se reinicia el combo y el juego te muestra cuál era la caneca correcta.
-- ⭐ Quien haga más puntos en una ronda **gana la ronda** (una estrella).
-- 🏆 **Gana la partida quien conquiste más rondas**; si empatan en rondas,
-  decide el puntaje total. La pantalla final muestra el ganador, la precisión
-  de cada jugador, el detalle por ronda y un dato ecológico.
-- 🥳 En la escena final, el ganador **celebra con confeti y saltos de alegría**
-  mientras el perdedor **llora desconsolado** (con su respectivo "trombón
-  triste" 🎺). Si hay empate, ambos celebran por el planeta.
+   sin instalar nada. Es la opción recomendada.
+2. **Un solo archivo**: `node build-single-file.mjs` genera
+   `eco-arcade-latin-green.html` con todo incrustado; compártelo por WhatsApp
+   o correo. En Android se abre con Chrome; en iPhone los archivos locales no
+   ejecutan juegos, así que usa la opción 1.
 
 ## 🌱 Objetivo educativo
 
@@ -143,4 +92,4 @@ fuente, reforzando qué materiales son aprovechables, cuáles no y cuáles son
 orgánicos compostables.
 
 ---
-**LatinGreen** · Separar es cuidar el planeta 🌎
+**Latin Green E.S.P.** · Separar es cuidar el planeta 🌎
