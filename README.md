@@ -99,6 +99,12 @@ para que los dispositivos ya instalados la descarguen.
 **Publicación automática:** cada cambio subido al repositorio se publica en
 GitHub Pages mediante `.github/workflows/pages.yml`.
 
+> ⚙️ **Activación inicial (una sola vez):** en GitHub abre el repositorio →
+> **Settings → Pages → Build and deployment → Source** y elige
+> **GitHub Actions**. Luego, en la pestaña **Actions**, vuelve a ejecutar el
+> flujo "Publicar juego en GitHub Pages" (botón *Re-run*). Sin este paso el
+> flujo falla con "Resource not accessible by integration".
+
 **¿Y una tienda de aplicaciones?** Si más adelante quieres el juego en Google
 Play, la herramienta gratuita [PWABuilder](https://www.pwabuilder.com) genera
 un paquete Android (APK/AAB) a partir de la dirección publicada. Para la App
