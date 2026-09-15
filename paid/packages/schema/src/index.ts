@@ -17,3 +17,4 @@ export * from './adjunto';
 export * from './pestanas';
 export * from './dominios';
 export * from './errores';
+export * from './autenticacion';

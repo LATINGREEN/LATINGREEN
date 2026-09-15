@@ -1,0 +1,89 @@
+-- ═══════════════════════════════════════════════════════════════════════════
+-- Datos de DESARROLLO.
+--
+-- ⚠️ ESTE ARCHIVO NO DEBE EJECUTARSE EN PRODUCCION.
+--
+-- `sembrar.ts` lo omite salvo que `PAID_SEMILLA_DESARROLLO=1`. Contiene:
+--
+--   - un rango de red `0.0.0.0/0`, que abre la autenticacion a cualquier
+--     origen. R2 lo pide expresamente para desarrollo, «y un aviso llamativo
+--     en el arranque»: ese aviso lo emite `apps/api` al detectar este rango.
+--   - credenciales con clave conocida.
+--
+-- Es lo peor que puede llegar a un despliegue real, y llega en silencio si
+-- nadie lo comprueba. De ahi las dos salvaguardas: el fichero no corre por
+-- omision, y la API grita si encuentra el rango.
+-- ═══════════════════════════════════════════════════════════════════════════
+
+-- ── R2: rango abierto SOLO para desarrollo ─────────────────────────────────
+INSERT INTO seg.red_autorizada (rango, id_tipo_red, descripcion)
+VALUES ('0.0.0.0/0',
+        (SELECT id FROM ref.tipo_red WHERE codigo = 'ADMINISTRACION'),
+        'DESARROLLO — rango abierto. NO debe existir en produccion (R2).')
+ON CONFLICT (rango) DO NOTHING;
+
+-- ── Arbol de unidades de ejemplo ───────────────────────────────────────────
+--
+-- FNP (Fuerza) -> CFM (Componente) -> { BIM23, BIM24 }
+-- BIM23 y BIM24 son HERMANAS: es el par con el que se comprueba que R6 no se
+-- cruza.
+INSERT INTO org.unidad (codigo, sigla, nombre, id_nivel_jerarquia, id_unidad_superior,
+                        ruta_jerarquica, id_estado_registro)
+VALUES ('DES-FNP', 'FNP', 'Fuerza Naval del Pacifico',
+        (SELECT id FROM ref.nivel_jerarquia WHERE codigo = 'FUERZA'), NULL,
+        'pendiente', (SELECT id FROM ref.estado_registro WHERE codigo = 'ACTIVO'))
+ON CONFLICT (codigo) DO NOTHING;
+
+INSERT INTO org.unidad (codigo, sigla, nombre, id_nivel_jerarquia, id_unidad_superior,
+                        ruta_jerarquica, id_estado_registro)
+VALUES ('DES-CFM', 'CFM', 'Comando de Infanteria de Marina',
+        (SELECT id FROM ref.nivel_jerarquia WHERE codigo = 'COMPONENTE'),
+        (SELECT id FROM org.unidad WHERE codigo = 'DES-FNP'),
+        'pendiente', (SELECT id FROM ref.estado_registro WHERE codigo = 'ACTIVO'))
+ON CONFLICT (codigo) DO NOTHING;
+
+INSERT INTO org.unidad (codigo, sigla, nombre, id_nivel_jerarquia, id_unidad_superior,
+                        ruta_jerarquica, id_estado_registro)
+SELECT v.codigo, v.sigla, v.nombre,
+       (SELECT id FROM ref.nivel_jerarquia WHERE codigo = 'UNIDAD_TACTICA'),
+       (SELECT id FROM org.unidad WHERE codigo = 'DES-CFM'),
+       'pendiente', (SELECT id FROM ref.estado_registro WHERE codigo = 'ACTIVO')
+FROM (VALUES
+  ('DES-BIM23', 'BIM23', 'Batallon de Infanteria de Marina No. 23'),
+  ('DES-BIM24', 'BIM24', 'Batallon de Infanteria de Marina No. 24')
+) AS v(codigo, sigla, nombre)
+ON CONFLICT (codigo) DO NOTHING;
+
+-- ── Credenciales de unidad (R5) ────────────────────────────────────────────
+--
+-- Clave de todas: `Desarrollo2026*`
+-- El resumen es Argon2id, como exige el CHECK de seg.usuario. Se deja fijo y
+-- no generado, para que las semillas sean reproducibles.
+INSERT INTO seg.usuario (credencial, hash_clave, id_unidad, id_estado_registro, clave_expira_en)
+SELECT v.credencial,
+       '$argon2id$v=19$m=19456,t=2,p=1$ra4Ce8kJvtVCfvOhyZ81RA$Q5QdJUz6AKmXxdYDiyrh3qlhvnrRaOSLvAcWK1orJHU',
+       (SELECT id FROM org.unidad WHERE codigo = v.unidad),
+       (SELECT id FROM ref.estado_registro WHERE codigo = 'ACTIVO'),
+       NULL
+FROM (VALUES
+  ('ADMIN_PAID',      'DES-FNP'),
+  ('FUNCIONAL_PAID',  'DES-FNP'),
+  ('FNP_PAID',        'DES-FNP'),
+  ('BIM23_PAID',      'DES-BIM23'),
+  ('BIM24_PAID',      'DES-BIM24')
+) AS v(credencial, unidad)
+ON CONFLICT (credencial) DO NOTHING;
+
+-- ── Asignacion de roles, con vigencia abierta (P4) ─────────────────────────
+INSERT INTO seg.usuario_rol (id_usuario, id_rol)
+SELECT u.id, r.id
+FROM (VALUES
+  ('ADMIN_PAID',     'ADMINISTRADOR'),
+  ('FUNCIONAL_PAID', 'FUNCIONAL_JACID'),
+  ('FNP_PAID',       'OPERADOR_UNIDAD'),
+  ('BIM23_PAID',     'OPERADOR_UNIDAD'),
+  ('BIM24_PAID',     'OPERADOR_UNIDAD')
+) AS v(credencial, rol)
+JOIN seg.usuario u ON u.credencial = v.credencial
+JOIN seg.rol r ON r.codigo = v.rol
+ON CONFLICT DO NOTHING;
