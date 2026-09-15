@@ -24,21 +24,30 @@ ON CONFLICT (rango) DO NOTHING;
 
 -- ── Arbol de unidades de ejemplo ───────────────────────────────────────────
 --
+-- Los codigos son NUMERICOS y estan tomados de los ejemplos de codigo de
+-- actividad de Q1 (2813304, 1111853, 2510444, 6102320). No es cosmetica: el
+-- generador de `codigo_actividad` usa `org.unidad.codigo` tal cual, asi que un
+-- codigo de unidad con guiones producia codigos de actividad que no se parecen
+-- a los observados. Con estos, las semillas ejercitan el patron real.
+--
+-- TODO(JACID) Q1: sigue sin confirmarse que el primer bloque del codigo de
+-- actividad SEA el codigo de la unidad, ni de que catalogo sale.
+--
 -- FNP (Fuerza) -> CFM (Componente) -> { BIM23, BIM24 }
 -- BIM23 y BIM24 son HERMANAS: es el par con el que se comprueba que R6 no se
 -- cruza.
 INSERT INTO org.unidad (codigo, sigla, nombre, id_nivel_jerarquia, id_unidad_superior,
                         ruta_jerarquica, id_estado_registro)
-VALUES ('DES-FNP', 'FNP', 'Fuerza Naval del Pacifico',
+VALUES ('6102320', 'FNP', 'Fuerza Naval del Pacifico',
         (SELECT id FROM ref.nivel_jerarquia WHERE codigo = 'FUERZA'), NULL,
         'pendiente', (SELECT id FROM ref.estado_registro WHERE codigo = 'ACTIVO'))
 ON CONFLICT (codigo) DO NOTHING;
 
 INSERT INTO org.unidad (codigo, sigla, nombre, id_nivel_jerarquia, id_unidad_superior,
                         ruta_jerarquica, id_estado_registro)
-VALUES ('DES-CFM', 'CFM', 'Comando de Infanteria de Marina',
+VALUES ('2510444', 'CFM', 'Comando de Infanteria de Marina',
         (SELECT id FROM ref.nivel_jerarquia WHERE codigo = 'COMPONENTE'),
-        (SELECT id FROM org.unidad WHERE codigo = 'DES-FNP'),
+        (SELECT id FROM org.unidad WHERE codigo = '6102320'),
         'pendiente', (SELECT id FROM ref.estado_registro WHERE codigo = 'ACTIVO'))
 ON CONFLICT (codigo) DO NOTHING;
 
@@ -46,11 +55,11 @@ INSERT INTO org.unidad (codigo, sigla, nombre, id_nivel_jerarquia, id_unidad_sup
                         ruta_jerarquica, id_estado_registro)
 SELECT v.codigo, v.sigla, v.nombre,
        (SELECT id FROM ref.nivel_jerarquia WHERE codigo = 'UNIDAD_TACTICA'),
-       (SELECT id FROM org.unidad WHERE codigo = 'DES-CFM'),
+       (SELECT id FROM org.unidad WHERE codigo = '2510444'),
        'pendiente', (SELECT id FROM ref.estado_registro WHERE codigo = 'ACTIVO')
 FROM (VALUES
-  ('DES-BIM23', 'BIM23', 'Batallon de Infanteria de Marina No. 23'),
-  ('DES-BIM24', 'BIM24', 'Batallon de Infanteria de Marina No. 24')
+  ('2813304', 'BIM23', 'Batallon de Infanteria de Marina No. 23'),
+  ('1111853', 'BIM24', 'Batallon de Infanteria de Marina No. 24')
 ) AS v(codigo, sigla, nombre)
 ON CONFLICT (codigo) DO NOTHING;
 
@@ -66,11 +75,11 @@ SELECT v.credencial,
        (SELECT id FROM ref.estado_registro WHERE codigo = 'ACTIVO'),
        NULL
 FROM (VALUES
-  ('ADMIN_PAID',      'DES-FNP'),
-  ('FUNCIONAL_PAID',  'DES-FNP'),
-  ('FNP_PAID',        'DES-FNP'),
-  ('BIM23_PAID',      'DES-BIM23'),
-  ('BIM24_PAID',      'DES-BIM24')
+  ('ADMIN_PAID',      '6102320'),
+  ('FUNCIONAL_PAID',  '6102320'),
+  ('FNP_PAID',        '6102320'),
+  ('BIM23_PAID',      '2813304'),
+  ('BIM24_PAID',      '1111853')
 ) AS v(credencial, unidad)
 ON CONFLICT (credencial) DO NOTHING;
 

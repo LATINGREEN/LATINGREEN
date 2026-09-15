@@ -15,6 +15,8 @@ export * from './avance';
 export * from './coordenadas';
 export * from './adjunto';
 export * from './pestanas';
+export * from './pestanas-datos';
+export * from './jornada';
 export * from './dominios';
 export * from './errores';
 export * from './autenticacion';
