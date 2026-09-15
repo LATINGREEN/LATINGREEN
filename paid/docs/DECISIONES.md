@@ -544,3 +544,141 @@ sin destruir el binario.
 **Queda como Q14.** Si JACID confirma que también las filas de pestaña exigen
 solicitud, se revierte la migración 0014 y la interfaz debe ofrecer «solicitar
 eliminación» en cada fila.
+
+---
+
+## D-25 · Un esquema Zod compartido tiene que ser idempotente · Aceptada · 2026-09-15
+
+**El defecto.** El formulario de jornadas **no podía guardar por la interfaz**.
+Se pulsaba «Guardar y continuar» y respondía «No se pudo registrar la jornada»,
+sin decir qué campo.
+
+`fechaDdMmAaaa` valida `dd/mm/aaaa` y **transforma** a `aaaa-mm-dd`. El
+formulario validaba con ese esquema y enviaba el resultado de la validación, que
+es lo normal. El controlador volvía a validar ese resultado con el **mismo**
+esquema, y `2026-03-02` no es `dd/mm/aaaa`: rechazado.
+
+**La regla que faltaba.** A.6 exige un solo esquema Zod para cliente y
+servidor. La consecuencia que no es obvia: **ese esquema se ejecuta dos veces
+sobre el mismo dato**. Un esquema que transforma y no admite su propia salida no
+puede cumplir A.6 — la segunda pasada rechaza lo que la primera aceptó.
+
+**La corrección.** `fechaDdMmAaaa` admite ahora las dos formas y normaliza a
+`aaaa-mm-dd`, de modo que `parse(parse(x)) === parse(x)`.
+
+No debilita A.2.4. Lo que A.2.4 evita es que una fecha **digitada** se lea al
+revés: `03/05/2026` es el 3 de mayo o el 5 de marzo según el país. `2026-03-05`
+no tiene esa ambigüedad —el año va delante— y `3/5/2026` sigue rechazado. La
+interfaz sigue pidiendo y mostrando `dd/mm/aaaa`; lo que cambió es qué admite el
+esquema por el cable.
+
+**Lo que la fija.** `packages/schema/src/idempotencia.test.ts` comprueba la
+propiedad sobre TODOS los esquemas que cruzan la red, incluidas las diez
+pestañas recorridas desde `ESQUEMA_POR_PESTANA`. Quien añada una transformación
+a un esquema compartido las verá fallar.
+
+**Por qué ninguna prueba anterior lo vio.** Las 80 de las Puertas 2 y 3 hablan
+con la API y envían `dd/mm/aaaa` directamente, como lo haría `curl`. El defecto
+vivía exactamente en la costura entre el formulario y el controlador, que es lo
+único que la Puerta 4 recorre. Dos pruebas existentes AFIRMABAN el
+comportamiento incorrecto (`primitivos.test.ts` y `puerta3.test.ts`); las dos se
+cambiaron con el motivo escrito al lado.
+
+---
+
+## D-26 · Las pestañas piden opciones, no identificadores · Aceptada · 2026-09-15
+
+**El defecto.** Los paneles de las diez pestañas de datos se construyen a partir
+del esquema Zod de cada una, y dibujaban **todos** los campos como entrada de
+texto. El resultado era «Id tipo operacion: ____».
+
+Imposible de diligenciar: ese identificador no aparece en ninguna pantalla. Y un
+número inventado llega al servidor como violación de clave foránea.
+
+**La corrección.** `CATALOGO_DE_CAMPO` dice qué catálogo de `ref` hay detrás de
+cada `id*`, y `CAMPOS_DE_ENTIDAD` cuáles apuntan al maestro `ai.entidad`. Los
+primeros se dibujan con `CampoSelector` y los segundos con `CampoEntidad`, que
+además explica R8 cuando el maestro está vacío: «regístrela primero en Entidades
+A.I.».
+
+**El tipo lo decide el esquema, no el nombre del campo.** `cantidad` es un
+entero en «Servicios Prestados» (`cantidadEntera`) y un decimal en «Recursos
+Utilizados» (`decimalDigitado`): mismo nombre, dos tipos. `clasificarCampo()`
+pregunta al esquema del campo probando valores, y `aValorDeEnvio()` manda cadena
+o número según cuál acepte —`decimalDigitado` quiere la cadena, porque valida
+que el separador sea el punto y un `Number()` previo se saltaría esa
+validación; `cantidadEntera` quiere el número.
+
+Una primera versión de `clasificarCampo` probaba `'7.5'` para detectar
+decimales, y marcó «Observaciones» como decimal: un `z.string()` acepta «7.5».
+La pantalla ponía «admite decimales, el separador es el punto» debajo de una
+casilla de texto libre. Se descarta primero el texto —un esquema de texto acepta
+cualquier cadena; uno numérico no—, y luego se distingue decimal de entero.
+
+**Sigue siendo correcto cuando Q4 se responda.** Los campos salen del esquema,
+así que aparecerán solos; lo único que hay que añadir es su catálogo, y un `id*`
+que falte en el mapa se dibuja como número y se ve venir.
+
+---
+
+## D-27 · Al completar la undécima pestaña hay que invalidar el listado · Aceptada · 2026-09-15
+
+**El defecto.** Se diligenciaba la última pestaña, la Rosa pasaba a «Registro
+completo», y el listado de jornadas seguía diciendo «Faltan 11» durante los 30
+segundos de `staleTime`.
+
+**Por qué no es un detalle.** El listado es la pantalla por la que se decide
+qué entra en el consolidado del RAO. Una jornada completa anunciada como
+incompleta es, literalmente, el defecto que PROMPT.md describe al cerrar: no
+falla, parece funcionar, y el dato que muestra no es el que hay.
+
+**La corrección.** `refrescarJornada()` invalida `['jornada-pestanas']`,
+`['jornada-cuota']` y **`['jornadas']`**, y se llama en los tres sitios donde
+algo de la jornada cambia. La creación también invalida el listado.
+
+---
+
+## D-28 · Dos defectos de accesibilidad que solo una máquina encuentra · Aceptada · 2026-09-15
+
+La revisión con axe de la Puerta 4 encontró dos cosas que la lectura del código
+no daba:
+
+**`scrollable-region-focusable`.** `overflow-x: auto` en la envoltura de las
+tablas crea una región desplazable, y una región desplazable a la que no se
+llega con el teclado deja su contenido inalcanzable para quien no usa ratón
+(WCAG 2.1.1). Se resolvió con el componente `TablaEnvoltura`, que añade
+`tabIndex={0}` y `role="region"` con nombre — en un componente y no repetido en
+cinco pantallas, porque lo que se arregla en cinco sitios se rompe en el sexto.
+
+**Contraste 4,41:1 en la escala de avance.** Los huecos de 80 % y 90 % —los
+tramos que R10 dice que no existen— llevaban `opacity: 0.75` sobre el rojo de
+babor, y eso baja de 4,5:1. **La opacidad es la forma más fácil de romper un
+contraste que se calculó bien**, porque no se ve en el token: el color es
+correcto y el resultado no. Se quitó; lo «apagado» lo dan el borde discontinuo y
+el tachado, que además no dependen del color.
+
+**Y un falso positivo que era un defecto de la prueba, no del código.** axe
+reportaba cuatro violaciones de contraste con razones de 1,57:1 en textos cuyo
+token da 7:1. Era la animación de entrada escalonada: arranca en `opacity: 0`, y
+axe calcula el contraste con el color compuesto. La revisión ahora espera a
+`document.getAnimations()` antes de medir — no un tiempo fijo, que vuelve a
+medir a medias en cuanto alguien alarga una duración.
+
+---
+
+## D-29 · Las pruebas de navegador no usan `page.goto()` tras ingresar · Aceptada · 2026-09-15
+
+El testigo de sesión vive en memoria y no en `localStorage` (deliberado: en un
+equipo compartido, un testigo que sobrevive al cierre de la pestaña es una sesión
+que nadie cerró). La consecuencia es que **recargar la página cierra la sesión**,
+y `page.goto()` es una recarga.
+
+Una primera versión de la revisión de accesibilidad usaba `page.goto()` entre
+rutas y **pasaba en falso**: aterrizaba en la pantalla de ingreso, y como el
+`<h1>` de esa pantalla también dice «PAID», la espera se cumplía y axe revisaba
+siete veces la misma pantalla de ingreso, informando cero violaciones de páginas
+que nunca vio.
+
+Las pruebas navegan pulsando, con `irA()`, que además comprueba que el menú
+sigue en pie antes de dar la navegación por buena. Una prueba que puede pasar
+sin ejecutar lo que dice ejecutar es peor que no tenerla.
