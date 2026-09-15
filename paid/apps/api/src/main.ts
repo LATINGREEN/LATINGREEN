@@ -3,6 +3,8 @@ import { NestFactory } from '@nestjs/core';
 import { Logger } from 'nestjs-pino';
 import { AppModule } from './app.module';
 import { FiltroExcepciones } from './comun/filtro-excepciones';
+import { BaseDatosService } from './basedatos/basedatos.service';
+import { avisarSiLaRedEstaAbierta } from './comun/aviso-arranque';
 
 /**
  * Arranque de la API.
@@ -20,6 +22,12 @@ async function arrancar(): Promise<void> {
 
   const prefijo = process.env['API_PREFIJO'] ?? '/api';
   app.setGlobalPrefix(prefijo);
+
+  // R2 — aviso llamativo si la red esta abierta; en produccion, se detiene.
+  const baseDatos = app.get(BaseDatosService);
+  await baseDatos.enTransaccionDeSistema((cliente) =>
+    avisarSiLaRedEstaAbierta(cliente, process.env['NODE_ENV'] ?? 'development'),
+  );
 
   const puerto = Number(process.env['API_PUERTO'] ?? 3000);
   await app.listen(puerto, '0.0.0.0');

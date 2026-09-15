@@ -60,19 +60,57 @@ export class FiltroExcepciones implements ExceptionFilter {
 
     if (excepcion instanceof HttpException) {
       const estado = excepcion.getStatus();
+      /*
+       * ⚠️ R4 depende de esto.
+       *
+       * Cuando se lanza `new UnauthorizedException({ codigo, mensaje })`,
+       * NestJS guarda ese objeto como «respuesta» y pone en `.message` el
+       * texto por omision, «Unauthorized Exception». Si el filtro usara
+       * `.message`, el cuerpo que ve el cliente seria ese texto en ingles y
+       * NO «Credenciales invalidas» — es decir, R4 quedaria incumplido
+       * mientras el codigo que lo impone parecia correcto.
+       *
+       * Asi que manda el cuerpo que la excepcion trae, y `.message` solo se
+       * usa cuando no trae ninguno (las excepciones que NestJS lanza por su
+       * cuenta, como el 404 de una ruta inexistente).
+       */
+      const contenido = excepcion.getResponse();
+      const personalizado =
+        typeof contenido === 'object' && contenido !== null
+          ? (contenido as { codigo?: unknown; mensaje?: unknown; detalles?: unknown })
+          : undefined;
+
       const cuerpo: RespuestaError = {
-        codigo: codigoParaEstado(estado),
-        mensaje: excepcion.message,
+        codigo:
+          typeof personalizado?.codigo === 'string'
+            ? personalizado.codigo
+            : codigoParaEstado(estado),
+        mensaje:
+          typeof personalizado?.mensaje === 'string'
+            ? personalizado.mensaje
+            : excepcion.message,
+        ...(personalizado?.detalles !== undefined ? { detalles: personalizado.detalles } : {}),
         idCorrelacion,
       };
       respuesta.status(estado).json(cuerpo);
       return;
     }
 
-    // No controlada: al log todo, al cliente nada.
+    /*
+     * No controlada: al log TODO, al cliente nada.
+     *
+     * El mensaje y la pila se extraen a mano. Pasar el `Error` como propiedad
+     * de un objeto lo serializa como `{}` —las propiedades de `Error` no son
+     * enumerables— y el log queda inservible justo cuando mas se necesita.
+     */
+    const detalle =
+      excepcion instanceof Error
+        ? { mensaje: excepcion.message, pila: excepcion.stack, tipo: excepcion.name }
+        : { mensaje: String(excepcion), tipo: typeof excepcion };
+
     this.registro.error(
-      { idCorrelacion, ruta: peticion.url, error: excepcion },
-      'Excepcion no controlada',
+      { idCorrelacion, ruta: peticion.url, metodo: peticion.method, ...detalle },
+      `Excepcion no controlada: ${detalle.mensaje}`,
     );
     const cuerpo: RespuestaError = {
       codigo: CODIGOS_ERROR.INTERNO,

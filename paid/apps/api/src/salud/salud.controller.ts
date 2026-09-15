@@ -1,4 +1,5 @@
 import { Controller, Get } from '@nestjs/common';
+import { RutaPublica } from '../seguridad/requiere-permiso.decorator';
 
 export interface RespuestaSalud {
   readonly estado: 'sano';
@@ -15,6 +16,7 @@ export interface RespuestaSalud {
  */
 @Controller('salud')
 export class SaludController {
+  @RutaPublica()
   @Get()
   obtener(): RespuestaSalud {
     return {
