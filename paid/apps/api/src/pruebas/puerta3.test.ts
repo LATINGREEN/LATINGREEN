@@ -597,14 +597,39 @@ describe('Las reglas siguen en pie a través de la API', () => {
     expect(r.status).toBe(400);
   });
 
-  it('A.2.4 — una fecha en formato ISO es rechazada; se digita dd/mm/aaaa', async () => {
-    const r = await autenticada('post', '/api/jornadas').send({
+  /*
+   * ⚠️ Esta prueba CAMBIÓ de intención, deliberadamente. Antes exigía que
+   * `2026-03-05` fuera rechazada.
+   *
+   * A.2.4 existe para que una fecha DIGITADA no se lea al revés: `03/05/2026`
+   * es el 3 de mayo o el 5 de marzo según el país. Eso sigue impuesto, y es lo
+   * que esta prueba comprueba ahora: el formato estadounidense se rechaza.
+   *
+   * Pero la forma ISO es la SALIDA del propio esquema, y el esquema es el
+   * mismo en el formulario y aquí (A.6), así que corre dos veces sobre el
+   * mismo dato. Rechazarla significaba que el formulario validaba, enviaba
+   * `2026-03-05` y este controlador respondía «No se pudo registrar la
+   * jornada»: el formulario de jornadas no podía guardar por la interfaz, y
+   * ninguna de las 80 pruebas de estas puertas lo veía, porque todas envían
+   * `dd/mm/aaaa` directamente. Lo encontró la Puerta 4.
+   *
+   * Ver docs/DECISIONES.md, D-25, y packages/schema/src/idempotencia.test.ts.
+   */
+  it('A.2.4 — el formato estadounidense se rechaza; la salida ISO del propio esquema se admite', async () => {
+    const ambiguo = await autenticada('post', '/api/jornadas').send({
+      ...JORNADA_BASE,
+      fechaEjecucion: '3/5/2026',
+    });
+    expect(ambiguo.status).toBe(400);
+    const detalles = (ambiguo.body as { detalles: { campo: string; mensaje: string }[] })
+      .detalles;
+    expect(detalles.some((d) => d.campo === 'fechaEjecucion')).toBe(true);
+
+    const yaNormalizada = await autenticada('post', '/api/jornadas').send({
       ...JORNADA_BASE,
       fechaEjecucion: '2026-03-05',
     });
-    expect(r.status).toBe(400);
-    const detalles = (r.body as { detalles: { campo: string; mensaje: string }[] }).detalles;
-    expect(detalles.some((d) => d.campo === 'fechaEjecucion')).toBe(true);
+    expect(yaNormalizada.status).toBe(201);
   });
 
   it('R13 — unas GMS imposibles son rechazadas', async () => {

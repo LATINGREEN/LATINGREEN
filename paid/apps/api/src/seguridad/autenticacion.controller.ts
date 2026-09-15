@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Get,
   HttpCode,
   HttpStatus,
   Post,
@@ -84,6 +85,40 @@ export class AutenticacionController {
     if (resultado === null) throw rechazo;
 
     return resultado.respuesta;
+  }
+
+  /**
+   * Estado de la sesion en curso.
+   *
+   * Existe para que la interfaz pueda RENOVAR: R1 tiene expiracion deslizante,
+   * asi que cualquier peticion autenticada desplaza el TTL. Esta es la mas
+   * liviana posible y no modifica nada, de modo que el boton «Seguir
+   * trabajando» del aviso de expiracion no tenga efectos secundarios.
+   *
+   * No es publica: pasa por `SesionGuard`, que es precisamente lo que
+   * desplaza la expiracion.
+   */
+  @Get('sesion')
+  sesionActual(@Req() peticion: PeticionConSesion): {
+    credencial: string;
+    expiraEnUtc: string;
+    roles: readonly string[];
+    permisos: readonly string[];
+  } {
+    const sesion = peticion.sesion;
+    if (sesion === undefined) {
+      // No deberia ocurrir: el guarda ya la valido.
+      throw new UnauthorizedException({
+        codigo: CODIGOS_ERROR.SESION_EXPIRADA,
+        mensaje: 'La sesión no está activa.',
+      });
+    }
+    return {
+      credencial: sesion.credencial,
+      expiraEnUtc: sesion.expiraEnUtc,
+      roles: sesion.roles,
+      permisos: sesion.permisos,
+    };
   }
 
   /** Cierre de sesion a peticion del usuario. */

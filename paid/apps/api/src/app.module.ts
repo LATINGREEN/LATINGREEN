@@ -13,6 +13,7 @@ import { TareasModule } from './tareas/tareas.module';
 import { AlianzasModule } from './alianzas/alianzas.module';
 import { AlmacenModule } from './almacen/almacen.module';
 import { JornadasModule } from './jornadas/jornadas.module';
+import { MaestrosModule } from './maestros/maestros.module';
 import { CABECERA_ID_CORRELACION, generarIdCorrelacion } from './comun/id-correlacion';
 
 /**
@@ -32,7 +33,8 @@ import { CABECERA_ID_CORRELACION, generarIdCorrelacion } from './comun/id-correl
  * despues de los guardas, asi que este orden se obtiene declarandolos asi.
  *
  * Lo que todavia no esta:
- * - Modulos de dominio (jornadas, asistencias...): Fase 3.
+ * - Asistencia humanitaria, proyectos sociales y ruedas de servicios: usan el
+ *   mismo supertipo `ai.actividad` que las jornadas y esperan a Q4.
  * - Cliente de IA con cortacircuitos (IA6): Fase 6.
  */
 @Module({
@@ -66,6 +68,7 @@ import { CABECERA_ID_CORRELACION, generarIdCorrelacion } from './comun/id-correl
     TareasModule,
     AlmacenModule,
     JornadasModule,
+    MaestrosModule,
     AlianzasModule,
     SaludModule,
   ],
