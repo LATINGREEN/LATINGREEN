@@ -320,6 +320,37 @@ estarlo y el sistema lo acepta, el consolidado mezcla dos escalas distintas.
 
 ---
 
+## 🟡 Q14 — ¿Quitar una fila de una pestaña exige solicitud a JACID?
+
+**De dónde sale esta pregunta.** Tampoco estaba en el pliego: apareció al
+construir el formulario de las once pestañas.
+
+El manual es claro en que **eliminar un registro** es un trámite: hay que elevar
+la solicitud a JACID explicando los motivos. Eso está implementado y no se
+toca: eliminar una jornada, una entidad, un tripulante o un convenio exige
+solicitud aprobada.
+
+**Lo que no está claro** es si esa misma regla aplica a las **filas dentro de
+una pestaña**. Ejemplo concreto: un operador registra por error «120 raciones»
+en Bienes Donados cuando eran 12. ¿Puede quitar la fila y volver a ponerla, o
+tiene que elevar una solicitud a JACID para corregir un dedazo?
+
+**Lo que se hizo mientras tanto:** se permite quitar filas de las pestañas, y
+**no** se permite eliminar registros. El razonamiento es que las filas de una
+pestaña son el contenido de un formulario que se está llenando, no un registro
+del sistema.
+
+**Por qué es seguro de todos modos:** cada fila que se quita queda en el
+registro de auditoría con todos sus datos, quién la quitó y cuándo. No se pierde
+información; se puede reconstruir exactamente qué decía.
+
+**Si la respuesta es que sí exige solicitud,** el cambio es reversible y
+pequeño en la base, pero la pantalla cambia bastante: cada fila necesitaría un
+botón de «solicitar eliminación» y el usuario no podría corregir un error
+inmediatamente. Conviene decidirlo antes de construir la pantalla (Fase 4).
+
+---
+
 ## Resumen para llevar a una reunión
 
 | # | Pregunta en una línea | Prioridad |
@@ -338,3 +369,4 @@ estarlo y el sistema lo acepta, el consolidado mezcla dos escalas distintas.
 | Q11 | ¿Hay servicio de mapas institucional? | 🟡 |
 | Q12 | ¿Hay GPU? ¿Qué modelos de IA están aprobados para datos clasificados? | 🟡 |
 | Q13 | ¿El avance de un convenio usa la escala de ocho tramos o un porcentaje libre? | 🟡 |
+| Q14 | ¿Quitar una fila de una pestaña exige solicitud a JACID, o es una corrección normal? | 🟡 antes de la Fase 4 |

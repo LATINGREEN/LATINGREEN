@@ -13,21 +13,26 @@ Especificación completa en [`PROMPT.md`](PROMPT.md). Reglas permanentes en
 
 ---
 
-## Estado actual: Fases 0, 1 y 2 cerradas
+## Estado actual: Fases 0, 1, 2 y 3 cerradas
 
 | Fase | Estado |
 |---|---|
 | 0 · Preparación | ✅ cerrada · Puerta 0 parcial: `docker compose up` sin verificar |
 | 1 · Base de datos | ✅ cerrada · **Puerta 1 superada: 60 pruebas contra Postgres real** |
 | 2 · Autenticación y autorización | ✅ cerrada · **Puerta 2 superada: 38 pruebas sobre la API real** |
-| 3 · Jornadas de Apoyo | ⬜ siguiente |
-| 4 · Interfaz | ⬜ |
+| 3 · Jornadas de Apoyo | ✅ cerrada · **Puerta 3 superada: 42 pruebas de API** |
+| 4 · Interfaz | ⬜ siguiente |
 | 5 · Verificación de la Parte A | ⬜ |
 | 6–8 · Asistencia por IA (Parte B) | ⬜ no empieza hasta cerrar la Puerta 5 |
 
-**195 pruebas, todas pasando:** 97 de los invariantes compartidos, 60 de la
-Puerta 1 contra PostgreSQL 16 con PostGIS y pgvector, y 38 de la Puerta 2
+**237 pruebas, todas pasando:** 97 de los invariantes compartidos, 60 de la
+Puerta 1 contra PostgreSQL 16 con PostGIS y pgvector, y 80 de las Puertas 2 y 3
 levantando la API completa contra Postgres y Redis reales.
+
+Lo que ya funciona de punta a punta: ingresar, registrar una jornada con sus
+once pestañas y sus adjuntos, modificarla, y exportar el consolidado a XLSX o
+CSV — con el aislamiento por unidad, la bitácora y las cuotas impuestos por la
+base de datos.
 
 ### ⚠️ El esquema está derivado, no traducido
 
@@ -132,14 +137,22 @@ cd packages/db
 DATABASE_URL_PRUEBA="postgres://usuario:clave@127.0.0.1:5432/postgres" pnpm test
 ```
 
-Las 38 de la Puerta 2 levantan la API completa, y necesitan además Redis:
+Las 80 de las Puertas 2 y 3 levantan la API completa, y necesitan además Redis:
 
 ```bash
 cd apps/api
+PAID_ALMACEN_RAIZ=/tmp/paid-adjuntos \
 PAID_SEMILLA_DESARROLLO=1 \
 DATABASE_URL_PRUEBA="postgres://usuario:clave@127.0.0.1:5432/postgres" \
 pnpm test
 ```
+
+⚠️ **`AlmacenMinio` no está verificado.** El almacenamiento de objetos está
+detrás de una interfaz con dos implementaciones: MinIO para el despliegue y el
+sistema de archivos para desarrollo y pruebas. No fue posible levantar un MinIO
+en el entorno de construcción, así que la implementación de MinIO está escrita
+pero no ejecutada. R11 y R12 sí están verificadas: se imponen antes de que el
+almacén vea un byte. Ver `docs/DECISIONES.md`, D-22.
 
 ⚠️ **`DATABASE_URL` debe apuntar a un rol `NOSUPERUSER NOBYPASSRLS`.** Un
 superusuario de PostgreSQL ignora las políticas RLS por definición, así que

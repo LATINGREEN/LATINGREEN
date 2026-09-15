@@ -458,3 +458,89 @@ expresamente de «proyectos sociales», así que aplicarle la escala sería una
 suposición. Se admite 0–100 y se pregunta: si resulta que sigue la escala, el
 `CHECK` se aprieta, que es una migración trivial. Al contrario —haber apretado
 y tener que abrir— habría rechazado datos legítimos durante meses.
+
+---
+
+## D-22 · El almacén de objetos es una interfaz con dos implementaciones · Aceptada · 2026-09-15
+
+**Contexto.** A.1 fija MinIO, desplegado dentro de la intranet. `dl.min.io` y
+el registro de imágenes de Docker están bloqueados por la política de egreso de
+esta sesión, así que no fue posible levantar un MinIO contra el que probar.
+
+**Decisión.** `AlmacenObjetos` es una interfaz con dos implementaciones:
+`AlmacenMinio` (despliegue) y `AlmacenSistemaArchivos` (desarrollo y pruebas).
+`PAID_ALMACEN` elige; el valor por omisión es el sistema de archivos.
+
+**Por qué no relaja ninguna regla.** Las reglas de los adjuntos —la cuota
+AGREGADA de 10 MB (R11) y la validación del MIME real (R12)— se imponen en
+`AdjuntosService` y en el disparador de la base, **antes de que el almacén vea
+un solo byte**. El almacén solo guarda y devuelve. De modo que R11 y R12 se
+verifican igual con cualquiera de las dos, y eso es justo lo que permite
+probarlas de verdad sin un MinIO a mano.
+
+**Lo que sí queda sin verificar:** que `AlmacenMinio` funcione. El código está
+escrito y compila; no se ha ejecutado. Es la misma clase de pendiente que
+`docker compose up` (D-07), y está marcada como tal en el propio archivo.
+Primera comprobación en un entorno con acceso:
+
+```bash
+docker compose up -d minio
+PAID_ALMACEN=minio pnpm --filter @paid/api test
+```
+
+**Salvaguarda añadida:** en `NODE_ENV=production` con el almacén de archivos se
+avisa de forma llamativa. Los soportes de una actividad son parte del
+expediente, y un almacén sin replicación ni retención no es dónde deben estar.
+
+---
+
+## D-23 · Las once pestañas se resuelven con un mapa, no con once servicios · Aceptada · 2026-09-15
+
+`MAPA_PESTANAS` asocia cada pestaña con su tabla y sus columnas, y una sola
+ruta (`POST /jornadas/:id/pestanas/:pestana`) las atiende todas.
+
+**Motivo.** Las once tablas hijas son estructuralmente iguales: cuelgan de una
+actividad, referencian un catálogo, y alguna lleva cantidades. Y sobre todo:
+**Q4 sigue sin responder** para cinco de ellas. Cuando JACID entregue los
+formularios reales, cambiar un mapa es cambiar una declaración; cambiar once
+controladores es cambiar once archivos, y alguno se queda atrás. Es el mismo
+argumento por el que `registro_completo` se calcula en un solo sitio.
+
+**Lo que no se hizo, a propósito:** derivar el nombre de la columna del nombre
+del campo con una conversión automática `camelCase` → `snake_case`. La
+correspondencia se escribe a mano porque una conversión automática esconde un
+error de nombre hasta que alguien mira los datos.
+
+**Seguridad.** El SQL se compone desde el mapa —valores del código— y los
+valores del usuario viajan siempre como parámetros vinculados. Un nombre de
+pestaña que no esté en el mapa se rechaza antes de tocar la base.
+
+---
+
+## D-24 · `DELETE` sobre las filas de las once pestañas, sí; sobre los registros, no · Aceptada · 2026-09-15
+
+**El problema de interpretación.** R14 revoca `DELETE` salvo para el
+administrador, y exige una solicitud aprobada por JACID. Aplicado literalmente
+a las once tablas hijas, un operador que añade por error una fila a «Bienes
+Donados» tendría que elevar una solicitud a JACID para quitarla.
+
+**La lectura que se adopta.** R14 protege **registros**: la actividad, el
+personal, las entidades, las herramientas, las alianzas, las unidades, la
+normatividad. Las filas de las pestañas son el **contenido de un formulario que
+se está diligenciando**; quitar una fila recién añadida es editar, no eliminar
+un registro. Además esas tablas no tienen `estado_registro`, así que no admiten
+borrado lógico: o se pueden quitar, o el formulario no se puede corregir.
+
+**Por qué es seguro.** R15 lo hace reversible: el disparador de bitácora guarda
+la imagen anterior de cada fila borrada, con usuario, unidad, sesión e IP. No se
+pierde nada y queda el rastro.
+
+**Lo que sigue revocado**, donde R14 se aplica entera: `ai.actividad`, los cinco
+subtipos, `ai.personal`, `ai.entidad`, `ai.herramienta_aid`, `ai.alianza`,
+`org.unidad` y `doc.normatividad`. `ai.act_adjunto` tampoco entra: sí tiene
+`estado_registro`, así que su camino es la baja lógica, que además libera cuota
+sin destruir el binario.
+
+**Queda como Q14.** Si JACID confirma que también las filas de pestaña exigen
+solicitud, se revierte la migración 0014 y la interfaz debe ofrecer «solicitar
+eliminación» en cada fila.

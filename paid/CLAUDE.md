@@ -50,9 +50,12 @@ La PAID vive en `paid/`, no en la raíz: el repositorio ya contenía otro proyec
 (el juego Eco-Arcade Latin Green). Ver `docs/DECISIONES.md`, D-01.
 
 ## Estado
-**Fases 0, 1 y 2 cerradas.** 195 pruebas pasando: 97 de invariantes
-compartidos, 60 de la Puerta 1 contra Postgres real, 38 de la Puerta 2 sobre la
-API real con Postgres y Redis. La siguiente es la Fase 3 (jornadas de apoyo).
+**Fases 0, 1, 2 y 3 cerradas.** 237 pruebas pasando: 97 de invariantes
+compartidos, 60 de la Puerta 1 contra Postgres real, 80 de las Puertas 2 y 3
+sobre la API real con Postgres y Redis. La siguiente es la Fase 4 (interfaz).
+
+Antes de empezar la Fase 4, conviene respuesta a **Q14**: si quitar una fila de
+una pestaña exige solicitud a JACID, la pantalla cambia bastante.
 
 ## ⚠️ El esquema está DERIVADO de PROMPT.md
 `anexo_A_ddl_paid.sql` no existe. Se preguntó, como PROMPT.md ordena, y se
@@ -123,6 +126,16 @@ al valor** de cada clase del constructor. De ahí dos cosas que NO hay que
 ignora RLS por definición, así que apuntarlo al usuario administrador **anula
 R6 entero** y ninguna prueba de negocio lo nota. Hay dos pruebas en la Puerta 2
 que lo comprueban explícitamente, y existen porque el defecto ocurrió.
+
+## Zod: `.partial()` conserva los valores por omisión
+Costó una pérdida de datos silenciosa. `crearJornada` pone `.default([])` en
+`coami` —correcto al crear, R18 dice que no se marque ninguno— y
+`crearJornada.partial()` **mantiene ese `default`**, así que un `PATCH` que solo
+cambiaba el lugar llegaba con `coami: []` y borraba todas las participaciones
+de COAMI. Sin error y sin que nadie lo pidiera.
+
+Regla: en un esquema de modificación, «ausente» y «lista vacía» tienen que ser
+distinguibles. Vuelve a declarar el campo como `optional()` sin `default`.
 
 ## Convenciones que ya están en vigor
 - Versiones **exactas** en todos los `package.json` y en `pyproject.toml`: sin

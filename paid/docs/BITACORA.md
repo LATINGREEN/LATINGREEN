@@ -7,6 +7,133 @@ pueda continuar (PROMPT.md · A.5).
 
 ---
 
+## FASE 3 — Rebanada vertical: Jornadas de Apoyo
+
+### Antes de empezar (plan)
+
+Es el módulo que después se replica para asistencias, ruedas, proyectos y
+campañas, así que lo que importa no es solo que funcione: es que el patrón sea
+el correcto.
+
+**Restricción de entorno nueva:** MinIO tampoco se puede instalar en esta
+sesión — `dl.min.io` está bloqueado por la política de egreso, igual que las
+imágenes de Docker (D-07). El almacenamiento de objetos va detrás de una
+interfaz con dos implementaciones, y las reglas que importan (R11, R12) se
+imponen en la base y en el servicio, no en el almacén, así que siguen siendo
+verificables. Ver D-22.
+
+Plan:
+
+1. API REST de `ai.actividad` + `ai.jornada_apoyo` + las once tablas hijas +
+   adjuntos.
+2. `codigo_actividad` con el patrón observado detrás de una interfaz
+   sustituible (`GeneradorCodigo`), unicidad por reintento sobre el `UNIQUE`, y
+   el TODO de Q1.
+3. Carga de adjuntos: MIME real, `hash_sha256`, cuota agregada consultada
+   **antes** de aceptar, y fase documental.
+4. Exportación XLSX y CSV con registro en `aud.exportacion`.
+5. Errores uniformes con `idCorrelacion` (ya estaba desde la Fase 0).
+
+### Al terminar (resultado)
+
+**Estado: Fase 3 cerrada. Puerta 3 superada — 42 pruebas de API.**
+
+Hecho:
+
+- **API REST completa** de jornadas: crear, modificar, listar con los filtros y
+  las columnas del manual, y las **once pestañas**.
+- **`codigo_actividad`** con el patrón observado detrás de `GeneradorCodigo`,
+  y unicidad por **reintento sobre el `UNIQUE`** con `SAVEPOINT` por intento —
+  no con un «¿existe ya?» seguido de un `INSERT`, que es una carrera.
+- **Adjuntos**: MIME real con `file-type`, `hash_sha256`, cuota agregada
+  consultada **antes** de aceptar, fase documental, y verificación del resumen
+  al descargar.
+- **Exportación XLSX y CSV** con registro en `aud.exportacion`, incluidos los
+  filtros usados.
+- Dos migraciones nuevas: **0014** (privilegios de las pestañas) y el ajuste de
+  los códigos de unidad en las semillas de desarrollo.
+
+### Cuatro defectos reales que la Puerta 3 encontró
+
+1. **⚠️ PÉRDIDA DE DATOS SILENCIOSA.** Un `PATCH` que solo cambiaba el lugar
+   **borraba todas las participaciones de COAMI**. Causa: `crearJornada` pone
+   `.default([])` en `coami` —correcto al crear, R18 dice que no se marque
+   ninguno—, y `.partial()` de Zod **conserva el valor por omisión**, así que
+   la modificación llegaba al servicio con `coami: []`, indistinguible de
+   «quítalos todos». Sin error, sin aviso, y sin que el usuario pidiera nada.
+   Ahora «ausente» y «lista vacía» son dos cosas distintas y se pueden
+   expresar por separado.
+2. **Quitar una fila de una pestaña devolvía «permission denied».** R14
+   revoca `DELETE`, y aplicado literalmente a las once tablas hijas significaba
+   que corregir un error de digitación exigía una solicitud a JACID. Se adoptó
+   la lectura de que R14 protege **registros** y no el contenido de un
+   formulario que se está diligenciando, y se concedió `DELETE` solo sobre esas
+   once tablas (migración 0014). Es seguro porque R15 guarda la imagen anterior
+   de cada fila borrada. Queda como Q14 para confirmar.
+3. **Las semillas de desarrollo producían códigos de actividad que no se
+   parecían a los observados**, porque usaban códigos de unidad con guiones
+   (`DES-BIM23`). Ahora son numéricos, tomados de los propios ejemplos de Q1.
+4. **Dos aserciones mías eran falsas**, no el código: una buscaba en el CSV una
+   columna que la exportación no tiene, y otra daba por hecho que la
+   descripción llevaba comas. La segunda se reescribió para **probar de verdad
+   el escapado** —coma, comilla doble y salto de línea, los tres casos que
+   rompen un CSV mal escrito— en lugar de asumirlo.
+
+### 🚪 Puerta 3 — resultado
+
+La puerta pide «pruebas de API que crean una jornada completa con las once
+pestañas y tres adjuntos, la modifican, verifican la bitácora y comprueban que
+`registro_completo` pasa a verdadero solo cuando todas las pestañas exigidas
+tienen datos». Las cuatro cosas, más lo que salía gratis:
+
+| Comprobación | Resultado |
+|---|---|
+| Jornada completa con las **once** pestañas | ✅ diez de datos + los adjuntos |
+| **Tres adjuntos**, uno por fase documental | ✅ y el `hash_sha256` coincide con el calculado sobre el contenido |
+| Se modifica | ✅ |
+| Bitácora verificada | ✅ inserción y modificación, con ambas imágenes y el usuario del contexto; y las once tablas hijas también quedaron registradas |
+| `registro_completo` pasa a verdadero **solo** con las once | ✅ falso al crear, falso con diez, verdadero con once, y **vuelve a falso al retirar una** |
+| Q1 — el código sigue el patrón observado | ✅ y seis jornadas del mismo mes no colisionan |
+| R11 por la API | ✅ 9 MB entra, +2 MB da 413 con el mensaje que explica que la cuota es del total, el rechazo no consume cuota, y dar de baja libera espacio |
+| R12 por la API | ✅ un ejecutable renombrado a `.jpg`, un zip renombrado a `.pdf`, una extensión fuera del catálogo y un archivo vacío: los cuatro rechazados, y **ninguno dejó fila** |
+| Exportación | ✅ CSV con BOM y escapado RFC 4180 probado con los tres casos; XLSX con firma ZIP real; cada exportación en `aud.exportacion` **con sus filtros** |
+| R6 a través de la API | ✅ BIM24 no ve ninguna jornada de BIM23 |
+| R9, R13, A.2.4 por la API | ✅ `participoArc: false` rechazado, GMS imposibles rechazadas, fecha ISO rechazada |
+
+**Cómo se ejecuta:**
+
+```bash
+cd paid/apps/api
+PAID_ALMACEN_RAIZ=/tmp/paid-adjuntos \
+PAID_SEMILLA_DESARROLLO=1 \
+DATABASE_URL_PRUEBA="postgres://usuario:clave@127.0.0.1:5432/postgres" \
+pnpm test
+```
+
+### Pendiente al cerrar la Fase 3
+
+1. **⛔ `AlmacenMinio` NO está verificado.** `dl.min.io` está bloqueado por la
+   política de egreso, igual que las imágenes de Docker (D-07), así que no fue
+   posible levantar un MinIO. El código está escrito y compila; lo que falta es
+   haberlo ejecutado. Las pruebas corren con el almacén de sistema de archivos,
+   y R11 y R12 se imponen **antes** de que el almacén vea un byte, así que las
+   reglas sí están verificadas. Ver D-22.
+2. **Los otros cuatro subtipos no están.** Asistencias, ruedas, proyectos y
+   campañas. El patrón es el de jornadas y las tablas ya existen; es replicar,
+   no diseñar. Ojo: campañas exige nivel Fuerza (R16) y proyectos, la escala de
+   ocho tramos con su histórico mensual (R10).
+3. **La exportación tiene un tope de 500 filas.** Es deliberado —recortar en
+   silencio sería peor—, pero un consolidado anual las supera. Falta paginar la
+   exportación o generarla de forma asíncrona.
+4. **Sigue faltando el esquema Drizzle en TypeScript** (D-15). Los servicios
+   consultan con SQL parametrizado a través de `BaseDatosService`. Funciona y es
+   seguro, pero no da tipos derivados del esquema.
+5. **Q4 sigue sin responder**, y con ella los campos reales de cinco pestañas.
+   El mapa de `pestanas.mapa.ts` está hecho para que responderla sea cambiar una
+   declaración (D-23).
+
+---
+
 ## FASE 2 — Autenticación y autorización
 
 ### Antes de empezar (plan)

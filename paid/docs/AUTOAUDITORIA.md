@@ -11,7 +11,7 @@ está impuesta, la columna dice «sin implementar» y nombra la fase que la debe
 cubrir. Rellenar esas casillas por adelantado convertiría este documento en lo
 contrario de lo que es.
 
-**Estado: Fases 0, 1 y 2 cerradas. Puerta 0 parcial (ver abajo), Puertas 1 y 2 superadas.**
+**Estado: Fases 0, 1, 2 y 3 cerradas. Puerta 0 parcial (ver abajo), Puertas 1, 2 y 3 superadas.**
 
 ⚠️ El esquema está **derivado de PROMPT.md**, no traducido de
 `anexo_A_ddl_paid.sql`, que no existe. Se preguntó y se autorizó el desvío.
@@ -37,7 +37,7 @@ falla si la regla se rompe, no que el código parezca correcto.
 | R9 | `participo_arc` siempre TRUE | `0006_ai_actividad_y_subtipos.sql` (`CHECK actividad_participo_arc_siempre_verdadero`) · `packages/schema/src/dominios.ts` | 2 pruebas: `INSERT` y `UPDATE` | ✅ **Verificada** |
 | R10 | Escala de ocho tramos; no existen 80 ni 90 | `0006` (`CHECK ... IN (10,20,30,40,50,60,70,100)` en `proyecto_social` y en `proyecto_avance`) · `0009` (disparador de progresión) · `packages/schema/src/avance.ts` | 7 pruebas en base + 21 en `avance.test.ts` | ✅ **Verificada en base y en cliente** |
 | R11 | Cuota de 10 MB **agregada** | `0009_disparadores.sql` (`ai.verificar_cuota_adjuntos`) · `packages/schema/src/adjunto.ts` | 6 pruebas: 9+2 falla, distintas pasan, 40×9 MB falla, 9+1 cabe, dar de baja libera | ✅ **Verificada** |
-| R12 | Extensiones por categoría, contra el contenido real | `0002` (`ref.extension_permitida` con `mimes_esperados`) · semilla con las 16 extensiones · `0007` (`mime_detectado`) · `packages/schema/src/adjunto.ts` | `adjunto.test.ts` (19 pruebas) | ⚠️ Catálogo y contraste listos. La lectura del número mágico del archivo es de la **Fase 3** |
+| R12 | Extensiones por categoría, contra el contenido real | `0002` (`ref.extension_permitida` con `mimes_esperados`) · `0007` (`mime_detectado`) · `apps/api/src/adjuntos/adjuntos.service.ts` (`file-type` sobre el contenido) · `packages/schema/src/adjunto.ts` | 19 en `adjunto.test.ts` + 6 por la API: ejecutable renombrado a `.jpg`, zip renombrado a `.pdf`, extensión fuera del catálogo, archivo vacío — y **ninguno dejó fila** | ✅ **Verificada. Se lee el contenido real** |
 | R13 | Georreferenciación en los SEIS formularios | `0006` (bloque GMS en el supertipo) · `0005` (en `herramienta_aid`) · columnas `GENERATED ALWAYS`, incluida `geography` · `0011` (GiST) | 4 pruebas, entre ellas la comparación con `aDecimal()` en 6 coordenadas | ✅ **Verificada. Sin disparadores: todo derivado** |
 | R14 | Eliminar es un trámite | `0003`/`0005`/`0006`/`0007` (`GRANT DELETE` solo a `paid_administracion`) · `0004` (`seg.solicitud_eliminacion`) | 5 pruebas: operación no puede, administración sí, motivo obligatorio, nadie se aprueba a sí mismo | ✅ **Verificada** |
 | R15 | Bitácora obligatoria, por disparador | `0008_doc_y_aud.sql` (`aud.bitacora_cambio` + inmutabilidad doble) · `0009` (`aud.registrar_cambio` sobre `ai`, `org`, `doc`) | 5 pruebas, incluidas `UPDATE`/`DELETE`/`TRUNCATE` **como superusuario** | ✅ **Verificada** |
@@ -46,15 +46,25 @@ falla si la regla se rompe, no que el código parezca correcto.
 | R18 | Siete COAMI, ninguno por defecto | `0006` (`ai.actividad_coami`, cero-a-muchos) · semilla de los 7 | `dominios.test.ts` (5 pruebas) | ✅ |
 | R19 | Las once pestañas | `0007_ai_tablas_hijas.sql` (las once) · `0009` (`ai.recalcular_registro_completo`) · `packages/schema/src/pestanas.ts` | «es FALSE al crear, TRUE con las once, FALSE al retirar una» + 8 en `pestanas.test.ts` | ✅ **Verificada** |
 
-**Recuento:** 18 de 19 reglas verificadas con pruebas. Solo **R12** queda
-parcial: el catálogo de extensiones y el contraste MIME/extensión están y se
-prueban, pero la lectura del número mágico del archivo real es de la Fase 3,
-cuando haya carga de adjuntos.
+**Recuento: las 19 reglas verificadas con pruebas.** Tras la Fase 3, R12 deja
+de ser parcial: el MIME se lee del contenido real con `file-type` y hay seis
+pruebas de API que lo comprueban.
 
-Además, dos reglas se implementaron **más allá** de lo que su casilla pedía,
-porque el defecto que evitan es silencioso: R2 impide arrancar en producción con
-la red abierta, y R6 se comprueba también sobre el **rol de conexión** de la
-API, no solo sobre las políticas.
+Tres reglas se implementaron **más allá** de lo que su casilla pedía, porque el
+defecto que evitan es silencioso:
+
+- **R2** no solo avisa: *impide arrancar* en producción con la red abierta.
+- **R6** se comprueba también sobre el **rol de conexión** de la API, no solo
+  sobre las políticas — un superusuario las ignora y ninguna prueba de negocio
+  lo notaría.
+- **R11** se comprueba *antes* de escribir en el almacén, no solo en la base,
+  para no dejar binarios huérfanos que la base rechazó. Y hay una prueba que
+  cuenta las filas tras cuatro rechazos para confirmarlo.
+
+Lo que **no** está: los otros cuatro subtipos de actividad (asistencias,
+ruedas, proyectos, campañas). Las reglas que los gobiernan están impuestas en la
+base y verificadas en la Puerta 1; lo que falta es su API, que es replicar el
+patrón de jornadas.
 
 ---
 
@@ -105,7 +115,7 @@ API, no solo sobre las políticas.
 
 ## Resultado de la batería de pruebas
 
-Ejecutado al cerrar la Fase 2:
+Ejecutado al cerrar la Fase 3:
 
 ```
 $ pnpm -r build
@@ -118,11 +128,12 @@ e2e             build: Done
 $ pnpm -r test
 packages/schema: 6 archivos,  97 pruebas, 97 pasan
 packages/db:     1 archivo,   60 pruebas, 60 pasan   ← Puerta 1, Postgres real
-apps/api:        1 archivo,   38 pruebas, 38 pasan   ← Puerta 2, API + Postgres + Redis
+apps/api:        2 archivos,  80 pruebas, 80 pasan   ← Puertas 2 y 3,
+                                                       API + Postgres + Redis
 apps/web: sin pruebas todavía (Fase 4)
 e2e: pendiente hasta la Puerta 4
                  ─────────────────────────────────
-                 TOTAL           195 pruebas, 195 pasan
+                 TOTAL           237 pruebas, 237 pasan
 
 $ pnpm lint
 (sin hallazgos)
@@ -143,7 +154,7 @@ Comprobaciones manuales:
 - Arranque con `SESION_AVISO_SEGUNDOS > SESION_TTL_SEGUNDOS` → **aborta**, citando R1
 - `GET /salud` del servicio de IA → `200 {"estado":"degradado",...}`
 - `docker compose config` → los seis servicios válidos
-- `pnpm db:migrate` sobre base vacía → 13 migraciones aplicadas
+- `pnpm db:migrate` sobre base vacía → 14 migraciones aplicadas
 - reversión completa → **0 tablas**; reaplicación → 72 tablas
 - arranque con `NODE_ENV=production` y red `0.0.0.0/0` → **el proceso no levanta**
 
@@ -157,9 +168,16 @@ Comprobaciones manuales:
 2. **`docker compose up` sigue sin verificarse** (D-07). El archivo valida, los
    contenedores no se pueden construir por la política de egreso de la red de
    la sesión.
-3. **Las Fases 3 y 4 no están empezadas.** API REST de jornadas con sus once
-   pestañas, adjuntos a MinIO, exportación XLSX/CSV, e interfaz. R12 queda
-   parcial por eso.
+3. **La Fase 4 no está empezada:** no hay interfaz más allá del cascarón de la
+   Fase 0. Y de la Fase 3 faltan los otros cuatro subtipos de actividad
+   (asistencias, ruedas, proyectos, campañas): las tablas y las reglas están,
+   falta su API.
+4. **⛔ `AlmacenMinio` está escrito y NO ejecutado.** `dl.min.io` bloqueado por
+   la política de egreso, como las imágenes de Docker. R11 y R12 sí están
+   verificadas porque se imponen antes del almacén (D-22), pero que MinIO
+   funcione está sin comprobar.
+5. **La exportación tiene un tope de 500 filas.** Es deliberado —recortar en
+   silencio sería peor que fallar— pero un consolidado anual lo supera.
 4. **El esquema está derivado, no verificado contra el DDL de referencia**
    (D-13). Cuando aparezca `anexo_A_ddl_paid.sql` habrá que reconciliar
    nombres de columna, y eso en una base con datos no es gratis.
