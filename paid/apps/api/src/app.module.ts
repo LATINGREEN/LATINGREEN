@@ -11,6 +11,8 @@ import { PermisoGuard } from './seguridad/permiso.guard';
 import { TransaccionInterceptor } from './seguridad/transaccion.interceptor';
 import { TareasModule } from './tareas/tareas.module';
 import { AlianzasModule } from './alianzas/alianzas.module';
+import { AlmacenModule } from './almacen/almacen.module';
+import { JornadasModule } from './jornadas/jornadas.module';
 import { CABECERA_ID_CORRELACION, generarIdCorrelacion } from './comun/id-correlacion';
 
 /**
@@ -62,6 +64,8 @@ import { CABECERA_ID_CORRELACION, generarIdCorrelacion } from './comun/id-correl
     BaseDatosModule,
     SeguridadModule,
     TareasModule,
+    AlmacenModule,
+    JornadasModule,
     AlianzasModule,
     SaludModule,
   ],

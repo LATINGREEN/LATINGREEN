@@ -1,0 +1,448 @@
+import {
+  BadRequestException,
+  ConflictException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
+import {
+  CODIGOS_ERROR,
+  ESQUEMA_POR_PESTANA,
+  PESTANAS_ACTIVIDAD,
+  evaluarPestanas,
+} from '@paid/schema';
+import type {
+  ActualizarJornada,
+  CrearJornada,
+  FiltroJornadas,
+  JornadaEnListado,
+  PestanaActividad,
+  PestanaConDatos,
+} from '@paid/schema';
+import { BaseDatosService } from '../basedatos/basedatos.service';
+import { GeneradorCodigoObservado } from '../comun/generador-codigo';
+import { MAPA_PESTANAS } from './pestanas.mapa';
+
+/** El tipo de actividad JORNADA_APOYO. Fijo en la migracion 0006 (P1). */
+const TIPO_JORNADA_APOYO = 1;
+
+interface FilaListado {
+  readonly id: string;
+  readonly codigo_actividad: string;
+  readonly unidad: string;
+  readonly descripcion: string;
+  readonly fecha_inicio: string;
+  readonly fecha_ejecucion: string;
+  readonly lugar: string;
+  readonly municipio: string | null;
+  readonly registro_completo: boolean;
+  readonly latitud_decimal: string;
+  readonly longitud_decimal: string;
+  readonly pestanas_con_datos: string[];
+}
+
+@Injectable()
+export class JornadasService {
+  constructor(
+    private readonly baseDatos: BaseDatosService,
+    private readonly generadorCodigo: GeneradorCodigoObservado,
+  ) {}
+
+  /**
+   * Crea la actividad y su subtipo **en la misma transaccion**.
+   *
+   * Tiene que ser la misma: el disparador `actividad_exige_subtipo` es
+   * `DEFERRABLE INITIALLY DEFERRED` y comprueba al confirmar que la actividad
+   * tiene su fila de subtipo (P1). En dos transacciones, la primera fallaria.
+   *
+   * La transaccion la abre `TransaccionInterceptor` con el contexto de R7, asi
+   * que aqui no hay BEGIN: ya estamos dentro.
+   */
+  async crear(datos: CrearJornada): Promise<{ id: number; codigoActividad: string }> {
+    const cliente = this.baseDatos.cliente;
+    const contexto = this.baseDatos.contextoActual;
+    if (contexto === undefined) {
+      throw new Error('Sin contexto de sesion. No deberia ocurrir: lo fija el interceptor.');
+    }
+
+    const unidad = await cliente.query<{ codigo: string }>(
+      'SELECT codigo FROM org.unidad WHERE id = $1',
+      [contexto.idUnidad],
+    );
+    const codigoUnidad = unidad.rows[0]?.codigo;
+    if (codigoUnidad === undefined) {
+      // RLS no deberia ocultar la propia unidad de la sesion.
+      throw new Error(`No se pudo leer la unidad ${contexto.idUnidad} de la sesion.`);
+    }
+
+    /*
+     * Q1 — unicidad por REINTENTO sobre la restriccion UNIQUE.
+     *
+     * No se comprueba «¿existe ya?» y luego se inserta: entre las dos
+     * sentencias otra peticion puede tomar el mismo codigo. Se intenta
+     * insertar y se reintenta si la base lo rechaza, que es la unica forma
+     * correcta cuando la garantia la da un indice unico.
+     */
+    let idActividad: number | undefined;
+    let codigoActividad = '';
+    for (let intento = 0; intento < this.generadorCodigo.reintentos; intento += 1) {
+      codigoActividad = this.generadorCodigo.generar({
+        codigoUnidad,
+        fecha: new Date(`${datos.fechaEjecucion}T00:00:00Z`),
+      });
+      try {
+        // Cada intento en su propio punto de guardado: un fallo de unicidad
+        // aborta la sentencia, y sin el SAVEPOINT abortaria la transaccion
+        // entera y con ella la actividad.
+        await cliente.query('SAVEPOINT intento_codigo');
+        const insertada = await cliente.query<{ id: string }>(
+          `INSERT INTO ai.actividad (
+             id_tipo_actividad, codigo_actividad, id_unidad, descripcion,
+             fecha_inicio, fecha_fin, participo_arc, id_municipio, id_estado_registro,
+             latitud_grados, latitud_minutos, latitud_segundos, latitud_hemisferio,
+             longitud_grados, longitud_minutos, longitud_segundos, longitud_hemisferio)
+           VALUES ($1,$2,$3,$4,$5,$6,TRUE,$7,
+             (SELECT id FROM ref.estado_registro WHERE codigo = 'ACTIVO'),
+             $8,$9,$10,$11,$12,$13,$14,$15)
+           RETURNING id`,
+          [
+            TIPO_JORNADA_APOYO,
+            codigoActividad,
+            contexto.idUnidad,
+            datos.descripcion,
+            datos.fechaInicio,
+            datos.fechaFin ?? null,
+            datos.idMunicipio ?? null,
+            datos.latitudGrados,
+            datos.latitudMinutos,
+            datos.latitudSegundos,
+            datos.latitudHemisferio,
+            datos.longitudGrados,
+            datos.longitudMinutos,
+            datos.longitudSegundos,
+            datos.longitudHemisferio,
+          ],
+        );
+        await cliente.query('RELEASE SAVEPOINT intento_codigo');
+        idActividad = Number(insertada.rows[0]?.id);
+        break;
+      } catch (error: unknown) {
+        await cliente.query('ROLLBACK TO SAVEPOINT intento_codigo');
+        const codigoSql = (error as { code?: string }).code;
+        // 23505 = violacion de unicidad. Cualquier otro error no es una
+        // colision y no se debe reintentar.
+        if (codigoSql !== '23505') throw error;
+      }
+    }
+
+    if (idActividad === undefined) {
+      throw new ConflictException({
+        codigo: CODIGOS_ERROR.CONFLICTO,
+        mensaje:
+          'No se pudo generar un código de actividad único tras varios intentos. ' +
+          'Reintente. Si persiste, reporte la incidencia.',
+      });
+    }
+
+    await cliente.query(
+      `INSERT INTO ai.jornada_apoyo (id_actividad, fecha_ejecucion, lugar, observaciones)
+       VALUES ($1, $2, $3, $4)`,
+      [idActividad, datos.fechaEjecucion, datos.lugar, datos.observaciones ?? null],
+    );
+
+    // R18 — cero a muchos, y la lista vacia es legitima.
+    for (const coami of datos.coami) {
+      await cliente.query(
+        `INSERT INTO ai.actividad_coami (id_actividad, id_coami)
+         VALUES ($1, (SELECT id FROM ref.coami WHERE codigo = $2))`,
+        [idActividad, coami],
+      );
+    }
+
+    return { id: idActividad, codigoActividad };
+  }
+
+  async actualizar(idActividad: number, datos: ActualizarJornada): Promise<void> {
+    const cliente = this.baseDatos.cliente;
+    await this.exigirQueExista(idActividad);
+
+    const camposActividad: Record<string, unknown> = {};
+    if (datos.descripcion !== undefined) camposActividad['descripcion'] = datos.descripcion;
+    if (datos.fechaInicio !== undefined) camposActividad['fecha_inicio'] = datos.fechaInicio;
+    if (datos.fechaFin !== undefined) camposActividad['fecha_fin'] = datos.fechaFin;
+    if (datos.idMunicipio !== undefined) camposActividad['id_municipio'] = datos.idMunicipio;
+    for (const campo of [
+      'latitudGrados', 'latitudMinutos', 'latitudSegundos', 'latitudHemisferio',
+      'longitudGrados', 'longitudMinutos', 'longitudSegundos', 'longitudHemisferio',
+    ] as const) {
+      const valor = datos[campo];
+      if (valor !== undefined) {
+        camposActividad[campo.replace(/[A-Z]/g, (l) => `_${l.toLowerCase()}`)] = valor;
+      }
+    }
+
+    if (Object.keys(camposActividad).length > 0) {
+      const claves = Object.keys(camposActividad);
+      const asignaciones = claves.map((c, i) => `${c} = $${i + 2}`).join(', ');
+      await cliente.query(
+        `UPDATE ai.actividad SET ${asignaciones} WHERE id = $1`,
+        [idActividad, ...claves.map((c) => camposActividad[c])],
+      );
+    }
+
+    const camposJornada: Record<string, unknown> = {};
+    if (datos.fechaEjecucion !== undefined) camposJornada['fecha_ejecucion'] = datos.fechaEjecucion;
+    if (datos.lugar !== undefined) camposJornada['lugar'] = datos.lugar;
+    if (datos.observaciones !== undefined) camposJornada['observaciones'] = datos.observaciones;
+
+    if (Object.keys(camposJornada).length > 0) {
+      const claves = Object.keys(camposJornada);
+      const asignaciones = claves.map((c, i) => `${c} = $${i + 2}`).join(', ');
+      await cliente.query(
+        `UPDATE ai.jornada_apoyo SET ${asignaciones} WHERE id_actividad = $1`,
+        [idActividad, ...claves.map((c) => camposJornada[c])],
+      );
+    }
+
+    if (datos.coami !== undefined) {
+      await cliente.query('DELETE FROM ai.actividad_coami WHERE id_actividad = $1', [idActividad]);
+      for (const coami of datos.coami) {
+        await cliente.query(
+          `INSERT INTO ai.actividad_coami (id_actividad, id_coami)
+           VALUES ($1, (SELECT id FROM ref.coami WHERE codigo = $2))`,
+          [idActividad, coami],
+        );
+      }
+    }
+  }
+
+  /**
+   * Anade una fila a una pestaña.
+   *
+   * El SQL se compone desde `MAPA_PESTANAS`, no se concatena con datos del
+   * usuario: los nombres de tabla y columna salen del mapa —valores del
+   * codigo— y los valores viajan como parametros vinculados.
+   */
+  async agregarFilaPestana(
+    idActividad: number,
+    pestana: PestanaConDatos,
+    datosCrudos: unknown,
+  ): Promise<{ id: number }> {
+    await this.exigirQueExista(idActividad);
+
+    const esquema = ESQUEMA_POR_PESTANA[pestana];
+    const validado = esquema.safeParse(datosCrudos);
+    if (!validado.success) {
+      throw new BadRequestException({
+        codigo: CODIGOS_ERROR.DATOS_INVALIDOS,
+        mensaje: `Datos inválidos para la pestaña ${pestana}.`,
+        detalles: validado.error.issues.map((i) => ({
+          campo: i.path.join('.'),
+          mensaje: i.message,
+        })),
+      });
+    }
+
+    const definicion = MAPA_PESTANAS[pestana];
+    const datos = validado.data as Record<string, unknown>;
+
+    const columnas: string[] = [];
+    const valores: unknown[] = [];
+    for (const [campo, columna] of Object.entries(definicion.columnas)) {
+      if (datos[campo] !== undefined) {
+        columnas.push(columna);
+        valores.push(datos[campo]);
+      }
+    }
+
+    const marcadores = valores.map((_, i) => `$${i + 2}`).join(', ');
+    const devolver = definicion.unoAUno === true ? 'id_actividad' : 'id';
+
+    /*
+     * La pestaña Resumen es uno a uno: reenviarla no es un duplicado, es una
+     * correccion. De ahi el ON CONFLICT.
+     */
+    const conflicto =
+      definicion.unoAUno === true
+        ? `ON CONFLICT (id_actividad) DO UPDATE SET ${columnas
+            .map((c) => `${c} = EXCLUDED.${c}`)
+            .join(', ')}`
+        : '';
+
+    try {
+      const insertada = await this.baseDatos.cliente.query<Record<string, string>>(
+        `INSERT INTO ai.${definicion.tabla} (id_actividad${columnas.length > 0 ? ', ' + columnas.join(', ') : ''})
+         VALUES ($1${valores.length > 0 ? ', ' + marcadores : ''})
+         ${conflicto}
+         RETURNING ${devolver}`,
+        [idActividad, ...valores],
+      );
+      return { id: Number(insertada.rows[0]?.[devolver]) };
+    } catch (error: unknown) {
+      if ((error as { code?: string }).code === '23505') {
+        throw new ConflictException({
+          codigo: CODIGOS_ERROR.CONFLICTO,
+          mensaje:
+            `Esa entrada ya está registrada en la pestaña ${pestana}. ` +
+            'Modifique la existente en lugar de añadirla de nuevo.',
+        });
+      }
+      throw error;
+    }
+  }
+
+  async eliminarFilaPestana(
+    idActividad: number,
+    pestana: PestanaConDatos,
+    idFila: number,
+  ): Promise<void> {
+    const definicion = MAPA_PESTANAS[pestana];
+    const columnaId = definicion.unoAUno === true ? 'id_actividad' : 'id';
+    const resultado = await this.baseDatos.cliente.query(
+      `DELETE FROM ai.${definicion.tabla} WHERE ${columnaId} = $1 AND id_actividad = $2`,
+      [idFila, idActividad],
+    );
+    if (resultado.rowCount === 0) {
+      throw new NotFoundException({
+        codigo: CODIGOS_ERROR.RECURSO_NO_ENCONTRADO,
+        mensaje: 'No se encontró la fila.',
+      });
+    }
+  }
+
+  /** Estado de las once pestañas, para pintar el aviso de R19. */
+  async estadoPestanas(idActividad: number): Promise<{
+    registroCompleto: boolean;
+    faltantes: readonly PestanaActividad[];
+    completas: readonly PestanaActividad[];
+  }> {
+    await this.exigirQueExista(idActividad);
+    const conDatos = await this.pestanasConDatos(idActividad);
+    const estado = evaluarPestanas(conDatos);
+
+    // `registro_completo` de la base es la fuente de verdad; esto es
+    // presentacion. Se devuelve el valor de la base y no el calculado, para
+    // que una discrepancia se vea en lugar de quedar disimulada.
+    const fila = await this.baseDatos.cliente.query<{ registro_completo: boolean }>(
+      'SELECT registro_completo FROM ai.actividad WHERE id = $1',
+      [idActividad],
+    );
+    return {
+      registroCompleto: fila.rows[0]?.registro_completo ?? false,
+      faltantes: estado.faltantes,
+      completas: estado.completas,
+    };
+  }
+
+  private async pestanasConDatos(idActividad: number): Promise<PestanaActividad[]> {
+    const cliente = this.baseDatos.cliente;
+    const conDatos: PestanaActividad[] = [];
+
+    // Adjuntos: solo los VIGENTES cuentan (R14 + R11).
+    const adjuntos = await cliente.query<{ n: string }>(
+      `SELECT count(*) AS n FROM ai.act_adjunto a
+         JOIN ref.estado_registro e ON e.id = a.id_estado_registro
+        WHERE a.id_actividad = $1 AND e.codigo = 'ACTIVO'`,
+      [idActividad],
+    );
+    if (Number(adjuntos.rows[0]?.n ?? 0) > 0) conDatos.push('ARCHIVOS_ADJUNTOS');
+
+    for (const [pestana, definicion] of Object.entries(MAPA_PESTANAS)) {
+      const r = await cliente.query<{ n: string }>(
+        `SELECT count(*) AS n FROM ai.${definicion.tabla} WHERE id_actividad = $1`,
+        [idActividad],
+      );
+      if (Number(r.rows[0]?.n ?? 0) > 0) conDatos.push(pestana as PestanaActividad);
+    }
+    return conDatos;
+  }
+
+  /** Listado con las columnas del manual, y el aviso de incompletos (R19). */
+  async listar(filtro: FiltroJornadas): Promise<{
+    filas: readonly JornadaEnListado[];
+    total: number;
+  }> {
+    const condiciones: string[] = ['a.id_tipo_actividad = $1'];
+    const valores: unknown[] = [TIPO_JORNADA_APOYO];
+
+    const agregar = (condicion: (indice: number) => string, valor: unknown): void => {
+      valores.push(valor);
+      condiciones.push(condicion(valores.length));
+    };
+
+    if (filtro.desde !== undefined) agregar((i) => `a.fecha_inicio >= $${i}`, filtro.desde);
+    if (filtro.hasta !== undefined) agregar((i) => `a.fecha_inicio <= $${i}`, filtro.hasta);
+    if (filtro.idMunicipio !== undefined) agregar((i) => `a.id_municipio = $${i}`, filtro.idMunicipio);
+    if (filtro.soloCompletas === true) condiciones.push('a.registro_completo');
+    if (filtro.texto !== undefined && filtro.texto !== '') {
+      agregar(
+        (i) => `(a.descripcion ILIKE '%' || $${i} || '%' OR a.codigo_actividad ILIKE '%' || $${i} || '%')`,
+        filtro.texto,
+      );
+    }
+
+    const donde = condiciones.join(' AND ');
+    const cliente = this.baseDatos.cliente;
+
+    const total = await cliente.query<{ n: string }>(
+      `SELECT count(*) AS n FROM ai.actividad a WHERE ${donde}`,
+      valores,
+    );
+
+    const desplazamiento = (filtro.pagina - 1) * filtro.porPagina;
+    const resultado = await cliente.query<FilaListado>(
+      `SELECT a.id, a.codigo_actividad, u.sigla AS unidad, a.descripcion,
+              a.fecha_inicio::text, j.fecha_ejecucion::text, j.lugar,
+              m.nombre AS municipio, a.registro_completo,
+              a.latitud_decimal::text, a.longitud_decimal::text
+         FROM ai.actividad a
+         JOIN ai.jornada_apoyo j ON j.id_actividad = a.id
+         JOIN org.unidad u ON u.id = a.id_unidad
+         LEFT JOIN ref.municipio m ON m.id = a.id_municipio
+        WHERE ${donde}
+        ORDER BY a.fecha_inicio DESC, a.id DESC
+        LIMIT ${filtro.porPagina} OFFSET ${desplazamiento}`,
+      valores,
+    );
+
+    const filas: JornadaEnListado[] = [];
+    for (const fila of resultado.rows) {
+      const conDatos = await this.pestanasConDatos(Number(fila.id));
+      filas.push({
+        id: Number(fila.id),
+        codigoActividad: fila.codigo_actividad,
+        unidad: fila.unidad,
+        descripcion: fila.descripcion,
+        fechaInicio: fila.fecha_inicio,
+        fechaEjecucion: fila.fecha_ejecucion,
+        lugar: fila.lugar,
+        municipio: fila.municipio,
+        registroCompleto: fila.registro_completo,
+        pestanasFaltantes: PESTANAS_ACTIVIDAD.filter((p) => !conDatos.includes(p)),
+        latitudDecimal: Number(fila.latitud_decimal),
+        longitudDecimal: Number(fila.longitud_decimal),
+      });
+    }
+
+    return { filas, total: Number(total.rows[0]?.n ?? 0) };
+  }
+
+  /**
+   * Comprueba que la actividad existe Y es visible.
+   *
+   * RLS ya oculta lo que no corresponde, asi que «no existe» y «no la puede
+   * ver» llegan aqui como lo mismo — y responden lo mismo. Decir «existe pero
+   * no es tuya» confirmaria la existencia de datos de otra unidad.
+   */
+  private async exigirQueExista(idActividad: number): Promise<void> {
+    const r = await this.baseDatos.cliente.query(
+      'SELECT 1 FROM ai.actividad WHERE id = $1 AND id_tipo_actividad = $2',
+      [idActividad, TIPO_JORNADA_APOYO],
+    );
+    if (r.rowCount === 0) {
+      throw new NotFoundException({
+        codigo: CODIGOS_ERROR.RECURSO_NO_ENCONTRADO,
+        mensaje: 'No se encontró la jornada.',
+      });
+    }
+  }
+}
