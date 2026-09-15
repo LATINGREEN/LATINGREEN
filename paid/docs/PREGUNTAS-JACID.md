@@ -18,26 +18,35 @@ curso. Las 🟡 se pueden responder más adelante sin frenar nada.
 
 ---
 
-## 🔴 Q0 — El archivo `anexo_A_ddl_paid.sql`
+## ✅ Q0 — El archivo `anexo_A_ddl_paid.sql` · **resuelta: no existe**
 
-**Esta no es una de las doce preguntas del pliego: es un bloqueo real y activo.**
+La especificación nombraba un archivo, `anexo_A_ddl_paid.sql`, como punto de
+partida obligatorio para la base de datos. **No existe.** Se confirmó y se
+autorizó construir el esquema a partir de las reglas escritas en la propia
+especificación.
 
-La especificación del proyecto nombra un archivo, `anexo_A_ddl_paid.sql`, como
-punto de partida obligatorio para construir la base de datos, y ordena de forma
-expresa: *«Si falta el `.sql`, detente y pídelo. No improvises el esquema.»*
+**Eso ya está hecho:** la base de datos está construida y verificada con 60
+pruebas automáticas contra un PostgreSQL real. Las reglas que importan —que el
+avance de un proyecto no pueda ser del 80 %, que los adjuntos de una actividad
+no pasen de 10 MB *entre todos*, que una unidad no vea los datos de otra, que
+nadie pueda alterar el registro de auditoría— están impuestas por la base de
+datos y comprobadas una por una.
 
-Ese archivo **no está**. Por eso la base de datos de la PAID no se ha empezado,
-y no se ha inventado ni una sola tabla.
+**Lo que conviene saber, porque tiene consecuencias:**
 
-**Lo que se necesita:** el archivo `anexo_A_ddl_paid.sql` (el diseño de la base
-de datos ya verificado y auditado). Debe quedar en la carpeta `paid/` del
-repositorio.
-
-**Por qué no se sustituye por nada:** la base de datos es donde viven las reglas
-del sistema — que el avance de un proyecto no pueda ser del 80 %, que los
-adjuntos de una actividad no pasen de 10 MB entre todos, que una unidad no vea
-los datos de otra. Un diseño inventado «parecido» produciría un sistema que
-funciona en las pruebas y descuadra los consolidados del RAO meses después.
+1. **Los nombres de las columnas son los que elegimos nosotros.** Si algún día
+   aparece el diseño original, habrá que reconciliar los dos, y renombrar
+   columnas en una base que ya tiene datos no es una operación gratuita.
+2. **Puede faltar algo que ninguna regla menciona.** La especificación hablaba
+   de «26 catálogos»; se implementaron 33, los que las reglas exigen. Si el
+   diseño original tenía catálogos que el documento no describe, aquí no están.
+3. **No se inventó ningún contenido de catálogo.** Autorizar construir el
+   esquema no autorizó rellenarlo. Por eso las preguntas Q2 y Q4 siguen siendo
+   las que más bloquean: sin las 17 campañas y sin los campos de cinco
+   pestañas, **una actividad no se puede dar por completa en el sistema**. Eso
+   es deliberado: es mejor que el sistema no deje cerrar un registro que dejarlo
+   cerrar contra una categoría inventada, porque en ese caso el consolidado del
+   RAO cuadraría y estaría mal.
 
 ---
 
@@ -288,7 +297,7 @@ sobre el tratamiento de información clasificada.
 
 | # | Pregunta en una línea | Prioridad |
 |---|---|---|
-| Q0 | Falta el archivo `anexo_A_ddl_paid.sql`. Sin él no hay base de datos. | 🔴 Bloquea |
+| Q0 | El archivo `anexo_A_ddl_paid.sql` no existe. Base de datos construida desde las reglas del documento. | ✅ Resuelta |
 | Q1 | ¿Cómo se construye el código de actividad? ¿Significan algo los 5 caracteres finales? | 🔴 |
 | Q2 | ¿Cuáles son las 17 campañas institucionales? | 🔴 |
 | Q4 | ¿Qué campos tienen 5 de las 11 pestañas, sobre todo Población Beneficiada? | 🔴 |

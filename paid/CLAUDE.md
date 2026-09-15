@@ -49,11 +49,29 @@ del repositorio, para que una sesión futura no tenga que deducirlo.
 La PAID vive en `paid/`, no en la raíz: el repositorio ya contenía otro proyecto
 (el juego Eco-Arcade Latin Green). Ver `docs/DECISIONES.md`, D-01.
 
-## ⛔ Bloqueo activo
-**Falta `anexo_A_ddl_paid.sql`.** La Fase 1 no ha empezado y no se ha inventado
-ninguna tabla, porque PROMPT.md lo prohíbe expresamente. Si retomas el trabajo:
-busca ese archivo antes de escribir una línea de esquema. `docs/BITACORA.md` y
-`docs/PREGUNTAS-JACID.md` (Q0) lo detallan.
+## Estado
+**Fases 0 y 1 cerradas.** 157 pruebas pasando, 60 de ellas contra Postgres real
+(Puerta 1). La siguiente es la Fase 2 (autenticación y autorización).
+
+## ⚠️ El esquema está DERIVADO de PROMPT.md
+`anexo_A_ddl_paid.sql` no existe. Se preguntó, como PROMPT.md ordena, y se
+autorizó expresamente derivar el esquema de las reglas R1–R19. Ver
+`docs/DECISIONES.md`, D-13.
+
+Lo que eso significa para ti:
+- Los nombres de columna son nuestros. Si el archivo aparece, hay que
+  reconciliar, y eso en una base con datos no es gratis.
+- Autorizar derivar el esquema **no** autorizó inventar el contenido de los
+  catálogos. Los que dependen de JACID están vacíos y así se quedan hasta que
+  respondan. No los rellenes.
+
+## Migraciones: SQL a mano, y no se regeneran
+Las once migraciones de `packages/db/migraciones/` son SQL escrito a mano.
+`pnpm db:generate` está deshabilitado a propósito: `drizzle-kit` no conoce los
+disparadores ni las políticas RLS y propondría borrarlos. Ver D-15.
+
+Cada migración corre dentro de una transacción y ninguna se da por terminada
+sin su `down` en `bajada/` — el aplicador se niega a arrancar si falta.
 
 ## Antes de tocar algo, lee
 1. `docs/BITACORA.md` — qué se hizo y qué quedó pendiente, por fase.
@@ -66,6 +84,15 @@ busca ese archivo antes de escribir una línea de esquema. `docs/BITACORA.md` y
 — ese tercer argumento `true` **es** el `is_local` de `SET LOCAL`. Cambiarlo por
 `false` introduce una fuga de datos entre unidades que no se ve leyendo el
 código. Léelo entero antes de modificarlo.
+
+El contexto lleva **cinco** claves, no cuatro: `app.ruta_unidad` está ahí
+porque la política RLS de `org.unidad` no puede buscar esa ruta con una
+subconsulta sobre `org.unidad` sin provocar recursión infinita. No la quites
+para «simplificar»: se intentó y la Puerta 1 lo detectó. Ver D-16.
+
+Deuda conocida asociada: al recolocar una unidad en la jerarquía hay que
+cerrar las sesiones de su subarborescencia, porque conservarían la ruta
+anterior. Es trabajo de la Fase 2.
 
 ## Dos cosas que no son obvias
 - **`packages/schema` compila a CommonJS** (lo consume NestJS), y por eso

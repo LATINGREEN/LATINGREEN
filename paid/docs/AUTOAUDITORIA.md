@@ -11,58 +11,61 @@ está impuesta, la columna dice «sin implementar» y nombra la fase que la debe
 cubrir. Rellenar esas casillas por adelantado convertiría este documento en lo
 contrario de lo que es.
 
-**Estado: Fase 0 cerrada.** Lo que hay implementado son los invariantes que
-`PROMPT.md` enuncia de forma literal y que no dependen de
-`anexo_A_ddl_paid.sql`. El resto espera ese archivo.
+**Estado: Fases 0 y 1 cerradas. Puerta 0 parcial (ver abajo), Puerta 1 superada.**
+
+⚠️ El esquema está **derivado de PROMPT.md**, no traducido de
+`anexo_A_ddl_paid.sql`, que no existe. Se preguntó y se autorizó el desvío.
+Ver `docs/DECISIONES.md`, D-13, para lo que eso implica.
 
 ---
 
 ## Reglas del dominio (R1–R19)
 
-Ubicaciones relativas a `paid/`.
+Ubicaciones relativas a `paid/`. «Verificada» significa que hay una prueba que
+falla si la regla se rompe, no que el código parezca correcto.
 
-| # | Regla | Dónde se impone hoy | Estado |
-|---|---|---|---|
-| R1 | Sesión de 10 min, deslizante, evaluada en servidor | `apps/api/src/configuracion.ts` (`SESION_TTL_SEGUNDOS`, y la comprobación de que el aviso precede a la expiración) · `.env.example` | ⚠️ Parcial: solo la configuración. El TTL en Redis y `seg.sesion` son de la **Fase 2** |
-| R2 | Red cerrada; rangos en `seg.red_autorizada`, no en entorno | `apps/api/src/configuracion.ts` (comentario que prohíbe CIDR aquí) · `docker/web/nginx.conf` (`X-Forwarded-For`, para que la API vea la IP real) | ⚠️ Parcial: la tabla y su validación son de la **Fase 1/2** |
-| R3 | Captcha de un solo uso, se guarda el resumen | — | ⛔ **Fase 2** |
-| R4 | Ocho causas en la base, un solo mensaje en la pantalla | `packages/schema/src/dominios.ts` (`RESULTADOS_INTENTO_AUTENTICACION`, `MENSAJE_CREDENCIALES_INVALIDAS`) · pruebas en `dominios.test.ts` | ✅ El dominio y el mensaje único. El flujo que los usa es de la **Fase 2** |
-| R5 | Credencial de unidad `<SIGLA>_PAID` | `packages/schema/src/dominios.ts` (`credencialUnidad`) · pruebas en `dominios.test.ts` | ✅ Validación · ⛔ `seg.usuario` es de la **Fase 1** |
-| R6 | Ámbito jerárquico con RLS sobre `ltree` | `packages/schema/src/dominios.ts` (`NIVELES_JERARQUIA`) · `docker/postgres/initdb/01-usuario-aplicacion.sh` (`NOBYPASSRLS`, sin el cual RLS no protege nada) | ⛔ Las políticas son de la **Fase 1** |
-| R7 | Contexto de sesión con `SET LOCAL` en la transacción | `packages/db/src/contexto.ts` (todo el archivo) · `packages/db/src/cliente.ts` (`enTransaccionConContexto`) | ✅ Mecanismo implementado · ⛔ La prueba de fuga es de la **Puerta 2** |
-| R8 | Tres maestros de precedencia | `packages/schema/src/dominios.ts` (`MAESTROS_DE_PRECEDENCIA`) | ⛔ Las claves foráneas son de la **Fase 1** |
-| R9 | `participo_arc` siempre TRUE | `packages/schema/src/dominios.ts` (`participoArc`) · pruebas en `dominios.test.ts` | ✅ En el esquema compartido · ⛔ El `CHECK` es de la **Fase 1** |
-| R10 | Escala de ocho tramos: 10..70, 100. **No existen 80 ni 90** | `packages/schema/src/avance.ts` (`TRAMOS_AVANCE`, `tramoAvance`, `puedeAvanzarA`) · 21 pruebas en `avance.test.ts` | ✅ Escala y progresión · ⛔ El `CHECK` y el disparador son de la **Fase 1** |
-| R11 | Cuota de 10 MB **agregada** por actividad | `packages/schema/src/adjunto.ts` (`CUOTA_BYTES_POR_ACTIVIDAD`, `cabeEnLaCuota`, `calcularCuota`) · pruebas en `adjunto.test.ts`, incluida la de los 40 archivos de 9 MB | ✅ Cálculo y aviso previo · ⛔ El disparador `BEFORE INSERT` es de la **Fase 1** |
-| R12 | Extensiones por categoría, validadas contra el contenido real | `packages/schema/src/adjunto.ts` (`EXTENSIONES_POR_CATEGORIA`, `MIME_ESPERADO_POR_EXTENSION`, `mimeCoincideConExtension`) · pruebas en `adjunto.test.ts` | ✅ Catálogo y comprobación MIME/extensión · ⛔ La lectura del número mágico del archivo real es de la **Fase 3** |
-| R13 | Georreferenciación en los SEIS formularios | `packages/schema/src/coordenadas.ts` (`coordenadaGms`, `aDecimal`, `FORMULARIOS_CON_GEORREFERENCIA`) · pruebas en `coordenadas.test.ts` | ✅ GMS y la fórmula canónica · ⛔ Las columnas generadas y el índice GiST son de la **Fase 1** |
-| R14 | Eliminar es un trámite | `packages/schema/src/dominios.ts` (`ESTADOS_REGISTRO`) · `packages/schema/src/errores.ts` (`ELIMINACION_REQUIERE_SOLICITUD`) | ⛔ Privilegios revocados y `seg.solicitud_eliminacion` son de la **Fase 1** |
-| R15 | Bitácora obligatoria, por disparador | `docker-compose.yml` (`log_min_duration_statement`, para vigilar el coste del disparador) | ⛔ **Fase 1** |
-| R16 | Atribuciones centralizadas en JACID | `packages/schema/src/dominios.ts` (`PERMISOS_EXCLUSIVOS_JACID`) | ⛔ La matriz de permisos es de la **Fase 2** |
-| R17 | Asistencia DIRECTA exige plan operacional | `packages/schema/src/dominios.ts` (`asistenciaHumanitaria`) · pruebas en `dominios.test.ts` | ✅ En el esquema compartido · ⛔ El `CHECK` es de la **Fase 1** |
-| R18 | Siete COAMI, opcionales, ninguno por defecto | `packages/schema/src/dominios.ts` (`COAMI`, `coamiParticipantes`) · pruebas en `dominios.test.ts` | ✅ |
-| R19 | Las once pestañas | `packages/schema/src/pestanas.ts` (`PESTANAS_ACTIVIDAD`, `evaluarPestanas`) · pruebas en `pestanas.test.ts` | ✅ Dominio y cálculo · ⛔ `ai.actividad.registro_completo` es de la **Fase 1** |
+| # | Regla | Dónde se impone | Prueba | Estado |
+|---|---|---|---|---|
+| R1 | Sesión de 10 min, deslizante, en servidor | `packages/db/migraciones/0004_seg_seguridad.sql` (`seg.sesion`, disparador `sesion_fijar_expiracion`) · `apps/api/src/configuracion.ts` | «expira_en se deriva de la ultima actividad, no se digita» | ⚠️ La base ya impone los 10 min y los hace indigitables. El TTL en Redis y la tarea de cierre son de la **Fase 2** |
+| R2 | Red cerrada; rangos en tabla, no en entorno | `0004_seg_seguridad.sql` (`seg.red_autorizada`, tipo `cidr`) · `apps/api/src/configuracion.ts` (comentario que prohíbe CIDR ahí) | — | ⚠️ Tabla lista. La validación en el flujo de ingreso es de la **Fase 2** |
+| R3 | Captcha de un solo uso, se guarda el resumen | `0004_seg_seguridad.sql` (`seg.captcha`, `CHECK` sha256 hex, disparador de 5 min) | «el captcha caduca a los 5 minutos, tampoco negociable» | ✅ En base · flujo en **Fase 2** |
+| R4 | Ocho causas en base, un mensaje en pantalla | `0002_ref_catalogos.sql` + semilla de `ref.resultado_intento_autenticacion` · `0004` (`seg.intento_autenticacion`) · `packages/schema/src/dominios.ts` | `dominios.test.ts` (3 pruebas) | ✅ Dominio y mensaje único · flujo en **Fase 2** |
+| R5 | Credencial de unidad `<SIGLA>_PAID` | `0004_seg_seguridad.sql` (`CHECK usuario_credencial_formato`) · `packages/schema/src/dominios.ts` | «la credencial sigue el patron», 3 credenciales inválidas | ✅ **Verificada en base y en cliente** |
+| R6 | Ámbito jerárquico con RLS sobre `ltree` | `0003_org_unidades.sql` (`ruta_jerarquica`) · `0009_disparadores.sql` (derivación y recolocación) · `0010_rls_politicas.sql` (18 políticas) · `0011_indices.sql` (GiST) | 7 pruebas, incluidas «BIM23 no ve BIM24», «sin contexto no se ve nada» | ✅ **Verificada como rol `NOBYPASSRLS`** |
+| R7 | Contexto con `SET LOCAL` en la transacción | `packages/db/src/contexto.ts` · `packages/db/src/cliente.ts` (`enTransaccionConContexto`) · `0001` (funciones `seg.*_actual()`) | «el contexto no sobrevive a la transaccion», con `max = 1` en el pool | ✅ **Verificada** |
+| R8 | Tres maestros de precedencia | `0005_ai_maestros.sql` · claves foráneas obligatorias desde `0007` | Inventario | ✅ |
+| R9 | `participo_arc` siempre TRUE | `0006_ai_actividad_y_subtipos.sql` (`CHECK actividad_participo_arc_siempre_verdadero`) · `packages/schema/src/dominios.ts` | 2 pruebas: `INSERT` y `UPDATE` | ✅ **Verificada** |
+| R10 | Escala de ocho tramos; no existen 80 ni 90 | `0006` (`CHECK ... IN (10,20,30,40,50,60,70,100)` en `proyecto_social` y en `proyecto_avance`) · `0009` (disparador de progresión) · `packages/schema/src/avance.ts` | 7 pruebas en base + 21 en `avance.test.ts` | ✅ **Verificada en base y en cliente** |
+| R11 | Cuota de 10 MB **agregada** | `0009_disparadores.sql` (`ai.verificar_cuota_adjuntos`) · `packages/schema/src/adjunto.ts` | 6 pruebas: 9+2 falla, distintas pasan, 40×9 MB falla, 9+1 cabe, dar de baja libera | ✅ **Verificada** |
+| R12 | Extensiones por categoría, contra el contenido real | `0002` (`ref.extension_permitida` con `mimes_esperados`) · semilla con las 16 extensiones · `0007` (`mime_detectado`) · `packages/schema/src/adjunto.ts` | `adjunto.test.ts` (19 pruebas) | ⚠️ Catálogo y contraste listos. La lectura del número mágico del archivo es de la **Fase 3** |
+| R13 | Georreferenciación en los SEIS formularios | `0006` (bloque GMS en el supertipo) · `0005` (en `herramienta_aid`) · columnas `GENERATED ALWAYS`, incluida `geography` · `0011` (GiST) | 4 pruebas, entre ellas la comparación con `aDecimal()` en 6 coordenadas | ✅ **Verificada. Sin disparadores: todo derivado** |
+| R14 | Eliminar es un trámite | `0003`/`0005`/`0006`/`0007` (`GRANT DELETE` solo a `paid_administracion`) · `0004` (`seg.solicitud_eliminacion`) | 5 pruebas: operación no puede, administración sí, motivo obligatorio, nadie se aprueba a sí mismo | ✅ **Verificada** |
+| R15 | Bitácora obligatoria, por disparador | `0008_doc_y_aud.sql` (`aud.bitacora_cambio` + inmutabilidad doble) · `0009` (`aud.registrar_cambio` sobre `ai`, `org`, `doc`) | 5 pruebas, incluidas `UPDATE`/`DELETE`/`TRUNCATE` **como superusuario** | ✅ **Verificada** |
+| R16 | Atribuciones centralizadas en JACID | `0009` (`ai.verificar_campana_es_de_fuerza`) · `0008` (privilegios de `doc.normatividad`) · `0004` (`REVOKE` a operación sobre roles y permisos) · `packages/schema/src/dominios.ts` | 2 pruebas de campaña | ⚠️ La parte de datos está verificada. La matriz de permisos y `ALIANZA.AVANCE` son de la **Fase 2** |
+| R17 | Asistencia DIRECTA exige plan | `0006` (`CHECK asistencia_directa_exige_plan_operacional`) · `packages/schema/src/dominios.ts` | 3 pruebas | ✅ **Verificada** |
+| R18 | Siete COAMI, ninguno por defecto | `0006` (`ai.actividad_coami`, cero-a-muchos) · semilla de los 7 | `dominios.test.ts` (5 pruebas) | ✅ |
+| R19 | Las once pestañas | `0007_ai_tablas_hijas.sql` (las once) · `0009` (`ai.recalcular_registro_completo`) · `packages/schema/src/pestanas.ts` | «es FALSE al crear, TRUE con las once, FALSE al retirar una» + 8 en `pestanas.test.ts` | ✅ **Verificada** |
 
-**Recuento de la Fase 0:** 8 reglas con algo implementado y probado, 4 parciales,
-7 sin empezar por depender del esquema.
+**Recuento:** 13 reglas verificadas con prueba en base, 6 parciales cuyo resto
+depende de las Fases 2 y 3. Ninguna sin empezar.
 
 ---
 
 ## Anti-patrones (P1–P11)
 
-| # | Anti-patrón | ¿Presente? | Cómo se comprueba hoy |
+| # | Anti-patrón | ¿Presente? | Cómo se descarta |
 |---|---|---|---|
-| P1 | Referencia polimórfica sin integridad | **No** | No hay esquema. La prueba real es de la **Puerta 1** |
-| P2 | Documentar una tabla y no implementarla | **No** | No hay tabla documentada como existente. `packages/db/src/esquema/README.md` lista los esquemas **previstos** y dice expresamente que está vacío. `PESTANA_QUE_ALIMENTA_EL_RAO` nombra `POBLACION_BENEFICIADA` para que el test de inventario de la **Puerta 1** la cite por su nombre |
-| P3 | Llamar «auditoría» a cuatro columnas | **No** | Sin esquema. **Puerta 1** |
-| P4 | RBAC de nombre | **No** | Sin esquema. **Fase 2** |
-| P5 | `CHECK` de fila para una regla de agregación | **No** | `cabeEnLaCuota` suma **todos** los archivos vigentes, y hay una prueba con 40 archivos de 9 MB que falla si alguien lo convierte en un límite por archivo (`adjunto.test.ts`) |
-| P6 | Columnas «calculadas por trigger» sin el trigger | **No** | `aDecimal` es la fórmula canónica y el archivo lleva escrita, literal, la expresión SQL `GENERATED ALWAYS` que la **Fase 1** debe usar. Las pruebas fijan valores esperados (Cartagena, Leticia), así que una divergencia entre la fórmula y la columna generada se detecta comparando contra ellos |
-| P7 | Testigo de sesión en claro | **No** | Sin `seg.sesion`. **Fase 2** |
-| P8 | Prohibir el borrado físico solo en la documentación | **No** | `01-usuario-aplicacion.sh` ya crea el usuario no superusuario **sin el cual no hay nada que revocar**. Los privilegios son de la **Fase 1** |
-| P9 | Dominios cerrados como texto libre | **No** | Todos los dominios que `PROMPT.md` enumera están como constantes cerradas en `packages/schema/src/dominios.ts`, y `normalizarTexto` hace comparables «BINACIONAL» y «Binacional» (probado en `primitivos.test.ts`). Las tablas `ref` son de la **Fase 1** |
-| P10 | Desnormalizar geografía y jerarquía | **No** | Sin esquema. **Puerta 1** |
-| P11 | `SET` en lugar de `SET LOCAL` | **No** | `packages/db/src/contexto.ts` usa `set_config(clave, valor, **true**)`, que es el `is_local` de `SET LOCAL`. No existe en el paquete ninguna función que ejecute SQL de dominio fuera de `enTransaccionConContexto`. El archivo documenta que cambiar ese `true` por `false` reintroduce el anti-patrón, y la prueba con `pool.max = 1` de la **Puerta 2** es lo que lo detecta |
+| P1 | Referencia polimórfica sin integridad | **No** | `0006`: supertipo `ai.actividad` con clave foránea **real** desde cada hija; disyunción por clave foránea compuesta `(id_actividad, id_tipo_actividad)` y columna constante con `CHECK`. Verificado: una actividad sin subtipo falla al confirmar, y un segundo subtipo es rechazado por la clave foránea |
+| P2 | Documentar una tabla y no implementarla | **No** | Test de inventario contra `information_schema` con 37 tablas citadas **por su nombre**, más una comprobación de que las tablas `ai.act_*` son exactamente **once**, más una que nombra `act_poblacion_beneficiada` en solitario, porque es la que se perdió |
+| P3 | Llamar «auditoría» a cuatro columnas | **No** | Las cuatro columnas (`aud.fijar_columnas_auditoria` en `0001`, enganchada en `0009`) **más** `aud.bitacora_cambio`. Verificado que un `UPDATE` deja una fila con ambas imágenes |
+| P4 | RBAC de nombre | **No** | `0004`: `seg.permiso` con la tripleta y el código derivado, `seg.rol_permiso`, `seg.usuario_rol` **con vigencia** e índice único sobre la asignación abierta, `seg.rol.id_ambito_visibilidad` |
+| P5 | `CHECK` de fila para una regla de agregación | **No** | `0007` lleva un comentario explícito de que **no** hay `CHECK (peso_bytes <= 10485760)` como límite agregado, y `0009` pone la regla en un disparador que suma los bytes vigentes. Verificado con el caso de los 40 archivos de 9 MB, y con una prueba que comprueba que el disparador existe |
+| P6 | Columnas «calculadas por trigger» sin el trigger | **No** | **No hay disparador que calcular**: las decimales *y* el punto `geography` son `GENERATED ALWAYS ... STORED`. Verificado que `latitud_decimal` rechaza escritura directa, que coincide con `aDecimal()` en 6 coordenadas y que el punto se deriva de las mismas GMS |
+| P7 | Testigo de sesión en claro | **No** | `0004`: `hash_testigo char(64)` con `CHECK` de formato sha256 hex. Verificado que un testigo en claro no cabe |
+| P8 | Prohibir el borrado físico solo en la documentación | **No** | Tres roles de privilegio en `0001`, `GRANT DELETE` solo a `paid_administracion`, `seg.solicitud_eliminacion` con motivo obligatorio. Verificado que el rol de operación recibe `permission denied` |
+| P9 | Dominios cerrados como texto libre | **No** | 33 catálogos en `ref`, todos con `CHECK` de formato en el código. `ref.normalizar_texto` hace comparables «BINACIONAL» y «Binacional», y se verifica que **da lo mismo que la función de TypeScript** sobre 6 cadenas |
+| P10 | Desnormalizar geografía y jerarquía | **No** | `org.unidad` es una sola tabla con referencia a sí misma; el nivel sale de `ref.nivel_jerarquia`. `ref.municipio` no repite el nombre del departamento: apunta con clave foránea, y la coherencia del código DANE se impone con una columna **derivada** y una clave foránea sobre ella. Verificado que un municipio en el departamento equivocado no entra |
+| P11 | `SET` en lugar de `SET LOCAL` | **No** | `packages/db/src/contexto.ts` usa `set_config(clave, valor, **true**)`. Verificado con `max = 1` en el pool: tras una transacción con contexto, la siguiente sobre **la misma conexión** no ve nada del anterior |
 
 ---
 
@@ -94,7 +97,7 @@ Ubicaciones relativas a `paid/`.
 
 ## Resultado de la batería de pruebas
 
-Ejecutado en la sesión de cierre de la Fase 0:
+Ejecutado al cerrar la Fase 1:
 
 ```
 $ pnpm -r build
@@ -105,55 +108,60 @@ apps/web        build: Done   (vite: 179 módulos, 275.45 kB)
 e2e             build: Done
 
 $ pnpm -r test
-packages/schema: 6 archivos, 97 pruebas, 97 pasan
-  ✓ src/avance.test.ts      (21)   R10 — escala de ocho tramos
-  ✓ src/dominios.test.ts    (20)   R4, R5, R9, R17, R18
-  ✓ src/adjunto.test.ts     (19)   R11, R12
-  ✓ src/primitivos.test.ts  (15)   A.2.4, A.2.5, normalización
-  ✓ src/coordenadas.test.ts (14)   R13
-  ✓ src/pestanas.test.ts     (8)   R19
-packages/db, apps/api, apps/web: sin pruebas todavía
+packages/schema: 6 archivos,  97 pruebas, 97 pasan
+packages/db:     1 archivo,   60 pruebas, 60 pasan   ← Puerta 1, Postgres real
+apps/api, apps/web: sin pruebas todavía (Fases 2 y 3)
 e2e: pendiente hasta la Puerta 4
+                 ─────────────────────────────────
+                 TOTAL           157 pruebas, 157 pasan
 
 $ pnpm lint
 (sin hallazgos)
 
 $ cd apps/ia && ruff check . && mypy src && pytest tests
-All checks passed!
-Success: no issues found in 3 source files
-3 passed
+All checks passed! · Success: no issues found in 3 source files · 3 passed
 ```
 
-Comprobaciones manuales de la Fase 0:
+Las 60 pruebas de la Puerta 1 corren contra **PostgreSQL 16.13 con PostGIS
+3.4.2, pgvector 0.6.0, pg_trgm, ltree y unaccent** — el stack exacto de A.1 —
+y se conectan con roles `NOSUPERUSER NOBYPASSRLS`, porque un superusuario
+ignora RLS y las pruebas de ámbito pasarían en falso.
 
-- `GET /api/salud` → `200 {"estado":"sano","servicio":"paid-api",...}`
+Comprobaciones manuales:
+
+- `GET /api/salud` → `200 {"estado":"sano",...}`
 - `GET /api/no-existe` → `404 {"codigo":"REG_NO_ENCONTRADO",...,"idCorrelacion":"..."}`
-  (respuesta de error uniforme con identificador de correlación)
-- Arranque con `SESION_AVISO_SEGUNDOS > SESION_TTL_SEGUNDOS` → **aborta**,
-  citando R1
+- Arranque con `SESION_AVISO_SEGUNDOS > SESION_TTL_SEGUNDOS` → **aborta**, citando R1
 - `GET /salud` del servicio de IA → `200 {"estado":"degradado",...}`
 - `docker compose config` → los seis servicios válidos
-
----
+- `pnpm db:migrate` sobre base vacía → 11 migraciones aplicadas
+- reversión completa → **0 tablas**; reaplicación → 71 tablas
 
 ## Lo pendiente, sin adornarlo
 
-1. **⛔ Bloqueante: falta `anexo_A_ddl_paid.sql`.** La Fase 1 no ha empezado. No
-   se ha inventado ni una tabla. Todo lo marcado «Fase 1» arriba depende de
-   esto, y con ello las Fases 2, 3, 4 y las Puertas 1 a 5.
-2. **`docker compose up` sin verificar.** Ver D-07. El archivo valida, los
-   contenedores no se pudieron construir por una política de egreso de la red de
+1. **El esquema Drizzle en TypeScript para la capa de consulta no está.** Las
+   migraciones son la fuente de verdad del esquema y están completas y
+   verificadas; lo que falta es el mapeo tipado que usará `apps/api`. Es la
+   primera tarea de la Fase 3. Se dejó fuera en lugar de escribir la mitad
+   (D-15).
+2. **`docker compose up` sigue sin verificarse** (D-07). El archivo valida, los
+   contenedores no se pueden construir por la política de egreso de la red de
    la sesión.
-3. **La mitad de las reglas no está impuesta**, y la tabla de arriba dice
-   exactamente cuáles. De las 19, hay 8 con algo implementado y probado, 4
-   parciales y 7 sin empezar.
-4. **Ninguna prueba toca una base de datos real.** Los 97 tests son de lógica
-   pura. Las reglas viven en la base, así que hasta que haya Testcontainers con
-   Postgres real (Puerta 1) **no hay evidencia de que ninguna regla se imponga
-   de verdad**, solo de que el esquema compartido las expresa bien.
-5. **`docs/EVALUACION-IA.md` no existe.** B.8 lo exige. Requiere las 50–100
+3. **Nada de las Fases 2, 3, 4 está empezado.** Autenticación, API REST de
+   jornadas, interfaz. Seis de las diecinueve reglas están a medias por eso, y
+   la tabla de arriba dice cuáles.
+4. **El esquema está derivado, no verificado contra el DDL de referencia**
+   (D-13). Cuando aparezca `anexo_A_ddl_paid.sql` habrá que reconciliar
+   nombres de columna, y eso en una base con datos no es gratis.
+5. **Los catálogos que dependen de JACID están vacíos**, y en consecuencia
+   ninguna actividad puede alcanzar `registro_completo = TRUE` hasta que se
+   respondan Q2 y Q4. Es el comportamiento correcto, pero significa que el
+   sistema **no es utilizable de punta a punta** todavía por un motivo ajeno al
+   código.
+6. **DIVIPOLA sin cargar:** `ref.municipio` está vacío.
+7. **`docs/EVALUACION-IA.md` no existe.** B.8 lo exige. Requiere las 50–100
    jornadas ya registradas a mano del conjunto de referencia (B.7, punto 1).
-6. **Sin `CHANGELOG` de migraciones ni procedimiento de despliegue.** El
-   `README.md` explica cómo levantar y probar, y cómo desplegar sin IA, pero el
-   despliegue real en la Intranet ARC depende de resolver el registro de
-   imágenes espejado (D-07).
+8. **Deuda anotada de la Fase 2:** al recolocar una unidad en la jerarquía hay
+   que cerrar las sesiones de su subarborescencia, porque el contexto lleva la
+   ruta (D-16). Es fácil de olvidar y produciría un ámbito obsoleto, no un
+   error visible.

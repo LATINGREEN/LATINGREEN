@@ -13,24 +13,44 @@ Especificación completa en [`PROMPT.md`](PROMPT.md). Reglas permanentes en
 
 ---
 
-## ⛔ Estado actual: Fase 0 cerrada. Fase 1 bloqueada.
-
-**Falta el archivo `anexo_A_ddl_paid.sql`**, el DDL de referencia ya verificado
-y auditado. `PROMPT.md` lo fija como punto de partida de la Fase 1 y ordena:
-«Si falta el `.sql`, detente y pídelo. No improvises el esquema.»
-
-Por eso **no hay base de datos**: no se ha inventado ni una tabla. Colocar ese
-archivo en `paid/anexo_A_ddl_paid.sql` desbloquea la Fase 1.
+## Estado actual: Fases 0 y 1 cerradas
 
 | Fase | Estado |
 |---|---|
-| 0 · Preparación | ✅ cerrada (con una salvedad: ver «Verificación pendiente») |
-| 1 · Base de datos | ⛔ **bloqueada**, falta el DDL |
-| 2 · Autenticación y autorización | ⛔ depende de la 1 |
-| 3 · Jornadas de Apoyo | ⛔ depende de la 1 |
-| 4 · Interfaz | ⛔ depende de la 2 y la 3 |
-| 5 · Verificación de la Parte A | ⛔ |
-| 6–8 · Asistencia por IA (Parte B) | ⛔ no empieza hasta cerrar la Puerta 5 |
+| 0 · Preparación | ✅ cerrada · Puerta 0 parcial: `docker compose up` sin verificar |
+| 1 · Base de datos | ✅ cerrada · **Puerta 1 superada: 60 pruebas contra Postgres real** |
+| 2 · Autenticación y autorización | ⬜ siguiente |
+| 3 · Jornadas de Apoyo | ⬜ |
+| 4 · Interfaz | ⬜ |
+| 5 · Verificación de la Parte A | ⬜ |
+| 6–8 · Asistencia por IA (Parte B) | ⬜ no empieza hasta cerrar la Puerta 5 |
+
+**157 pruebas, todas pasando:** 97 de los invariantes compartidos, 60 de la
+Puerta 1 contra PostgreSQL 16 real con PostGIS y pgvector.
+
+### ⚠️ El esquema está derivado, no traducido
+
+`PROMPT.md` fija `anexo_A_ddl_paid.sql` como punto de partida y ordena
+detenerse si falta. Se detuvo y se preguntó; la respuesta fue que **el archivo
+no existe**, y se autorizó expresamente derivar el esquema de las reglas
+R1–R19 del propio documento.
+
+Consecuencias que conviene tener presentes, detalladas en
+[`docs/DECISIONES.md`](docs/DECISIONES.md) (D-13):
+
+- Los nombres de columna son nuestros. Si el DDL aparece, habrá que
+  reconciliar.
+- `PROMPT.md` habla de «los 26 catálogos de `ref`»; aquí hay 33, los que las
+  reglas exigen. Si el DDL traía catálogos que ninguna regla nombra, aquí
+  faltan.
+- Lo que ninguna regla menciona, no está. No se inventaron campos razonables
+  para rellenar huecos.
+
+Y una consecuencia visible en el uso: **los catálogos que dependen de JACID
+están vacíos** (las 17 campañas, los campos de cinco pestañas), así que
+ninguna actividad puede alcanzar `registro_completo = TRUE` hasta que se
+respondan Q2 y Q4. Eso es correcto. Lo incorrecto sería dejar cerrar registros
+contra categorías inventadas: entonces el RAO cuadraría y estaría mal.
 
 Detalle por fase en [`docs/BITACORA.md`](docs/BITACORA.md). Qué reglas están
 impuestas de verdad y cuáles no, en
@@ -91,13 +111,29 @@ ruff check . && mypy src && pytest tests
 ## Sembrar y migrar
 
 ```bash
-pnpm db:generate    # genera la migración desde el esquema Drizzle
-pnpm db:migrate     # aplica
-pnpm db:seed        # geografía DANE, COAMI, grados, tipos de actividad
+pnpm db:migrate     # aplica las 11 migraciones
+pnpm db:seed        # catálogos: geografía DANE, COAMI, grados, extensiones
 ```
 
-⚠️ **Hoy estos tres comandos no tienen nada que hacer**: el esquema está vacío
-a la espera del DDL de referencia.
+`pnpm db:generate` está **deshabilitado a propósito**. Las migraciones se
+escriben a mano porque el DSL de Drizzle no expresa RLS, disparadores,
+privilegios revocados ni claves foráneas compuestas, que es justo donde viven
+las reglas. Regenerarlas borraría SQL que ninguna herramienta puede
+reproducir. Ver `packages/db/migraciones/README.md` y `docs/DECISIONES.md`,
+D-15.
+
+### Probar la base de datos
+
+Las 60 pruebas de la Puerta 1 necesitan un Postgres real:
+
+```bash
+cd packages/db
+DATABASE_URL_PRUEBA="postgres://usuario:clave@127.0.0.1:5432/postgres" pnpm test
+```
+
+Si hay Docker, se puede omitir esa variable y se usa Testcontainers. El
+arranque detecta cuál hay disponible (D-14). Hace falta PostgreSQL 16 con
+PostGIS, pgvector, pg_trgm, ltree y unaccent.
 
 ---
 

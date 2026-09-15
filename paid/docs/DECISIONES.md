@@ -210,3 +210,152 @@ exterior, ejercicio binacional) y bloquearla impediría registrar una actividad
 real. Pero un dedazo en los grados tampoco debe pasar inadvertido, y P6 advierte
 que «un punto equivocado es peor que uno ausente: parece plausible». De ahí el
 aviso en la interfaz sin rechazo en la validación.
+
+---
+
+## D-13 · Esquema derivado de PROMPT.md ante la ausencia del DDL · **Desvío autorizado** · 2026-09-15
+
+**Contexto.** `anexo_A_ddl_paid.sql` no existe. Se detuvo la Fase 1 y se
+preguntó, como `PROMPT.md` ordena. La respuesta fue que **el archivo no existe**
+y que se autoriza expresamente derivar el esquema de `PROMPT.md`.
+
+**Decisión.** La Fase 1 construye el esquema a partir de las reglas R1–R19 y de
+los anti-patrones P1–P11, que es la única fuente disponible. **Cada objeto queda
+marcado como derivado**, no como verificado.
+
+**Lo que este desvío cambia, y conviene tener presente:**
+
+1. **`PROMPT.md` habla de «los 26 catálogos de `ref`».** Ese número sale del DDL
+   ausente. Los catálogos implementados son los que las reglas exigen; el
+   recuento puede no coincidir, y el test de inventario comprueba los que
+   declaramos, no los 26 del documento original. Es una diferencia real, no un
+   detalle de redacción: si el DDL traía catálogos que ninguna regla nombra,
+   aquí faltan.
+2. **Los nombres de columna son los nuestros.** Cuando aparezca el DDL habrá que
+   reconciliar, y un renombrado en una base con datos no es gratis.
+3. **Lo que ninguna regla menciona, no está.** No se inventaron campos
+   «razonables» para rellenar huecos.
+
+**Marcado.** Todo objeto derivado lleva un comentario `TODO(JACID)` en la
+migración y un `COMMENT ON` en la base, de forma que
+`SELECT obj_description(...)` liste lo que está pendiente de confirmar sin
+abrir el repositorio.
+
+**Consecuencia para las Q abiertas.** Los catálogos que dependen de JACID
+—las 17 campañas (Q2), los atributos por tipo de herramienta (Q3), los campos de
+las cinco pestañas (Q4)— se siembran **vacíos**. Autorizar derivar el esquema no
+autoriza inventar sus contenidos: una tabla vacía se llena; diecisiete nombres
+inventados de campaña contaminan el consolidado del RAO y nadie sabrá qué fila
+era real.
+
+---
+
+## D-14 · Puerta 1 contra Postgres local, no Testcontainers · Aceptada · 2026-09-15
+
+`PROMPT.md` pide Testcontainers con «Postgres real, nunca mocks de base». El
+proxy de egreso de la sesión bloquea el CDN de imágenes de Docker Hub (D-07),
+así que Testcontainers no puede arrancar nada.
+
+**Decisión.** El arranque de las pruebas (`packages/db/src/pruebas/entorno.ts`)
+usa Testcontainers **si puede**, y si no, se conecta a un Postgres externo por
+`DATABASE_URL_PRUEBA`. En esta sesión se instaló PostgreSQL 16.13 con PostGIS
+3.4.2, pgvector 0.6.0, pg_trgm, ltree y unaccent — el stack exacto de A.1 — y
+las pruebas corren contra él.
+
+**Por qué es equivalente en lo que importa.** La exigencia de fondo es «Postgres
+real, nunca mocks de base», y se cumple: las políticas RLS, los disparadores,
+las columnas generadas y los privilegios revocados se ejercitan contra un motor
+de verdad. Lo que se pierde es el aislamiento por prueba que da un contenedor
+desechable, y se compensa recreando la base en cada ejecución.
+
+**Cuando haya registro de imágenes**, el mismo código usa Testcontainers sin
+cambios: por eso la detección es en tiempo de ejecución y no una bifurcación
+que alguien tenga que recordar deshacer.
+
+---
+
+## D-15 · Migraciones en SQL escrito a mano, no generadas por Drizzle · Aceptada · 2026-09-15
+
+**Contexto.** `PROMPT.md` (Fase 1, punto 1) dice «traduce
+`anexo_A_ddl_paid.sql` a migraciones de Drizzle», y A.1 fija Drizzle como ORM.
+
+**Decisión.** Las once migraciones son SQL escrito a mano en
+`packages/db/migraciones/`, con su reversión en `bajada/`. Drizzle se mantiene
+como ORM para la capa de consulta de la Fase 3.
+
+**Motivo.** Las reglas de la PAID no se pueden expresar en el DSL de Drizzle:
+
+| Regla | ¿Se expresa en el DSL? |
+|---|---|
+| R6 — políticas RLS sobre `ltree` | no |
+| R15 — bitácora por disparador | no |
+| R11 — cuota agregada por disparador | no |
+| R10 — progresión del avance por disparador | no |
+| R14 — `REVOKE DELETE` por rol | no |
+| R13 — `GENERATED ALWAYS` con `geography` | parcialmente |
+| P1 — clave foránea compuesta + `CONSTRAINT TRIGGER DEFERRABLE` | parcialmente |
+
+Generar el 60 % del esquema con `drizzle-kit` y añadir el 40 % restante en SQL
+suelto deja **dos fuentes de verdad que se desincronizan**: la próxima
+ejecución de `drizzle-kit generate` no conoce los disparadores ni las
+políticas, y propone borrarlos. Una sola fuente, en el idioma en el que las
+reglas se escriben enteras, es más segura.
+
+**Salvaguarda.** `pnpm db:generate` está deshabilitado a propósito y falla con
+un mensaje que remite aquí, para que nadie regenere por costumbre SQL que
+ninguna herramienta puede reproducir. `drizzle.config.ts` se conserva para
+`introspect` y comparación, que sí son útiles.
+
+**Pendiente reconocido.** El esquema Drizzle en TypeScript para la capa de
+consulta **no está**. Es la primera tarea de la Fase 3. Se dejó fuera en lugar
+de escribir la mitad: un mapeo parcial es exactamente el defecto que P2
+describe.
+
+---
+
+## D-16 · La ruta jerárquica de la unidad viaja en el contexto de sesión · Aceptada · 2026-09-15
+
+**Contexto.** La política RLS de `org.unidad` necesita la `ruta_jerarquica` de
+la unidad de la sesión para comparar con `<@`. La primera versión la buscaba
+con una subconsulta sobre `org.unidad`.
+
+**Lo que pasó.** PostgreSQL abortó con `infinite recursion detected in policy
+for relation "unidad"`: la subconsulta vuelve a evaluar la misma política. Lo
+detectó la Puerta 1 — ocho pruebas en rojo —, no una lectura del código.
+
+**Decisión.** El contexto de R7 lleva una clave más, `app.ruta_unidad`, y la
+política compara contra `seg.ruta_unidad_actual()`, que la lee del contexto.
+
+**Alternativas descartadas:**
+
+1. **Función `SECURITY DEFINER` que salte RLS.** Funciona, pero solo si su
+   dueño es superusuario: con `FORCE ROW LEVEL SECURITY` activo, el dueño de la
+   tabla también queda sujeto a las políticas. Ataría la corrección del
+   aislamiento entre unidades a *quién ejecutó las migraciones*, que es una
+   dependencia implícita y frágil.
+2. **Desnormalizar la ruta en cada tabla.** Es P10.
+
+**Riesgo asumido y su mitigación.** `app.id_unidad` y `app.ruta_unidad` tienen
+que ser coherentes. Las dos salen de la misma fila de `seg.sesion` al abrirla,
+así que no hay dos caminos por los que puedan discrepar. Si una unidad se mueve
+en la jerarquía, las sesiones abiertas conservan la ruta anterior hasta
+renovarse: la Fase 2 debe cerrar las sesiones de la subarborescencia afectada
+al recolocar una unidad. Queda anotado aquí porque es fácil de olvidar.
+
+**No añade superficie de ataque.** Quien pudiera falsificar esta clave podría
+falsificar igualmente `app.id_unidad`. El contexto lo fija el servidor con
+`SET LOCAL` a partir de `seg.sesion`, nunca el cliente.
+
+---
+
+## D-17 · La reversión de 0001 no elimina los roles de PostgreSQL · Aceptada · 2026-09-15
+
+Un rol de PostgreSQL es un objeto del **clúster**; una migración es por **base
+de datos**. La primera versión de `bajada/0001` hacía `DROP ROLE`, y la Puerta
+1 falló con `role "paid_administracion" cannot be dropped because some objects
+depend on it` — porque otra base del mismo clúster les había concedido
+privilegios.
+
+Eliminar los roles desde aquí rompería esa otra base. La reversión hace
+`DROP OWNED BY` (que solo alcanza la base en curso) y deja los roles en pie.
+Es la semántica correcta: la migración limpia lo que le corresponde.
