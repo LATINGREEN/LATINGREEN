@@ -23,3 +23,4 @@
 export * from './contexto';
 export * from './cliente';
 export * from './migraciones';
+export * from './semillas';

@@ -1,6 +1,7 @@
-import { readFileSync, readdirSync } from 'node:fs';
+import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { crearPool, enTransaccionDeSistema } from './cliente';
+import { archivosDeSemillas, seIncluyeDesarrollo } from './semillas';
 
 /**
  * `pnpm db:seed`. Idempotente: cada archivo de `semillas/` usa
@@ -18,9 +19,14 @@ async function principal(): Promise<void> {
   }
 
   const directorio = join(__dirname, '..', 'semillas');
-  const archivos = readdirSync(directorio)
-    .filter((n) => n.endsWith('.sql'))
-    .sort();
+  const incluirDesarrollo = seIncluyeDesarrollo();
+  const archivos = archivosDeSemillas(directorio, incluirDesarrollo);
+
+  if (!incluirDesarrollo) {
+    process.stdout.write(
+      'Semillas de desarrollo OMITIDAS. Para incluirlas: PAID_SEMILLA_DESARROLLO=1\n',
+    );
+  }
 
   const pool = crearPool({ url, maximoConexiones: 1 });
   try {

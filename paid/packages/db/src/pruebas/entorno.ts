@@ -2,7 +2,8 @@ import { Client, Pool } from 'pg';
 import type { PoolClient } from 'pg';
 import { join } from 'node:path';
 import { aplicarPendientes, leerMigraciones, revertirTodas } from '../migraciones';
-import { readFileSync, readdirSync } from 'node:fs';
+import { archivosDeSemillas } from '../semillas';
+import { readFileSync } from 'node:fs';
 import type { ContextoSesion } from '../contexto';
 import { enTransaccionConContexto } from '../cliente';
 
@@ -117,7 +118,12 @@ export async function prepararEntorno(): Promise<EntornoPruebas> {
   try {
     await aplicarPendientes(cliente, leerMigraciones(directorioMigraciones));
     await cliente.query(SQL_ROLES_PRUEBA);
-    for (const archivo of readdirSync(directorioSemillas).filter((n) => n.endsWith('.sql')).sort()) {
+    /*
+     * SIN las semillas de desarrollo: la Puerta 1 construye su propio arbol de
+     * unidades (FNP -> CFM -> BIM23/BIM24) para controlar exactamente que ve
+     * cada una, y las de desarrollo crean unidades con las mismas siglas.
+     */
+    for (const archivo of archivosDeSemillas(directorioSemillas, false)) {
       await cliente.query(readFileSync(join(directorioSemillas, archivo), 'utf8'));
     }
   } finally {
