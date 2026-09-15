@@ -1,0 +1,15 @@
+{
+  "name": "@paid/e2e",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Pruebas de extremo a extremo de la PAID",
+  "scripts": {
+    "build": "tsc -b",
+    "test": "echo 'Las pruebas e2e llegan en la Puerta 4. Sin nada que ejecutar todavia.'",
+    "typecheck": "tsc -b"
+  },
+  "devDependencies": {
+    "@types/node": "20.19.43",
+    "typescript": "5.9.3"
+  }
+}
