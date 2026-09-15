@@ -115,6 +115,62 @@ patrón de jornadas.
 
 ## Resultado de la batería de pruebas
 
+Ejecutado al cerrar la Fase 4:
+
+```
+$ pnpm -r build
+packages/schema build: Done
+packages/db     build: Done
+apps/api        build: Done
+apps/web        build: Done   (vite: 213 módulos)
+
+$ DATABASE_URL_PRUEBA=... pnpm test
+packages/schema: 7 archivos, 116 pruebas, 116 pasan
+packages/db:     1 archivo,   60 pruebas,  60 pasan  ← Puerta 1, Postgres real
+apps/api:        3 archivos,  94 pruebas,  94 pasan  ← Puertas 2, 3 y 4,
+                                                       API + Postgres + Redis
+                 ─────────────────────────────────
+                                270 pruebas, 270 pasan
+
+$ pnpm --filter @paid/e2e test        # con ./scripts/mirar.sh en pie
+e2e: 2 archivos, 11 pruebas, 11 pasan ← Puerta 4, navegador real
+                 ─────────────────────────────────
+                 TOTAL           281 pruebas, 281 pasan
+
+$ pnpm lint
+(sin hallazgos)
+```
+
+**La revisión de accesibilidad de la Puerta 4: cero violaciones críticas o
+serias** (axe con `wcag2a`, `wcag2aa`, `wcag21a`, `wcag21aa`) sobre siete rutas
+en los tres modos de contraste, los formularios desplegados y el tamaño de
+letra mayor.
+
+⚠️ Y hay que decirlo con precisión, porque es la clase de cifra que se cita mal:
+axe detecta entre un 30 % y un 40 % de los problemas reales de accesibilidad.
+**Esto no acredita que la aplicación sea accesible.** Acredita que no tiene los
+defectos que una máquina puede encontrar. Lo que ninguna máquina comprueba —que
+el orden de tabulación tenga sentido, que un rótulo describa de verdad su
+campo, que un aviso llegue cuando hace falta— se decidió a mano en cada
+componente y está anotado ahí; una revisión con personas usuarias de lector de
+pantalla sigue pendiente y no la sustituye ninguna prueba de este repositorio.
+
+### Lo que la Puerta 4 encontró y estaba roto
+
+Cinco defectos, cuatro de código y uno de una prueba propia. Se anotan aquí
+porque su valor no es que se corrigieran: es que **las 94 pruebas de API no
+podían verlos**, y eso dice dónde están los huecos de la batería.
+
+| # | Defecto | Por qué no se veía antes |
+|---|---|---|
+| D-25 | El formulario de jornadas **no podía guardar**: el esquema Zod compartido transformaba la fecha y no admitía su propia salida | Las pruebas de API envían `dd/mm/aaaa` directamente, como `curl`. El defecto vivía en la costura formulario↔controlador |
+| D-26 | Las pestañas pedían el **identificador numérico** del catálogo en un campo de texto | Las pruebas de API envían el id correcto porque lo consultan antes |
+| D-27 | El listado seguía diciendo «Faltan 11» 30 s después de completarse | No hay caché en una prueba de API |
+| D-28 | Región desplazable sin acceso por teclado; contraste 4,41:1 por una `opacity` | Ninguna prueba mira la pantalla |
+| D-29 | Una prueba de accesibilidad **pasaba en falso**, revisando siete veces la pantalla de ingreso | La encontró leer su propia salida con desconfianza |
+
+### Resultado de la Fase 3 (se conserva)
+
 Ejecutado al cerrar la Fase 3:
 
 ```
@@ -168,10 +224,12 @@ Comprobaciones manuales:
 2. **`docker compose up` sigue sin verificarse** (D-07). El archivo valida, los
    contenedores no se pueden construir por la política de egreso de la red de
    la sesión.
-3. **La Fase 4 no está empezada:** no hay interfaz más allá del cascarón de la
-   Fase 0. Y de la Fase 3 faltan los otros cuatro subtipos de actividad
-   (asistencias, ruedas, proyectos, campañas): las tablas y las reglas están,
-   falta su API.
+3. **Faltan los otros cuatro subtipos de actividad** (asistencias, ruedas,
+   proyectos, campañas): las tablas y las reglas están, falta su API y su
+   pantalla. Esperan Q4, que decide cómo se agrupan las pestañas en cada tipo;
+   construirlas suponiendo la respuesta obligaría a rehacerlas con datos
+   dentro. Las tres entradas del menú tienen pantalla que dice qué falta y por
+   qué, no enlace muerto.
 4. **⛔ `AlmacenMinio` está escrito y NO ejecutado.** `dl.min.io` bloqueado por
    la política de egreso, como las imágenes de Docker. R11 y R12 sí están
    verificadas porque se imponen antes del almacén (D-22), pero que MinIO

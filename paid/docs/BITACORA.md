@@ -7,6 +7,138 @@ pueda continuar (PROMPT.md · A.5).
 
 ---
 
+## FASE 4 — Interfaz
+
+### Antes de empezar (plan)
+
+Los seis puntos de la fase, y lo que cada uno obliga:
+
+1. **Ingreso con captcha y aviso de expiración a los 8 minutos con opción de
+   renovar.** El aviso lo calcula el cliente de `expiraEnUtc`, pero **quien
+   decide es el servidor**: si el cliente «decidiera», bastaría con cambiar la
+   hora del equipo.
+2. **Menú fiel al manual**, y «lo que no se tiene permiso de usar no se
+   muestra».
+3. **Los tres maestros**, con la sugerencia de duplicados por semejanza en
+   Entidades A.I. — el único punto de la fase que no es «una pantalla más».
+4. **Jornadas**: listado con las columnas del manual, exportación y el
+   formulario de las once pestañas.
+5. **Coordenadas GMS con conversión visible a decimales** y botón «Ver
+   ubicación» sobre MapLibre.
+6. **Accesibilidad**: controles de contraste y tamaño de letra, WCAG 2.1 AA
+   (lineamientos del MinTIC, Resolución 1519 de 2020).
+
+**Lo que faltaba en el servidor.** Los puntos 2 y 3 no tenían dónde apoyarse:
+no existían los puntos de entrada de Personal, Entidades A.I., Herramientas
+AID, Normatividad ni la lectura de los catálogos de `ref`. Se construyeron en
+`apps/api/src/maestros/`.
+
+**Concepto de diseño: carta náutica nocturna.** El sujeto manda. Esta es la
+plataforma con la que unidades tácticas registran acción integral en costas y
+ríos de Colombia, y su vocabulario propio es el de la navegación. Y tiene un
+trabajo concreto, que viene del cierre de PROMPT.md —«el defecto característico
+de este sistema no es que falle: es que parezca funcionar mientras acumula
+datos que no cuadran»—: **hacer visible el estado**. Qué pestañas faltan,
+cuánta cuota queda, si un registro cuenta para el RAO, cuánto le queda a la
+sesión.
+
+De ahí el elemento firma, la **Rosa de Pestañas**: once segmentos de arco desde
+el norte, los que faltan apagados. Es a la vez el indicador y el navegador,
+porque son la misma cosa.
+
+**Restricción de entorno resuelta.** La guía de diseño pedía fuentes de Google
+Fonts y A.2.1 prohíbe internet en tiempo de ejecución. Se descargaron en tiempo
+de construcción y se autoalojan (167 KB de woff2). Una `@font-face` remota no
+falla de forma visible: cae al tipo del sistema y el defecto pasa inadvertido
+hasta que alguien compara la pantalla con el manual.
+
+### 🚪 Puerta 4 — SUPERADA
+
+Dos exigencias, las dos cumplidas, en `e2e/pruebas/`:
+
+**Camino completo por la interfaz** (`puerta4.spec.ts`, 3 pruebas): ingresa con
+captcha, registra una jornada con sus coordenadas GMS, comprueba que la casilla
+de la ARC está marcada y deshabilitada (R9) y que ningún COAMI viene marcado
+(R18), diligencia las once pestañas, consulta la cuota antes de subir nada
+(R11), sube un PDF **real** —R12 comprueba el contenido, no la extensión—,
+verifica que el registro pasa a completo **solo con las once** (R19), lo
+exporta a CSV y cierra sesión. Más el aislamiento por unidad visto desde la
+pantalla (R6) y el mensaje único del ingreso fallido (R4).
+
+**Revisión de accesibilidad** (`accesibilidad.spec.ts`, 8 pruebas): axe con las
+etiquetas `wcag2a`, `wcag2aa`, `wcag21a` y `wcag21aa` sobre siete rutas en los
+**tres modos de contraste**, los formularios desplegados, y el tamaño de letra
+mayor comprobando que no hay desplazamiento horizontal (WCAG 1.4.10, Reflow).
+**Cero violaciones críticas o serias.**
+
+⚠️ axe encuentra entre el 30 % y el 40 % de los problemas reales. Pasar esto no
+significa que la aplicación sea accesible: significa que no tiene los defectos
+que una máquina puede encontrar. Lo que ninguna máquina comprueba está decidido
+a mano en cada componente y anotado ahí.
+
+### Los cinco defectos que la Puerta 4 encontró
+
+Y el motivo por el que ninguna de las 94 pruebas anteriores podía verlos: esas
+hablan con la API, y estos vivían en la **costura entre el formulario y el
+controlador**.
+
+1. **El formulario de jornadas no podía guardar.** El esquema Zod compartido
+   transformaba `dd/mm/aaaa` a `aaaa-mm-dd`, el formulario enviaba el
+   resultado, y el controlador —con el mismo esquema— lo rechazaba. A.6 exige
+   un solo esquema para cliente y servidor, y la consecuencia que no es obvia
+   es que **se ejecuta dos veces sobre el mismo dato**. Ver D-25. Dos pruebas
+   existentes afirmaban el comportamiento incorrecto y se cambiaron.
+2. **Las pestañas pedían el identificador numérico del catálogo** en un campo
+   de texto: «Id tipo operacion: ____». Imposible de diligenciar. Ver D-26.
+3. **El listado seguía diciendo «Faltan 11»** 30 segundos después de completar
+   la undécima pestaña. Es la pantalla por la que se decide qué entra en el
+   consolidado del RAO. Ver D-27.
+4. **Dos defectos de accesibilidad**: una región desplazable sin acceso por
+   teclado, y un contraste de 4,41:1 causado por una `opacity` sobre un color
+   bien calculado. Ver D-28.
+5. **Una prueba que pasaba en falso.** La revisión de accesibilidad usaba
+   `page.goto()` entre rutas; el testigo vive en memoria, así que recargar
+   cierra la sesión, y revisaba siete veces la pantalla de ingreso —cuyo `<h1>`
+   también dice «PAID»—. Ver D-29.
+
+### Cómo verlo funcionando
+
+```bash
+cd paid
+pnpm -r build
+./scripts/mirar.sh
+```
+
+Deja la API en `:3000` y la interfaz en `:5173`, con la base migrada y
+sembrada, e imprime las credenciales. `BIM23_PAID` tiene maestros; `BIM24_PAID`
+está vacía a propósito, para ver que RLS no le muestra nada de la otra unidad.
+
+Las pruebas de la Puerta 4 necesitan eso en pie:
+
+```bash
+pnpm --filter @paid/e2e test
+```
+
+### Pendiente al cerrar la Fase 4
+
+1. **Q14 sigue sin respuesta** y afecta a esta interfaz: si quitar una fila de
+   una pestaña exige solicitud a JACID, cada fila necesita un botón de
+   «solicitar eliminación». Hoy se puede quitar, con la reinterpretación
+   documentada en D-24.
+2. **Q4 sigue sin respuesta** y es la que más pesa: cinco de las once pestañas
+   no tienen campos confirmados. Los paneles se construyen del esquema, así que
+   responderla cambia una declaración y no once pantallas — pero hasta que
+   llegue, cada panel muestra el aviso `TODO(JACID) Q4`.
+3. **Asuntos Civiles, Sensibilización y Alianzas** tienen pantalla que explica
+   qué falta, no módulo. Comparten supertipo con las jornadas y esperan Q4.
+4. **El mapa** (`MapaUbicacion`) depende de Q11: sin servicio de mapas
+   institucional ni teselas en `public/teselas/`, dibuja la carta esquemática
+   con las coordenadas en claro. El botón «Ver ubicación» del manual está.
+5. **Cargar normatividad** espera Q15, nueva: R11 fija la cuota de 10 MB «por
+   actividad» y la normatividad no es una actividad.
+
+---
+
 ## FASE 3 — Rebanada vertical: Jornadas de Apoyo
 
 ### Antes de empezar (plan)

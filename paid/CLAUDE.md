@@ -50,12 +50,26 @@ La PAID vive en `paid/`, no en la raíz: el repositorio ya contenía otro proyec
 (el juego Eco-Arcade Latin Green). Ver `docs/DECISIONES.md`, D-01.
 
 ## Estado
-**Fases 0, 1, 2 y 3 cerradas.** 237 pruebas pasando: 97 de invariantes
-compartidos, 60 de la Puerta 1 contra Postgres real, 80 de las Puertas 2 y 3
-sobre la API real con Postgres y Redis. La siguiente es la Fase 4 (interfaz).
+**Fases 0 a 4 cerradas.** 281 pruebas pasando: 116 de invariantes compartidos,
+60 de la Puerta 1 contra Postgres real, 94 de las Puertas 2, 3 y 4 sobre la API
+real con Postgres y Redis, y 11 de navegador sobre la aplicación en pie. La
+siguiente es la **Fase 5** (verificación de la Parte A).
 
-Antes de empezar la Fase 4, conviene respuesta a **Q14**: si quitar una fila de
-una pestaña exige solicitud a JACID, la pantalla cambia bastante.
+⛔ **La Parte B (Fases 6–8, la IA) no empieza hasta cerrar la Puerta 5.**
+PROMPT.md lo ordena literalmente, y el motivo es verificable: la Puerta 5 exige
+que la Parte A funcione con el servicio de IA apagado, y eso solo se puede
+comprobar antes de que exista algo que lo apague por costumbre.
+
+### Para verlo funcionando
+
+    ./scripts/mirar.sh
+
+Base desechable migrada y sembrada, API en `:3000`, interfaz en `:5173`,
+credenciales impresas. `BIM23_PAID` tiene maestros; `BIM24_PAID` está vacía a
+propósito, para ver que RLS no le muestra nada de la otra unidad.
+
+Las 11 pruebas de navegador necesitan eso en pie:
+`pnpm --filter @paid/e2e test`.
 
 ## ⚠️ El esquema está DERIVADO de PROMPT.md
 `anexo_A_ddl_paid.sql` no existe. Se preguntó, como PROMPT.md ordena, y se
@@ -97,6 +111,56 @@ para «simplificar»: se intentó y la Puerta 1 lo detectó. Ver D-16.
 Deuda conocida asociada: al recolocar una unidad en la jerarquía hay que
 cerrar las sesiones de su subarborescencia, porque conservarían la ruta
 anterior. Es trabajo de la Fase 2.
+
+## ⚠️ Un esquema Zod compartido se ejecuta DOS VECES
+
+Es la trampa más cara de la Fase 4, y la que más fácil es volver a introducir.
+
+A.6 exige un solo esquema Zod para cliente y servidor. La consecuencia que no
+es obvia: el formulario valida y **envía la salida de la validación**, y el
+controlador vuelve a validar esa salida con el mismo esquema. Un esquema que
+**transforma** y no admite su propia salida rechaza en la segunda pasada lo que
+aceptó en la primera.
+
+Pasó con `fechaDdMmAaaa`: normalizaba `02/03/2026` a `2026-03-02`, el
+formulario enviaba eso, y el controlador respondía «No se pudo registrar la
+jornada». **El formulario de jornadas no podía guardar por la interfaz**, y
+ninguna de las 94 pruebas de API lo veía porque todas envían `dd/mm/aaaa`
+directamente, como haría `curl`.
+
+Regla: **todo esquema que cruce la red tiene que ser idempotente**, de modo que
+`parse(parse(x)) === parse(x)`. Lo fija
+`packages/schema/src/idempotencia.test.ts` sobre todos ellos, las diez pestañas
+incluidas. Si añades una transformación a un esquema compartido, esas pruebas
+te avisarán; no las relajes, haz la transformación idempotente. Ver D-25.
+
+## Dos trampas de la interfaz que cuestan una tarde
+
+1. **El testigo de sesión vive en MEMORIA, no en `localStorage`** (deliberado:
+   en un equipo compartido, un testigo que sobrevive al cierre de la pestaña es
+   una sesión que nadie cerró). Por tanto **recargar la página cierra la
+   sesión**, y `page.goto()` en una prueba de navegador es una recarga. Las
+   pruebas navegan pulsando, con `irA()`. Una versión anterior usaba
+   `page.goto()` y **pasaba en falso**: aterrizaba en la pantalla de ingreso,
+   cuyo `<h1>` también dice «PAID». Ver D-29.
+
+2. **`isPending` no significa «cargando»** en TanStack Query. Con
+   `enabled: false` —el caso del municipio mientras no hay departamento— la
+   consulta queda en `isPending` para siempre porque nunca ha salido, y el
+   desplegable decía «Cargando…» indefinidamente. Lo que quieres es
+   `isLoading`, que es `isPending && isFetching`.
+
+## El tipo de un campo lo decide su esquema, no su nombre
+
+`cantidad` es un entero en la pestaña «Servicios Prestados» (`cantidadEntera`)
+y un decimal en «Recursos Utilizados» (`decimalDigitado`): mismo nombre, dos
+tipos. `apps/web/src/paginas/campos-pestana.ts` lo resuelve preguntándole al
+esquema del campo, con `clasificarCampo()` y `aValorDeEnvio()`.
+
+Y el orden de las comprobaciones importa: hay que descartar **primero** que sea
+texto, porque un `z.string()` acepta `'7.5'` y una versión anterior marcó
+«Observaciones» como decimal, poniéndole debajo «admite decimales, el separador
+es el punto» a una casilla de texto libre. Ver D-26.
 
 ## Dos cosas que no son obvias
 - **`packages/schema` compila a CommonJS** (lo consume NestJS), y por eso

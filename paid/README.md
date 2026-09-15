@@ -13,7 +13,7 @@ Especificación completa en [`PROMPT.md`](PROMPT.md). Reglas permanentes en
 
 ---
 
-## Estado actual: Fases 0, 1, 2 y 3 cerradas
+## Estado actual: Fases 0 a 4 cerradas
 
 | Fase | Estado |
 |---|---|
@@ -21,18 +21,39 @@ Especificación completa en [`PROMPT.md`](PROMPT.md). Reglas permanentes en
 | 1 · Base de datos | ✅ cerrada · **Puerta 1 superada: 60 pruebas contra Postgres real** |
 | 2 · Autenticación y autorización | ✅ cerrada · **Puerta 2 superada: 38 pruebas sobre la API real** |
 | 3 · Jornadas de Apoyo | ✅ cerrada · **Puerta 3 superada: 42 pruebas de API** |
-| 4 · Interfaz | ⬜ siguiente |
-| 5 · Verificación de la Parte A | ⬜ |
+| 4 · Interfaz | ✅ cerrada · **Puerta 4 superada: camino completo por la interfaz + accesibilidad sin violaciones** |
+| 5 · Verificación de la Parte A | ⬜ siguiente |
 | 6–8 · Asistencia por IA (Parte B) | ⬜ no empieza hasta cerrar la Puerta 5 |
 
-**237 pruebas, todas pasando:** 97 de los invariantes compartidos, 60 de la
-Puerta 1 contra PostgreSQL 16 con PostGIS y pgvector, y 80 de las Puertas 2 y 3
-levantando la API completa contra Postgres y Redis reales.
+**281 pruebas, todas pasando:** 116 de los invariantes compartidos, 60 de la
+Puerta 1 contra PostgreSQL 16 con PostGIS y pgvector, 94 de las Puertas 2, 3 y
+4 levantando la API completa contra Postgres y Redis reales, y 11 de navegador
+sobre la aplicación en pie.
 
-Lo que ya funciona de punta a punta: ingresar, registrar una jornada con sus
-once pestañas y sus adjuntos, modificarla, y exportar el consolidado a XLSX o
-CSV — con el aislamiento por unidad, la bitácora y las cuotas impuestos por la
-base de datos.
+Lo que funciona de punta a punta, **desde la pantalla**: ingresar con captcha,
+registrar los tres maestros de precedencia —con sugerencia de duplicados por
+semejanza antes de guardar—, registrar una jornada con sus coordenadas GMS y
+sus once pestañas, adjuntar un soporte, ver el registro pasar a completo solo
+con las once, exportar el consolidado a XLSX o CSV y cerrar sesión. Con el
+aislamiento por unidad, la bitácora y las cuotas impuestos por la base de
+datos.
+
+### Para verlo funcionando
+
+```bash
+cd paid
+pnpm install && pnpm -r build
+./scripts/mirar.sh
+```
+
+Prepara una base desechable, la migra y la siembra, levanta la API en `:3000`
+y la interfaz en `:5173`, e imprime las credenciales. Entre con `BIM23_PAID`
+(clave `Desarrollo2026*`), y luego con `BIM24_PAID` para comprobar que no ve
+nada de la otra unidad: eso lo aplica la base de datos, no la pantalla.
+
+Requiere PostgreSQL 16 con PostGIS y pgvector, y Redis. La API avisa **a
+gritos** en su arranque de que la red autorizada sembrada es `0.0.0.0/0`, y así
+debe ser (R2).
 
 ### ⚠️ El esquema está derivado, no traducido
 
@@ -135,6 +156,9 @@ Las 60 pruebas de la Puerta 1 necesitan un Postgres real:
 ```bash
 cd packages/db
 DATABASE_URL_PRUEBA="postgres://usuario:clave@127.0.0.1:5432/postgres" pnpm test
+
+# Las de navegador necesitan la aplicación en pie (./scripts/mirar.sh en otra terminal)
+pnpm --filter @paid/e2e test
 ```
 
 Las 80 de las Puertas 2 y 3 levantan la API completa, y necesitan además Redis:

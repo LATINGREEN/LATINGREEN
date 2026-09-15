@@ -351,6 +351,26 @@ inmediatamente. Conviene decidirlo antes de construir la pantalla (Fase 4).
 
 ---
 
+## Q15 · ¿La normatividad tiene cuota de almacenamiento, y cuál? 🟡
+
+**Qué dice el documento.** R11 fija «10 MB **agregados por actividad**» para
+los soportes.
+
+**El hueco.** La normatividad A.I. no es una actividad. Un manual institucional
+en PDF pasa fácilmente de 10 MB, y no hay nada escrito sobre si comparte esa
+cuota, tiene la suya o no tiene ninguna.
+
+**Lo que se hizo.** La pantalla de Normatividad A.I. es de **solo lectura**. La
+carga (`NORMATIVIDAD.CARGAR`, permiso que R16 reserva a JACID) no está
+habilitada, y la pantalla lo dice a quien tiene el permiso, en lugar de ofrecer
+un botón que rechazaría archivos sin explicar por qué.
+
+**Por qué no se supuso.** Aplicar los 10 MB por analogía dejaría fuera
+documentos normativos legítimos, y el usuario vería «cuota agotada» sobre un
+límite que nadie fijó para ese caso.
+
+---
+
 ## Resumen para llevar a una reunión
 
 | # | Pregunta en una línea | Prioridad |
@@ -369,4 +389,5 @@ inmediatamente. Conviene decidirlo antes de construir la pantalla (Fase 4).
 | Q11 | ¿Hay servicio de mapas institucional? | 🟡 |
 | Q12 | ¿Hay GPU? ¿Qué modelos de IA están aprobados para datos clasificados? | 🟡 |
 | Q13 | ¿El avance de un convenio usa la escala de ocho tramos o un porcentaje libre? | 🟡 |
-| Q14 | ¿Quitar una fila de una pestaña exige solicitud a JACID, o es una corrección normal? | 🟡 antes de la Fase 4 |
+| Q14 | ¿Quitar una fila de una pestaña exige solicitud a JACID, o es una corrección normal? | 🟡 la interfaz ya está construida: si la respuesta es «sí», cada fila necesita un botón de solicitud |
+| Q15 | ¿La normatividad tiene cuota de almacenamiento, y cuál? R11 la fija «por actividad» y esto no es una actividad. | 🟡 |
