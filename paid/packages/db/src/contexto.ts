@@ -38,6 +38,7 @@ import type { PoolClient } from 'pg';
 export const CLAVES_CONTEXTO = {
   idUsuario: 'app.id_usuario',
   idUnidad: 'app.id_unidad',
+  rutaUnidad: 'app.ruta_unidad',
   idSesion: 'app.id_sesion',
   direccionIp: 'app.direccion_ip',
 } as const;
@@ -45,6 +46,31 @@ export const CLAVES_CONTEXTO = {
 export interface ContextoSesion {
   readonly idUsuario: number;
   readonly idUnidad: number;
+  /**
+   * `ruta_jerarquica` (ltree) de la unidad de la sesion, por ejemplo
+   * `u1.u2.u3`. Va en el contexto y no se consulta desde la politica RLS por
+   * un motivo concreto:
+   *
+   * La politica de `org.unidad` tiene que saber cual es la ruta de la unidad de
+   * la sesion. Si la busca con una subconsulta sobre `org.unidad`, esa
+   * subconsulta vuelve a evaluar la misma politica y PostgreSQL aborta con
+   * «infinite recursion detected in policy for relation "unidad"». Lo
+   * comprobamos: no es una precaucion teorica.
+   *
+   * Las salidas posibles eran tres: una funcion `SECURITY DEFINER` que saltara
+   * RLS —que ata la correccion a que las migraciones corran como
+   * superusuario—, desnormalizar la ruta en cada tabla —P10—, o traerla en el
+   * contexto, que es lo que se hizo. No anade riesgo: quien pudiera falsificar
+   * esta clave podria falsificar igualmente `app.id_unidad`, y el contexto lo
+   * fija el servidor a partir de `seg.sesion`, nunca el cliente.
+   *
+   * ⚠️ INVARIANTE: `rutaUnidad` tiene que ser la ruta de `idUnidad`. Las dos
+   * salen de la misma fila de `seg.sesion` al abrirla. Si una unidad se mueve
+   * en la jerarquia, las sesiones abiertas conservan la ruta anterior hasta
+   * que se renuevan; la Fase 2 cierra las sesiones afectadas al recolocar una
+   * unidad.
+   */
+  readonly rutaUnidad: string;
   readonly idSesion: string;
   /** Va a `aud.bitacora_cambio` (R15). */
   readonly direccionIp: string;
@@ -64,7 +90,8 @@ const SQL_FIJAR_CONTEXTO = `
     set_config($1, $2, true),
     set_config($3, $4, true),
     set_config($5, $6, true),
-    set_config($7, $8, true)
+    set_config($7, $8, true),
+    set_config($9, $10, true)
 `;
 
 export async function fijarContexto(
@@ -76,6 +103,8 @@ export async function fijarContexto(
     String(contexto.idUsuario),
     CLAVES_CONTEXTO.idUnidad,
     String(contexto.idUnidad),
+    CLAVES_CONTEXTO.rutaUnidad,
+    contexto.rutaUnidad,
     CLAVES_CONTEXTO.idSesion,
     contexto.idSesion,
     CLAVES_CONTEXTO.direccionIp,
