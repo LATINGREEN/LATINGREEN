@@ -1,0 +1,218 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# Entorno local de la PAID (PROMPT.md Fase 0, punto 2).
+#
+# Seis servicios: postgres, redis, minio, otel-collector, api, web.
+# El septimo, `ia`, es de la Parte B y arranca solo con el perfil `ia`: la
+# Puerta 5 exige que la Parte A funcione completa **sin ningun componente de
+# IA desplegado**, y la unica forma honesta de comprobarlo es que la IA no se
+# levante por omision.
+#
+#   docker compose up              -> Parte A completa, sin IA
+#   docker compose --profile ia up -> Parte A + subsistema de IA
+# ─────────────────────────────────────────────────────────────────────────────
+
+name: paid
+
+services:
+  postgres:
+    build:
+      context: ./docker/postgres
+    image: paid/postgres:16-3.4-pgvector
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-paid}
+      POSTGRES_USER: ${POSTGRES_ADMIN_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_ADMIN_PASSWORD:-postgres_local}
+      PAID_APP_USER: ${POSTGRES_USER:-paid_app}
+      PAID_APP_PASSWORD: ${POSTGRES_PASSWORD:-paid_app_local}
+      # A.2.5 — la base habla UTC; la presentacion en America/Bogota ocurre en
+      # el borde.
+      TZ: UTC
+      PGTZ: UTC
+    # `timezone=UTC` en el servidor, no solo en el contenedor.
+    command:
+      - postgres
+      - -c
+      - timezone=UTC
+      - -c
+      - log_timezone=UTC
+      # R15 — la bitacora se alimenta por disparador. Registrar tambien las
+      # sentencias lentas ayuda a ver si un disparador se vuelve el cuello de
+      # botella cuando lleguen las 11 tablas hijas.
+      - -c
+      - log_min_duration_statement=500
+    volumes:
+      - datos-postgres:/var/lib/postgresql/data
+      # Se ejecuta una sola vez, al inicializar el volumen.
+      - ./docker/postgres/initdb:/docker-entrypoint-initdb.d:ro
+    ports:
+      - '${POSTGRES_PORT:-5432}:5432'
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U ${POSTGRES_ADMIN_USER:-postgres} -d ${POSTGRES_DB:-paid}']
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 30s
+    networks: [interna]
+
+  redis:
+    image: redis:7.4-alpine
+    # R1 — sesiones con TTL deslizante de 10 minutos. `--appendonly yes` para
+    # que un reinicio del contenedor no cierre todas las sesiones activas.
+    command: ['redis-server', '--appendonly', 'yes', '--save', '60', '1']
+    volumes:
+      - datos-redis:/data
+    ports:
+      - '${REDIS_PORT:-6379}:6379'
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    networks: [interna]
+
+  minio:
+    image: minio/minio:RELEASE.2024-10-13T13-34-11Z
+    # Desplegado dentro de la intranet (A.1). Nada de S3 de un proveedor.
+    command: ['server', '/datos', '--console-address', ':9001']
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ACCESS_KEY:-paid_minio}
+      MINIO_ROOT_PASSWORD: ${MINIO_SECRET_KEY:-paid_minio_local}
+      # Sin llamadas de actualizacion ni telemetria saliente (A.2.1).
+      MINIO_UPDATE: 'off'
+    volumes:
+      - datos-minio:/datos
+    ports:
+      - '9000:9000'
+      - '9001:9001'
+    healthcheck:
+      test: ['CMD', 'mc', 'ready', 'local']
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+    networks: [interna]
+
+  otel-collector:
+    image: otel/opentelemetry-collector-contrib:0.111.0
+    command: ['--config=/etc/otel/config.yaml']
+    volumes:
+      - ./docker/otel-collector/config.yaml:/etc/otel/config.yaml:ro
+    ports:
+      # Solo en localhost: el colector no se expone a la red del anfitrion.
+      - '127.0.0.1:4317:4317'
+      - '127.0.0.1:4318:4318'
+    healthcheck:
+      # La imagen no trae curl ni wget; se comprueba que el proceso vive.
+      test: ['CMD', '/otelcol-contrib', 'components']
+      interval: 15s
+      timeout: 5s
+      retries: 5
+    networks: [interna]
+
+  api:
+    build:
+      context: .
+      dockerfile: ./docker/api/Dockerfile
+    image: paid/api:dev
+    environment:
+      NODE_ENV: ${NODE_ENV:-development}
+      TZ: UTC
+      API_PUERTO: '3000'
+      API_PREFIJO: ${API_PREFIJO:-/api}
+      DATABASE_URL: postgres://${POSTGRES_USER:-paid_app}:${POSTGRES_PASSWORD:-paid_app_local}@postgres:5432/${POSTGRES_DB:-paid}
+      DATABASE_URL_ADMIN: postgres://${POSTGRES_ADMIN_USER:-postgres}:${POSTGRES_ADMIN_PASSWORD:-postgres_local}@postgres:5432/${POSTGRES_DB:-paid}
+      DATABASE_POOL_MAX: ${DATABASE_POOL_MAX:-10}
+      REDIS_HOST: redis
+      REDIS_PORT: '6379'
+      SESION_TTL_SEGUNDOS: ${SESION_TTL_SEGUNDOS:-600}
+      SESION_AVISO_SEGUNDOS: ${SESION_AVISO_SEGUNDOS:-480}
+      MINIO_ENDPOINT: minio
+      MINIO_PORT: '9000'
+      MINIO_ACCESS_KEY: ${MINIO_ACCESS_KEY:-paid_minio}
+      MINIO_SECRET_KEY: ${MINIO_SECRET_KEY:-paid_minio_local}
+      MINIO_BUCKET: ${MINIO_BUCKET:-paid-adjuntos}
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://otel-collector:4318
+      OTEL_SERVICE_NAME: paid-api
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+      # IA6 — apagada por omision. La Parte A funciona igual.
+      IA_HABILITADA: ${IA_HABILITADA:-false}
+      IA_URL: http://ia:8000
+      IA_TIMEOUT_MS: ${IA_TIMEOUT_MS:-2000}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+    ports:
+      - '${API_PUERTO:-3000}:3000'
+    healthcheck:
+      test:
+        - CMD
+        - node
+        - -e
+        - "require('node:http').get('http://127.0.0.1:3000/api/salud',r=>process.exit(r.statusCode===200?0:1)).on('error',()=>process.exit(1))"
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+    networks: [interna]
+
+  web:
+    build:
+      context: .
+      dockerfile: ./docker/web/Dockerfile
+    image: paid/web:dev
+    depends_on:
+      api:
+        condition: service_healthy
+    ports:
+      - '${WEB_PUERTO:-5173}:80'
+    healthcheck:
+      test: ['CMD-SHELL', 'wget -q --spider http://127.0.0.1/ || exit 1']
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    networks: [interna]
+
+  # ── Parte B. Solo con `--profile ia`. ──────────────────────────────────────
+  ia:
+    profiles: ['ia']
+    build:
+      context: .
+      dockerfile: ./docker/ia/Dockerfile
+    image: paid/ia:dev
+    environment:
+      TZ: UTC
+      IA_PUERTO: '8000'
+      # TODO(JACID) Q12: modelo aprobado para «Informacion Publico Clasificado».
+      IA_MODELO_TEXTO: ''
+      IA_MODELO_EMBEDDINGS: ''
+      IA_INFERENCIA_HABILITADA: 'false'
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - "python -c \"import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://127.0.0.1:8000/salud').status==200 else 1)\""
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+    # IA7 — Sin salida de datos, impuesto por configuracion de red y no por
+    # convencion de codigo: `sin-salida` es `internal: true`, asi que este
+    # contenedor **no tiene ruta a internet**. Sigue alcanzando a postgres por
+    # `interna`, que es lo unico que necesita (y aun asi las consultas
+    # vectoriales pasan por la API, sujetas a RLS — IA8).
+    networks: [interna, sin-salida]
+
+networks:
+  interna:
+    driver: bridge
+  sin-salida:
+    driver: bridge
+    internal: true
+
+volumes:
+  datos-postgres:
+  datos-redis:
+  datos-minio:
