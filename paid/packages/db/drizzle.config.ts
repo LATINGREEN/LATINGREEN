@@ -1,13 +1,25 @@
 import type { Config } from 'drizzle-kit';
 
 /**
- * Migraciones versionadas y reversibles (A.1). Cada migracion generada debe
- * llevar su `down` probado (Fase 1, punto 7): drizzle-kit genera el `up`, el
- * `down` se escribe a mano en `migraciones/bajada/` y la Puerta 1 comprueba
- * que aplica y revierte limpiamente.
+ * ⚠️ Las migraciones de este paquete se escriben A MANO en `migraciones/`, no
+ * se generan desde un esquema de Drizzle. El motivo esta en
+ * `migraciones/README.md` y en `docs/DECISIONES.md`, D-15: RLS, disparadores,
+ * columnas generadas, privilegios revocados y la clave foranea compuesta de la
+ * disyuncion de subtipo no se expresan en el DSL de Drizzle, y son justo donde
+ * viven las reglas de la PAID.
+ *
+ * Por eso NO se debe ejecutar `drizzle-kit generate` contra esta carpeta:
+ * sobreescribiria SQL que ninguna herramienta puede regenerar. El aplicador
+ * propio es `src/migraciones.ts` (`pnpm db:migrate`).
+ *
+ * Esta configuracion se conserva para `drizzle-kit introspect` y para las
+ * utilidades de comparacion, que si son utiles: permiten ver si la base y el
+ * repositorio dicen lo mismo.
  */
 export default {
-  schema: './src/esquema/*.ts',
+  // El esquema Drizzle en TypeScript para la capa de consulta llega en la
+  // Fase 3. Hasta entonces no hay nada que leer aqui.
+  schema: './src/esquema.ts',
   out: './migraciones',
   dialect: 'postgresql',
   dbCredentials: {
@@ -15,7 +27,6 @@ export default {
     // politicas RLS y disparadores, que el usuario de la aplicacion no puede.
     url: process.env['DATABASE_URL_ADMIN'] ?? '',
   },
-  // Los esquemas de la PAID. `drizzle` guarda su tabla de control aparte.
   schemaFilter: ['ref', 'org', 'seg', 'ai', 'doc', 'aud', 'ia'],
   verbose: true,
   strict: true,
