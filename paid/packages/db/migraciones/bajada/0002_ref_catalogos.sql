@@ -1,0 +1,35 @@
+-- Reversion de 0002. Orden inverso al de creacion, por las claves foraneas.
+
+DROP TABLE IF EXISTS ref.atributo_herramienta_aid;
+DROP TABLE IF EXISTS ref.extension_permitida;
+DROP TABLE IF EXISTS ref.municipio;
+DROP TABLE IF EXISTS ref.departamento;
+DROP TABLE IF EXISTS ref.tramo_avance;
+DROP TABLE IF EXISTS ref.hemisferio;
+DROP TABLE IF EXISTS ref.estado_solicitud_eliminacion;
+DROP TABLE IF EXISTS ref.tipo_normatividad;
+DROP TABLE IF EXISTS ref.tipo_alianza;
+DROP TABLE IF EXISTS ref.tipo_bien_donado;
+DROP TABLE IF EXISTS ref.tipo_recurso;
+DROP TABLE IF EXISTS ref.medio_utilizado;
+DROP TABLE IF EXISTS ref.medio_difusion;
+DROP TABLE IF EXISTS ref.grupo_poblacional;
+DROP TABLE IF EXISTS ref.servicio_prestado;
+DROP TABLE IF EXISTS ref.tipo_operacion;
+DROP TABLE IF EXISTS ref.campana_institucional;
+DROP TABLE IF EXISTS ref.tipo_herramienta_aid;
+DROP TABLE IF EXISTS ref.tipo_entidad;
+DROP TABLE IF EXISTS ref.grado;
+DROP TABLE IF EXISTS ref.escalafon;
+DROP TABLE IF EXISTS ref.tipo_documento_identidad;
+DROP TABLE IF EXISTS ref.ambito_visibilidad;
+DROP TABLE IF EXISTS ref.nivel_jerarquia;
+DROP TABLE IF EXISTS ref.resultado_intento_autenticacion;
+DROP TABLE IF EXISTS ref.tipo_red;
+DROP TABLE IF EXISTS ref.estado_registro;
+DROP TABLE IF EXISTS ref.fase_documental;
+DROP TABLE IF EXISTS ref.categoria_adjunto;
+DROP TABLE IF EXISTS ref.coami;
+DROP TABLE IF EXISTS ref.plan_operacional;
+DROP TABLE IF EXISTS ref.tipo_asistencia;
+DROP TABLE IF EXISTS ref.tipo_actividad;
