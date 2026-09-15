@@ -11,7 +11,7 @@ está impuesta, la columna dice «sin implementar» y nombra la fase que la debe
 cubrir. Rellenar esas casillas por adelantado convertiría este documento en lo
 contrario de lo que es.
 
-**Estado: Fases 0 y 1 cerradas. Puerta 0 parcial (ver abajo), Puerta 1 superada.**
+**Estado: Fases 0, 1 y 2 cerradas. Puerta 0 parcial (ver abajo), Puertas 1 y 2 superadas.**
 
 ⚠️ El esquema está **derivado de PROMPT.md**, no traducido de
 `anexo_A_ddl_paid.sql`, que no existe. Se preguntó y se autorizó el desvío.
@@ -26,13 +26,13 @@ falla si la regla se rompe, no que el código parezca correcto.
 
 | # | Regla | Dónde se impone | Prueba | Estado |
 |---|---|---|---|---|
-| R1 | Sesión de 10 min, deslizante, en servidor | `packages/db/migraciones/0004_seg_seguridad.sql` (`seg.sesion`, disparador `sesion_fijar_expiracion`) · `apps/api/src/configuracion.ts` | «expira_en se deriva de la ultima actividad, no se digita» | ⚠️ La base ya impone los 10 min y los hace indigitables. El TTL en Redis y la tarea de cierre son de la **Fase 2** |
-| R2 | Red cerrada; rangos en tabla, no en entorno | `0004_seg_seguridad.sql` (`seg.red_autorizada`, tipo `cidr`) · `apps/api/src/configuracion.ts` (comentario que prohíbe CIDR ahí) | — | ⚠️ Tabla lista. La validación en el flujo de ingreso es de la **Fase 2** |
-| R3 | Captcha de un solo uso, se guarda el resumen | `0004_seg_seguridad.sql` (`seg.captcha`, `CHECK` sha256 hex, disparador de 5 min) | «el captcha caduca a los 5 minutos, tampoco negociable» | ✅ En base · flujo en **Fase 2** |
-| R4 | Ocho causas en base, un mensaje en pantalla | `0002_ref_catalogos.sql` + semilla de `ref.resultado_intento_autenticacion` · `0004` (`seg.intento_autenticacion`) · `packages/schema/src/dominios.ts` | `dominios.test.ts` (3 pruebas) | ✅ Dominio y mensaje único · flujo en **Fase 2** |
-| R5 | Credencial de unidad `<SIGLA>_PAID` | `0004_seg_seguridad.sql` (`CHECK usuario_credencial_formato`) · `packages/schema/src/dominios.ts` | «la credencial sigue el patron», 3 credenciales inválidas | ✅ **Verificada en base y en cliente** |
-| R6 | Ámbito jerárquico con RLS sobre `ltree` | `0003_org_unidades.sql` (`ruta_jerarquica`) · `0009_disparadores.sql` (derivación y recolocación) · `0010_rls_politicas.sql` (18 políticas) · `0011_indices.sql` (GiST) | 7 pruebas, incluidas «BIM23 no ve BIM24», «sin contexto no se ve nada» | ✅ **Verificada como rol `NOBYPASSRLS`** |
-| R7 | Contexto con `SET LOCAL` en la transacción | `packages/db/src/contexto.ts` · `packages/db/src/cliente.ts` (`enTransaccionConContexto`) · `0001` (funciones `seg.*_actual()`) | «el contexto no sobrevive a la transaccion», con `max = 1` en el pool | ✅ **Verificada** |
+| R1 | Sesión de 10 min, deslizante, en servidor | `0004_seg_seguridad.sql` (disparador `sesion_fijar_expiracion`) · `apps/api/src/seguridad/sesion.service.ts` (TTL deslizante en Redis) · `sesion.guard.ts` · `tareas/tareas.service.ts` | 7 pruebas: 9 min 30 s renueva, 10 min + 1 s rechaza, la tabla queda con su motivo | ✅ **Verificada de punta a punta** |
+| R2 | Red cerrada; rangos en tabla, no en entorno | `0004` (`seg.red_autorizada`, tipo `cidr`) · `apps/api/src/seguridad/red.service.ts` (compara con `>>=` de `inet`) · `comun/aviso-arranque.ts` | 5 pruebas: dentro pasa, fuera no, queda `RED_NO_AUTORIZADA`, y responde lo mismo que credenciales inválidas | ✅ **Verificada.** En `production` un rango abierto **impide arrancar** |
+| R3 | Captcha de un solo uso, se guarda el resumen | `0004` (`seg.captcha`) · `apps/api/src/seguridad/captcha.service.ts` (`UPDATE ... RETURNING` que resuelve la carrera) | 3 pruebas: no se reutiliza, se consume aunque falle, un id inventado no rompe | ✅ **Verificada** |
+| R4 | Ocho causas en base, un mensaje en pantalla | semilla de `ref.resultado_intento_autenticacion` · `0004` (`seg.intento_autenticacion`) · `seguridad/autenticacion.service.ts` · `seguridad/clave.service.ts` (`RESUMEN_FICTICIO`) · `comun/filtro-excepciones.ts` | 4 pruebas: mismo cuerpo y código, **ambos caminos verifican la clave** (espía, no tiempos), la base sí distingue, el mensaje no nombra ninguna causa | ✅ **Verificada** |
+| R5 | Credencial de unidad `<SIGLA>_PAID` | `0004` (`CHECK usuario_credencial_formato`) · `packages/schema/src/dominios.ts` | 4 pruebas en base + «responde 401 y no 400», para no revelar el formato | ✅ **Verificada** |
+| R6 | Ámbito jerárquico con RLS sobre `ltree` | `0003` (`ruta_jerarquica`) · `0009` (derivación y recolocación) · `0010` (19 políticas) · `0011` (GiST) · `0013` (la única lectura sin contexto) | 7 en la Puerta 1 + 3 en la Puerta 2, incluidas **«el rol de la API no es superusuario ni tiene BYPASSRLS»** y «RLS activa **y forzada** en todas las tablas» | ✅ **Verificada** |
+| R7 | Contexto con `SET LOCAL` en la transacción | `packages/db/src/contexto.ts` · `cliente.ts` · `apps/api/src/seguridad/transaccion.interceptor.ts` · `basedatos/basedatos.service.ts` (`AsyncLocalStorage`) | «el contexto no sobrevive a la transaccion» (Puerta 1) + **la fuga de contexto con `pool.max = 1`** (Puerta 2) | ✅ **Verificada en la API real** |
 | R8 | Tres maestros de precedencia | `0005_ai_maestros.sql` · claves foráneas obligatorias desde `0007` | Inventario | ✅ |
 | R9 | `participo_arc` siempre TRUE | `0006_ai_actividad_y_subtipos.sql` (`CHECK actividad_participo_arc_siempre_verdadero`) · `packages/schema/src/dominios.ts` | 2 pruebas: `INSERT` y `UPDATE` | ✅ **Verificada** |
 | R10 | Escala de ocho tramos; no existen 80 ni 90 | `0006` (`CHECK ... IN (10,20,30,40,50,60,70,100)` en `proyecto_social` y en `proyecto_avance`) · `0009` (disparador de progresión) · `packages/schema/src/avance.ts` | 7 pruebas en base + 21 en `avance.test.ts` | ✅ **Verificada en base y en cliente** |
@@ -41,13 +41,20 @@ falla si la regla se rompe, no que el código parezca correcto.
 | R13 | Georreferenciación en los SEIS formularios | `0006` (bloque GMS en el supertipo) · `0005` (en `herramienta_aid`) · columnas `GENERATED ALWAYS`, incluida `geography` · `0011` (GiST) | 4 pruebas, entre ellas la comparación con `aDecimal()` en 6 coordenadas | ✅ **Verificada. Sin disparadores: todo derivado** |
 | R14 | Eliminar es un trámite | `0003`/`0005`/`0006`/`0007` (`GRANT DELETE` solo a `paid_administracion`) · `0004` (`seg.solicitud_eliminacion`) | 5 pruebas: operación no puede, administración sí, motivo obligatorio, nadie se aprueba a sí mismo | ✅ **Verificada** |
 | R15 | Bitácora obligatoria, por disparador | `0008_doc_y_aud.sql` (`aud.bitacora_cambio` + inmutabilidad doble) · `0009` (`aud.registrar_cambio` sobre `ai`, `org`, `doc`) | 5 pruebas, incluidas `UPDATE`/`DELETE`/`TRUNCATE` **como superusuario** | ✅ **Verificada** |
-| R16 | Atribuciones centralizadas en JACID | `0009` (`ai.verificar_campana_es_de_fuerza`) · `0008` (privilegios de `doc.normatividad`) · `0004` (`REVOKE` a operación sobre roles y permisos) · `packages/schema/src/dominios.ts` | 2 pruebas de campaña | ⚠️ La parte de datos está verificada. La matriz de permisos y `ALIANZA.AVANCE` son de la **Fase 2** |
+| R16 | Atribuciones centralizadas en JACID | `0009` (`ai.verificar_campana_es_de_fuerza`) · `0012` (`ai.alianza` + `ai.verificar_avance_solo_en_convenio`) · `0008` (privilegios de `doc.normatividad`) · `0004` (`REVOKE` a operación) · `semillas/0002_roles_y_permisos.sql` (la matriz) · `seguridad/permiso.guard.ts` | 2 de campaña (Puerta 1) + 5 de `ALIANZA.AVANCE` (Puerta 2): 403 a `OPERADOR_UNIDAD`, 200 a `FUNCIONAL_JACID`, el avance no retrocede, y la matriz solo lo da a JACID | ✅ **Verificada** |
 | R17 | Asistencia DIRECTA exige plan | `0006` (`CHECK asistencia_directa_exige_plan_operacional`) · `packages/schema/src/dominios.ts` | 3 pruebas | ✅ **Verificada** |
 | R18 | Siete COAMI, ninguno por defecto | `0006` (`ai.actividad_coami`, cero-a-muchos) · semilla de los 7 | `dominios.test.ts` (5 pruebas) | ✅ |
 | R19 | Las once pestañas | `0007_ai_tablas_hijas.sql` (las once) · `0009` (`ai.recalcular_registro_completo`) · `packages/schema/src/pestanas.ts` | «es FALSE al crear, TRUE con las once, FALSE al retirar una» + 8 en `pestanas.test.ts` | ✅ **Verificada** |
 
-**Recuento:** 13 reglas verificadas con prueba en base, 6 parciales cuyo resto
-depende de las Fases 2 y 3. Ninguna sin empezar.
+**Recuento:** 18 de 19 reglas verificadas con pruebas. Solo **R12** queda
+parcial: el catálogo de extensiones y el contraste MIME/extensión están y se
+prueban, pero la lectura del número mágico del archivo real es de la Fase 3,
+cuando haya carga de adjuntos.
+
+Además, dos reglas se implementaron **más allá** de lo que su casilla pedía,
+porque el defecto que evitan es silencioso: R2 impide arrancar en producción con
+la red abierta, y R6 se comprueba también sobre el **rol de conexión** de la
+API, no solo sobre las políticas.
 
 ---
 
@@ -61,11 +68,12 @@ depende de las Fases 2 y 3. Ninguna sin empezar.
 | P4 | RBAC de nombre | **No** | `0004`: `seg.permiso` con la tripleta y el código derivado, `seg.rol_permiso`, `seg.usuario_rol` **con vigencia** e índice único sobre la asignación abierta, `seg.rol.id_ambito_visibilidad` |
 | P5 | `CHECK` de fila para una regla de agregación | **No** | `0007` lleva un comentario explícito de que **no** hay `CHECK (peso_bytes <= 10485760)` como límite agregado, y `0009` pone la regla en un disparador que suma los bytes vigentes. Verificado con el caso de los 40 archivos de 9 MB, y con una prueba que comprueba que el disparador existe |
 | P6 | Columnas «calculadas por trigger» sin el trigger | **No** | **No hay disparador que calcular**: las decimales *y* el punto `geography` son `GENERATED ALWAYS ... STORED`. Verificado que `latitud_decimal` rechaza escritura directa, que coincide con `aDecimal()` en 6 coordenadas y que el punto se deriva de las mismas GMS |
-| P7 | Testigo de sesión en claro | **No** | `0004`: `hash_testigo char(64)` con `CHECK` de formato sha256 hex. Verificado que un testigo en claro no cabe |
+| P7 | Testigo de sesión en claro | **No** | `0004`: `hash_testigo char(64)` con `CHECK` de formato sha256 hex, y `sesion.service.ts` solo guarda el resumen. Verificado desde los dos lados: que un testigo en claro no cabe en la columna, y que **el testigo realmente entregado a un cliente no aparece en la representación JSON de ninguna fila** de `seg.sesion`, `aud.bitacora_cambio` ni `seg.intento_autenticacion` |
 | P8 | Prohibir el borrado físico solo en la documentación | **No** | Tres roles de privilegio en `0001`, `GRANT DELETE` solo a `paid_administracion`, `seg.solicitud_eliminacion` con motivo obligatorio. Verificado que el rol de operación recibe `permission denied` |
 | P9 | Dominios cerrados como texto libre | **No** | 33 catálogos en `ref`, todos con `CHECK` de formato en el código. `ref.normalizar_texto` hace comparables «BINACIONAL» y «Binacional», y se verifica que **da lo mismo que la función de TypeScript** sobre 6 cadenas |
 | P10 | Desnormalizar geografía y jerarquía | **No** | `org.unidad` es una sola tabla con referencia a sí misma; el nivel sale de `ref.nivel_jerarquia`. `ref.municipio` no repite el nombre del departamento: apunta con clave foránea, y la coherencia del código DANE se impone con una columna **derivada** y una clave foránea sobre ella. Verificado que un municipio en el departamento equivocado no entra |
-| P11 | `SET` en lugar de `SET LOCAL` | **No** | `packages/db/src/contexto.ts` usa `set_config(clave, valor, **true**)`. Verificado con `max = 1` en el pool: tras una transacción con contexto, la siguiente sobre **la misma conexión** no ve nada del anterior |
+| P11 | `SET` en lugar de `SET LOCAL` | **No** | `packages/db/src/contexto.ts` usa `set_config(clave, valor, **true**)`, y `TransaccionInterceptor` es el único sitio que abre transacciones autenticadas. Verificado dos veces: en la Puerta 1 con `max = 1`, y en la Puerta 2 con la **API real** y `DATABASE_POOL_MAX = 1`, alternando tres peticiones de dos unidades hermanas sobre la misma conexión |
+| P4 (bis) | Autorización por nombre de rol en lugar de por permiso | **No** | `permiso.guard.ts` exige el PERMISO, no el rol: si comprobara «¿es OPERADOR_UNIDAD?», cambiar la matriz obligaría a tocar código y R16 dejaría de ser configurable |
 
 ---
 
@@ -78,7 +86,7 @@ depende de las Fases 2 y 3. Ninguna sin empezar.
 | IA3 | Procedencia por campo | `apps/ia/src/paid_ia/principal.py` (TODO de `/extraer`) | ⛔ **Fase 7** |
 | IA4 | Nunca inventar cifras | `apps/ia/src/paid_ia/principal.py` (TODO de `/extraer`) | ⛔ **Fase 7** |
 | IA5 | Registro completo de cada interacción | — | ⛔ **Fase 6** (`ia.sugerencia`, `ia.modelo`) |
-| IA6 | Degradación limpia | `apps/api/src/configuracion.ts` (`IA_HABILITADA=false`, `IA_TIMEOUT_MS`) · `packages/schema/src/errores.ts` (`IA_NO_DISPONIBLE`, `MENSAJE_IA_NO_DISPONIBLE`) · `apps/ia/.../principal.py` (responde «degradado», no error) · `apps/web/src/App.tsx` (la pantalla se dibuja con la API caída) | ✅ **Verificado**: `docker compose up` no levanta `ia` (D-04), la interfaz se dibuja sin API, y los 97 tests de la Parte A pasan sin que el servicio de IA exista |
+| IA6 | Degradación limpia | `apps/api/src/configuracion.ts` (`IA_HABILITADA=false`, `IA_TIMEOUT_MS`) · `packages/schema/src/errores.ts` · `apps/ia/.../principal.py` (responde «degradado», no error) · `apps/web/src/App.tsx` | ✅ **Verificado**: `docker compose up` no levanta `ia` (D-04), la interfaz se dibuja sin API, y las **195** pruebas de la Parte A pasan sin que el servicio de IA exista ni esté instalado |
 | IA7 | Sin salida de datos | `docker-compose.yml` (red `sin-salida` con `internal: true`) · `docker/otel-collector/config.yaml` (sin exportador externo) · `docker/web/nginx.conf` (CSP `default-src 'self'`) | ✅ Impuesto por configuración, no por convención |
 | IA8 | La IA respeta el ámbito | `apps/ia/src/paid_ia/principal.py` (sin cliente de base de datos, por diseño) | ⚠️ Parcial: hoy es cierto porque el servicio no puede consultar nada. La prueba de la **Puerta 6** es la que lo confirmará |
 
@@ -97,7 +105,7 @@ depende de las Fases 2 y 3. Ninguna sin empezar.
 
 ## Resultado de la batería de pruebas
 
-Ejecutado al cerrar la Fase 1:
+Ejecutado al cerrar la Fase 2:
 
 ```
 $ pnpm -r build
@@ -110,10 +118,11 @@ e2e             build: Done
 $ pnpm -r test
 packages/schema: 6 archivos,  97 pruebas, 97 pasan
 packages/db:     1 archivo,   60 pruebas, 60 pasan   ← Puerta 1, Postgres real
-apps/api, apps/web: sin pruebas todavía (Fases 2 y 3)
+apps/api:        1 archivo,   38 pruebas, 38 pasan   ← Puerta 2, API + Postgres + Redis
+apps/web: sin pruebas todavía (Fase 4)
 e2e: pendiente hasta la Puerta 4
                  ─────────────────────────────────
-                 TOTAL           157 pruebas, 157 pasan
+                 TOTAL           195 pruebas, 195 pasan
 
 $ pnpm lint
 (sin hallazgos)
@@ -134,8 +143,9 @@ Comprobaciones manuales:
 - Arranque con `SESION_AVISO_SEGUNDOS > SESION_TTL_SEGUNDOS` → **aborta**, citando R1
 - `GET /salud` del servicio de IA → `200 {"estado":"degradado",...}`
 - `docker compose config` → los seis servicios válidos
-- `pnpm db:migrate` sobre base vacía → 11 migraciones aplicadas
-- reversión completa → **0 tablas**; reaplicación → 71 tablas
+- `pnpm db:migrate` sobre base vacía → 13 migraciones aplicadas
+- reversión completa → **0 tablas**; reaplicación → 72 tablas
+- arranque con `NODE_ENV=production` y red `0.0.0.0/0` → **el proceso no levanta**
 
 ## Lo pendiente, sin adornarlo
 
@@ -147,9 +157,9 @@ Comprobaciones manuales:
 2. **`docker compose up` sigue sin verificarse** (D-07). El archivo valida, los
    contenedores no se pueden construir por la política de egreso de la red de
    la sesión.
-3. **Nada de las Fases 2, 3, 4 está empezado.** Autenticación, API REST de
-   jornadas, interfaz. Seis de las diecinueve reglas están a medias por eso, y
-   la tabla de arriba dice cuáles.
+3. **Las Fases 3 y 4 no están empezadas.** API REST de jornadas con sus once
+   pestañas, adjuntos a MinIO, exportación XLSX/CSV, e interfaz. R12 queda
+   parcial por eso.
 4. **El esquema está derivado, no verificado contra el DDL de referencia**
    (D-13). Cuando aparezca `anexo_A_ddl_paid.sql` habrá que reconciliar
    nombres de columna, y eso en una base con datos no es gratis.
@@ -161,7 +171,14 @@ Comprobaciones manuales:
 6. **DIVIPOLA sin cargar:** `ref.municipio` está vacío.
 7. **`docs/EVALUACION-IA.md` no existe.** B.8 lo exige. Requiere las 50–100
    jornadas ya registradas a mano del conjunto de referencia (B.7, punto 1).
-8. **Deuda anotada de la Fase 2:** al recolocar una unidad en la jerarquía hay
-   que cerrar las sesiones de su subarborescencia, porque el contexto lleva la
-   ruta (D-16). Es fácil de olvidar y produciría un ámbito obsoleto, no un
-   error visible.
+8. **Al recolocar una unidad hay que cerrar las sesiones de su
+   subarborescencia**, porque el contexto lleva la ruta (D-16). Sigue
+   pendiente. No produce un error: produce un ámbito equivocado.
+9. **No hay endpoint de cambio de clave.** `ClaveService` tiene el historial de
+   5 y la comprobación de reutilización, pero nada las usa todavía, y
+   `CLAVE_EXPIRADA` se registra y rechaza el ingreso sin ofrecer el cambio. Es
+   trabajo de la Fase 4, cuando haya pantalla.
+10. **El captcha es aritmético, no de imagen** como muestra el manual. El
+    sustituto es explícito y accesible (una imagen sin alternativa incumpliría
+    WCAG 2.1 AA); si JACID exige el del manual, se reemplaza el generador sin
+    tocar el flujo.

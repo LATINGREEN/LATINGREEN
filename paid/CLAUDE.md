@@ -50,8 +50,9 @@ La PAID vive en `paid/`, no en la raíz: el repositorio ya contenía otro proyec
 (el juego Eco-Arcade Latin Green). Ver `docs/DECISIONES.md`, D-01.
 
 ## Estado
-**Fases 0 y 1 cerradas.** 157 pruebas pasando, 60 de ellas contra Postgres real
-(Puerta 1). La siguiente es la Fase 2 (autenticación y autorización).
+**Fases 0, 1 y 2 cerradas.** 195 pruebas pasando: 97 de invariantes
+compartidos, 60 de la Puerta 1 contra Postgres real, 38 de la Puerta 2 sobre la
+API real con Postgres y Redis. La siguiente es la Fase 3 (jornadas de apoyo).
 
 ## ⚠️ El esquema está DERIVADO de PROMPT.md
 `anexo_A_ddl_paid.sql` no existe. Se preguntó, como PROMPT.md ordena, y se
@@ -102,6 +103,26 @@ anterior. Es trabajo de la Fase 2.
   Puerta 5 exige que la Parte A funcione sin ningún componente de IA, y la única
   forma honesta de comprobarlo es que la IA no arranque por omisión. Para
   levantarla: `docker compose --profile ia up`.
+
+## Dos trampas de `apps/api` que cuestan una tarde
+NestJS inyecta leyendo la metadata `design:paramtypes`, que es una **referencia
+al valor** de cada clase del constructor. De ahí dos cosas que NO hay que
+«arreglar»:
+
+1. **`consistent-type-imports` está desactivado en `apps/api`** (D-19). Su
+   autocorrección convierte los imports en `import type`, TypeScript los
+   elimina del JavaScript emitido y la inyección falla en ejecución. La regla
+   marca exactamente los archivos donde aplicarla rompe la aplicación.
+2. **Las pruebas de `apps/api` usan SWC, no esbuild** (D-18). esbuild no emite
+   esa metadata, y las pruebas arrancaban la API con todos los constructores
+   vacíos: cada peticioń devolvía 500. `tsc` sí la emite, así que el despliegue
+   nunca estuvo afectado — era solo el camino de las pruebas.
+
+## El rol de base de datos de la API no puede ser superusuario
+`DATABASE_URL` debe apuntar a un rol `NOSUPERUSER NOBYPASSRLS`. Un superusuario
+ignora RLS por definición, así que apuntarlo al usuario administrador **anula
+R6 entero** y ninguna prueba de negocio lo nota. Hay dos pruebas en la Puerta 2
+que lo comprueban explícitamente, y existen porque el defecto ocurrió.
 
 ## Convenciones que ya están en vigor
 - Versiones **exactas** en todos los `package.json` y en `pyproject.toml`: sin

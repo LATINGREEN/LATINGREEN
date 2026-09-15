@@ -293,6 +293,33 @@ sobre el tratamiento de información clasificada.
 
 ---
 
+## 🟡 Q13 — ¿Cómo se mide el avance de un convenio?
+
+**De dónde sale esta pregunta.** No estaba en el pliego original: apareció al
+construir el módulo de alianzas y convenios.
+
+El manual dice que el **porcentaje de avance de un convenio** lo diligencia
+únicamente JACID. Eso ya está implementado. Lo que no se sabe es **con qué
+escala**.
+
+Hay dos posibilidades y son incompatibles:
+
+1. **Sigue la escala de los proyectos sociales:** 10, 20, 30, 40, 50, 60, 70 y
+   100 — ocho tramos, sin 80 ni 90, cada uno con su paquete documental.
+2. **Es un porcentaje libre** de 0 a 100.
+
+**Lo que se hizo mientras tanto:** se admite cualquier entero de 0 a 100, que
+es la opción que **no rechaza datos legítimos**. Si la respuesta es que sigue la
+escala de ocho tramos, restringirlo es un cambio de cinco minutos. Al contrario
+—haber restringido y tener que abrir— el sistema habría estado rechazando
+avances válidos durante meses, y nadie sabría cuántos se dejaron de registrar.
+
+**Por qué importa:** si un convenio puede estar «al 85 %» y el sistema lo
+rechaza, el usuario pondrá 80 o 90 y la cifra queda falseada. Si no puede
+estarlo y el sistema lo acepta, el consolidado mezcla dos escalas distintas.
+
+---
+
 ## Resumen para llevar a una reunión
 
 | # | Pregunta en una línea | Prioridad |
@@ -310,3 +337,4 @@ sobre el tratamiento de información clasificada.
 | Q10 | ¿Se registran datos personales de civiles? (Ley 1581 de 2012) | 🟡 |
 | Q11 | ¿Hay servicio de mapas institucional? | 🟡 |
 | Q12 | ¿Hay GPU? ¿Qué modelos de IA están aprobados para datos clasificados? | 🟡 |
+| Q13 | ¿El avance de un convenio usa la escala de ocho tramos o un porcentaje libre? | 🟡 |

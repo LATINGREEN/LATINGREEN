@@ -7,6 +7,152 @@ pueda continuar (PROMPT.md · A.5).
 
 ---
 
+## FASE 2 — Autenticación y autorización
+
+### Antes de empezar (plan)
+
+Infraestructura conseguida en esta sesión: Redis 7.0.15 local (las imágenes de
+Docker siguen bloqueadas, D-07) y `@node-rs/argon2`, que instala desde binarios
+precompilados —sin compilar nada— y produce el formato PHC `$argon2id$` que el
+`CHECK` de `seg.usuario` ya exigía.
+
+Plan:
+
+1. Flujo: reto de captcha → validación de red → captcha → credencial → estado y
+   vigencia → sesión. Cada intento escribe su causa en
+   `seg.intento_autenticacion` (una de las ocho de R4).
+2. Argon2id, historial de las últimas 5 claves, bloqueo a los 5 intentos.
+3. Sesión: testigo opaco, **resumen** en base (P7), TTL deslizante de 10 min en
+   Redis, registro durable en `seg.sesion`, tarea programada que cierra las
+   vencidas.
+4. Guardas de NestJS: `@RequierePermiso('JORNADA.EDITAR')` e interceptor de
+   transacción que fija el contexto con `SET LOCAL` (R7).
+5. Los cinco roles con su matriz de permisos.
+
+### Al terminar (resultado)
+
+**Estado: Fase 2 cerrada. Puerta 2 superada — 38 pruebas sobre la API real.**
+
+Hecho:
+
+- **Flujo de ingreso completo** en el orden de PROMPT.md: reto de captcha →
+  validación de red → captcha → credencial → estado y vigencia → sesión. Cada
+  intento escribe su causa en `seg.intento_autenticacion`, una de las ocho.
+- **Argon2id** con `@node-rs/argon2` (binarios precompilados, sin compilar
+  nada). Historial de las últimas 5 claves, bloqueo a los 5 intentos.
+- **Sesión**: testigo opaco de 32 bytes, resumen SHA-256 en base, TTL
+  deslizante de 10 min en Redis, registro durable en `seg.sesion` con motivo de
+  cierre, y tarea programada que cierra las vencidas.
+- **Guardas**: `SesionGuard` (R1), `PermisoGuard` con
+  `@RequierePermiso('ALIANZA.AVANCE')` (P4, R16) y `TransaccionInterceptor` que
+  fija el contexto con `SET LOCAL` (R7). Registrados globalmente en ese orden,
+  que no es indiferente.
+- **Los cinco roles con su matriz**: 43 / 37 / 31 / 14 / 10 permisos.
+  `ALIANZA.AVANCE` lo tienen solo `ADMINISTRADOR` y `FUNCIONAL_JACID`.
+- **Aviso de red abierta** en el arranque (R2). En `NODE_ENV=production` no
+  avisa: **impide arrancar**. Un aviso en un log que nadie lee no es una
+  salvaguarda.
+- Dos migraciones nuevas, **0012** (`ai.alianza`) y **0013**
+  (`seg.unidad_para_ingreso`), las dos por huecos que la Fase 2 saco a la luz.
+
+### Seis defectos reales que la Puerta 2 encontró
+
+Se anotan porque cuatro de ellos parecían correctos leyendo el código.
+
+1. **R4 estaba incumplido mientras el código que lo impone parecía bien.** El
+   filtro de excepciones usaba `excepcion.message`, pero al lanzar
+   `new UnauthorizedException({ codigo, mensaje })` NestJS pone en `.message` su
+   texto por omisión, «Unauthorized Exception». El cliente recibía eso en lugar
+   de «Credenciales inválidas» — en inglés, y distinto de lo que R4 exige. El
+   filtro ahora lee el cuerpo que la excepción trae.
+2. **La API se conectaba como SUPERUSUARIO en las pruebas, así que RLS no se
+   aplicaba en absoluto.** La prueba de fuga de contexto mostró a BIM23 viendo
+   filas de BIM24; el motivo no era `SET LOCAL`, era que un superusuario ignora
+   las políticas por definición. Ahora el arranque crea un rol
+   `NOSUPERUSER NOBYPASSRLS`, y hay **dos pruebas nuevas** que comprueban
+   explícitamente que el rol de la API no puede saltarse RLS y que todas las
+   tablas de `ai`, `org` y `doc` la tienen activa **y forzada**. Sin esa
+   comprobación, cualquier despliegue que apunte `DATABASE_URL` al usuario
+   administrador anula R6 entero y nada lo nota.
+3. **El ingreso no podía leer `org.unidad`.** Necesita la `ruta_jerarquica` para
+   construir el contexto de R7, pero esa tabla tiene RLS forzada comparando
+   contra… el contexto, que aún no existe. Resuelto con la migración 0013: una
+   función `SECURITY DEFINER` mínima, de solo lectura, que devuelve tres campos
+   de una fila. Ver `docs/DECISIONES.md`, D-20, para por qué aquí sí y en las
+   políticas de 0010 no.
+4. **Un identificador de captcha inventado devolvía 500 y borraba el rastro.**
+   Comparar texto arbitrario contra una columna `uuid` aborta la transacción
+   entera, así que el registro del intento —lo que R4 quiere conservar— fallaba
+   después. Un `try/catch` no servía: la transacción ya estaba perdida. Ahora se
+   valida el formato antes de tocar la base.
+5. **Las pruebas arrancaban la API con todos los constructores vacíos.** esbuild
+   —el transformador de Vitest por omisión— no emite `design:paramtypes`, la
+   metadata con la que NestJS inyecta. `tsc` sí, de modo que la compilación y el
+   despliegue nunca estuvieron afectados: era solo el camino de las pruebas. Se
+   cambió a SWC (D-18). Y por el mismo motivo se desactivó
+   `consistent-type-imports` en `apps/api`: su autocorrección convierte los
+   imports en `import type`, TypeScript los elimina del JavaScript y la
+   inyección falla en ejecución (D-19).
+6. **La regla de qué semillas ejecutar estaba en tres sitios** y uno se quedó
+   atrás: el arranque de la Puerta 1 empezó a sembrar los datos de desarrollo y
+   chocó con sus propias unidades de prueba. Ahora está en
+   `packages/db/src/semillas.ts`, en un solo lugar.
+
+### 🚪 Puerta 2 — resultado
+
+| Casilla | Resultado |
+|---|---|
+| Sesión inactiva 10 min + 1 s → rechazada; 9 min 30 s → válida y renovada | ✅ y el TTL vuelve a 600 al usarla |
+| IP fuera de `seg.red_autorizada` → rechazada, con `RED_NO_AUTORIZADA` en bitácora | ✅ y la respuesta es idéntica a la de credenciales inválidas |
+| El mismo reto de captcha no se puede usar dos veces | ✅ y se marca consumido incluso al fallar la respuesta |
+| Usuario inexistente y clave errada: mismo cuerpo y mismo código HTTP | ✅ cuerpo completo comparado, salvo `idCorrelacion` |
+| Ambos caminos ejecutan la verificación de clave | ✅ con espía sobre `ClaveService.verificar`, **no** comparando tiempos |
+| 5 fallos bloquean la cuenta | ✅ y bloqueada no entra ni con la clave correcta |
+| `OPERADOR_UNIDAD` recibe 403 al intentar `ALIANZA.AVANCE` | ✅ y sí puede consultar: el 403 es del permiso, no de la ruta |
+| La base no contiene ningún testigo en claro | ✅ buscado en la representación JSON de **toda** la fila, y también en la bitácora y en los intentos |
+| **Fuga de contexto** con `pool.max = 1` | ✅ tres peticiones alternadas sobre la misma conexión; cada unidad solo ve lo suyo |
+
+Añadidas: que la sonda de salud no exija sesión, que cerrar sesión invalide el
+testigo y deje motivo `CIERRE_USUARIO`, que un ingreso exitoso ponga el
+contador de fallos a cero, que el avance de un convenio no retroceda, que una
+credencial mal formada responda 401 y no 400 —un 400 con detalle de validación
+revelaría el formato de las credenciales—, que la escritura autenticada quede
+en la bitácora con el usuario y la sesión del contexto, y que la tarea
+programada cierre las vencidas con motivo `EXPIRACION`.
+
+**Cómo se ejecuta:**
+
+```bash
+cd paid/apps/api
+PAID_SEMILLA_DESARROLLO=1 \
+DATABASE_URL_PRUEBA="postgres://usuario:clave@127.0.0.1:5432/postgres" \
+pnpm test
+```
+
+Necesita Postgres 16 con PostGIS y pgvector, y Redis 7.
+
+### Pendiente al cerrar la Fase 2
+
+1. **Cambio de clave.** `ClaveService` ya tiene el historial de 5 y la
+   comprobación, pero **no hay endpoint** que lo use. Falta también el
+   tratamiento de `CLAVE_EXPIRADA`: hoy se registra y se rechaza el ingreso,
+   pero no se ofrece cambiarla. Es trabajo de la Fase 4, cuando haya pantalla.
+2. **Al recolocar una unidad hay que cerrar las sesiones de su
+   subarborescencia** (D-16). Sigue pendiente: el contexto lleva la ruta y
+   quedaría obsoleta. No produce un error, produce un ámbito equivocado.
+3. **El captcha es aritmético, no de imagen.** El manual muestra uno de imagen.
+   El sustituto es explícito y accesible; si JACID exige el del manual, se
+   reemplaza el generador sin tocar el flujo.
+4. **`X-Forwarded-For` se confía.** Es correcto detrás de nginx, y el
+   despliegue no publica el puerto de la API fuera de la red interna. Queda
+   anotado en el código, en el punto donde se confía.
+5. **El esquema Drizzle en TypeScript sigue sin estar** (D-15). Los
+   controladores de la Fase 2 consultan con SQL directo a través de
+   `BaseDatosService`, que es suficiente para esta fase pero no para las once
+   pestañas de la Fase 3.
+
+---
+
 ## FASE 1 — Base de datos
 
 ### Antes de empezar (plan)

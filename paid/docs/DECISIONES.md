@@ -359,3 +359,102 @@ privilegios.
 Eliminar los roles desde aquí rompería esa otra base. La reversión hace
 `DROP OWNED BY` (que solo alcanza la base en curso) y deja los roles en pie.
 Es la semántica correcta: la migración limpia lo que le corresponde.
+
+---
+
+## D-18 · Las pruebas de `apps/api` se transforman con SWC, no con esbuild · Aceptada · 2026-09-15
+
+**Contexto.** Al escribir la Puerta 2, todas las peticiones devolvían 500 con
+`Cannot read properties of undefined (reading 'getAllAndOverride')`.
+
+**Causa.** NestJS resuelve sus dependencias leyendo `design:paramtypes`, la
+metadata que TypeScript emite con `emitDecoratorMetadata`. **esbuild —el
+transformador que Vitest usa por omisión— no la emite.** La aplicación
+arrancaba con todos los constructores vacíos.
+
+`tsc` sí la emite, así que la compilación y el despliegue nunca estuvieron
+afectados: era exclusivamente el camino de las pruebas. Eso lo hace peor, no
+mejor: un fallo que solo aparece en pruebas invita a «arreglar la prueba».
+
+**Decisión.** `apps/api/vitest.config.ts` usa `unplugin-swc`, que sí emite la
+metadata y es el transformador que la documentación de NestJS recomienda para
+Vitest.
+
+---
+
+## D-19 · `consistent-type-imports` desactivado en `apps/api` · Aceptada · 2026-09-15
+
+La regla marca diez archivos de `apps/api`, y **aplicar su autocorrección
+rompería la aplicación en ejecución.**
+
+La metadata `design:paramtypes` es una referencia al **valor** de la clase. Si
+el import se convierte en `import type`, TypeScript lo elimina del JavaScript
+emitido, la metadata queda apuntando a `undefined` y la inyección falla.
+
+La regla no puede distinguir «este tipo solo se usa como tipo» de «este tipo se
+usa como tipo y NestJS necesita su valor», así que marca precisamente los
+archivos donde aplicarla rompe todo. Con `--fix`, los rompe los diez de una
+vez, y el síntoma aparece lejos del cambio.
+
+Se desactiva solo para `apps/api`, con el motivo escrito en
+`eslint.config.mjs`. El resto del monorepo la conserva.
+
+---
+
+## D-20 · `seg.unidad_para_ingreso`, la única lectura sin contexto · Aceptada · 2026-09-15
+
+**El problema.** El ingreso necesita la `ruta_jerarquica` de la unidad del
+usuario para poder fijar el contexto de R7. Esa ruta está en `org.unidad`, que
+tiene RLS forzada comparando contra… el contexto. Que aún no existe, porque se
+está construyendo. El ingreso fallaba con «la unidad no existe»: RLS devolvía
+cero filas, correctamente.
+
+**Decisión.** Una función `SECURITY DEFINER` que devuelve **una** unidad por su
+identificador y **solo tres campos**: sigla, nombre y ruta.
+
+**Por qué aquí sí y en las políticas de 0010 no** (donde se rechazó el mismo
+mecanismo, D-16):
+
+1. **Expone lo mínimo.** Tres campos de una fila que el usuario que está
+   entrando tiene derecho a conocer: es su propia unidad.
+2. **Falla hacia el lado seguro.** Si el dueño de la función no tuviera
+   privilegio suficiente, el ingreso falla de forma visible. En 0010 el mismo
+   mecanismo habría fallado hacia «se ve todo», que es silencioso.
+3. `search_path` se fija en la propia función, así que no se puede secuestrar
+   creando objetos homónimos en otro esquema.
+4. `REVOKE ALL ... FROM PUBLIC` y `GRANT EXECUTE` solo a los tres roles de la
+   aplicación.
+
+**Regla que acompaña la decisión:** esta función **no debe crecer**. Si alguien
+necesita consultar `org.unidad` de otra forma, es que su consulta va dentro de
+una transacción con contexto, y entonces RLS ya le responde.
+
+Alternativas descartadas: una política que abra todo cuando no hay contexto
+(convierte un olvido en fuga total), guardar la ruta en `seg.usuario`
+(desnormaliza la jerarquía, P10, y queda obsoleta al recolocar), y conectar la
+API con un rol que salte RLS (anula R6, y es el defecto que la Puerta 2
+detectó).
+
+---
+
+## D-21 · `ai.alianza` — hueco de la Fase 1 cerrado en la Fase 2 · Aceptada · 2026-09-15
+
+R16 dice que «el porcentaje de avance de un convenio solo lo diligencia JACID»
+y que «las unidades hasta nivel Fuerza solo concretan alianzas; los convenios
+son de JACID». La Fase 1 no creó ninguna tabla donde eso viviera: el permiso
+`ALIANZA.AVANCE` no tenía sobre qué actuar, y R16 quedaba a medias.
+
+La migración 0012 añade `ai.alianza`. No es una actividad —no cuelga de
+`ai.actividad` ni tiene las once pestañas—: es un acuerdo con una entidad.
+
+R16 se impone en **tres capas**: el permiso, un disparador que exige que el
+avance solo exista en un `CONVENIO`, y la prohibición de que retroceda. Tres
+para una regla que el manual expresa en una línea, porque es la clase de dato
+que acaba en una rendición de cuentas.
+
+**Pregunta abierta nueva: Q13.** No se sabe si el avance de un convenio sigue
+la escala de ocho tramos de R10 o es un porcentaje libre. R10 habla
+expresamente de «proyectos sociales», así que aplicarle la escala sería una
+suposición. Se admite 0–100 y se pregunta: si resulta que sigue la escala, el
+`CHECK` se aprieta, que es una migración trivial. Al contrario —haber apretado
+y tener que abrir— habría rechazado datos legítimos durante meses.

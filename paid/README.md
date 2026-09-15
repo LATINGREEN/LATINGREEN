@@ -13,20 +13,21 @@ Especificación completa en [`PROMPT.md`](PROMPT.md). Reglas permanentes en
 
 ---
 
-## Estado actual: Fases 0 y 1 cerradas
+## Estado actual: Fases 0, 1 y 2 cerradas
 
 | Fase | Estado |
 |---|---|
 | 0 · Preparación | ✅ cerrada · Puerta 0 parcial: `docker compose up` sin verificar |
 | 1 · Base de datos | ✅ cerrada · **Puerta 1 superada: 60 pruebas contra Postgres real** |
-| 2 · Autenticación y autorización | ⬜ siguiente |
-| 3 · Jornadas de Apoyo | ⬜ |
+| 2 · Autenticación y autorización | ✅ cerrada · **Puerta 2 superada: 38 pruebas sobre la API real** |
+| 3 · Jornadas de Apoyo | ⬜ siguiente |
 | 4 · Interfaz | ⬜ |
 | 5 · Verificación de la Parte A | ⬜ |
 | 6–8 · Asistencia por IA (Parte B) | ⬜ no empieza hasta cerrar la Puerta 5 |
 
-**157 pruebas, todas pasando:** 97 de los invariantes compartidos, 60 de la
-Puerta 1 contra PostgreSQL 16 real con PostGIS y pgvector.
+**195 pruebas, todas pasando:** 97 de los invariantes compartidos, 60 de la
+Puerta 1 contra PostgreSQL 16 con PostGIS y pgvector, y 38 de la Puerta 2
+levantando la API completa contra Postgres y Redis reales.
 
 ### ⚠️ El esquema está derivado, no traducido
 
@@ -122,7 +123,7 @@ las reglas. Regenerarlas borraría SQL que ninguna herramienta puede
 reproducir. Ver `packages/db/migraciones/README.md` y `docs/DECISIONES.md`,
 D-15.
 
-### Probar la base de datos
+### Probar la base de datos y la API
 
 Las 60 pruebas de la Puerta 1 necesitan un Postgres real:
 
@@ -130,6 +131,21 @@ Las 60 pruebas de la Puerta 1 necesitan un Postgres real:
 cd packages/db
 DATABASE_URL_PRUEBA="postgres://usuario:clave@127.0.0.1:5432/postgres" pnpm test
 ```
+
+Las 38 de la Puerta 2 levantan la API completa, y necesitan además Redis:
+
+```bash
+cd apps/api
+PAID_SEMILLA_DESARROLLO=1 \
+DATABASE_URL_PRUEBA="postgres://usuario:clave@127.0.0.1:5432/postgres" \
+pnpm test
+```
+
+⚠️ **`DATABASE_URL` debe apuntar a un rol `NOSUPERUSER NOBYPASSRLS`.** Un
+superusuario de PostgreSQL ignora las políticas RLS por definición, así que
+apuntarlo al usuario administrador anula el aislamiento por unidad (R6) sin que
+nada falle. Hay dos pruebas que lo comprueban, y existen porque el defecto
+ocurrió durante el desarrollo.
 
 Si hay Docker, se puede omitir esa variable y se usa Testcontainers. El
 arranque detecta cuál hay disponible (D-14). Hace falta PostgreSQL 16 con
