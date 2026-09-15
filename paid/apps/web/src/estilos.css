@@ -1,118 +1,16 @@
 /*
- * A.2.1 — Sin `@import url(...)` a un origen externo. Las fuentes van en
- * public/fuentes/ y se declaran con @font-face local.
+ * Hoja de entrada. El orden importa: los tokens primero, porque todo lo demás
+ * los lee; la atmósfera al final, porque se apoya en los tokens de color de
+ * cada modo de contraste.
  *
- * Fase 4 — Accesibilidad: el manual muestra controles de contraste y tamano de
- * letra, y a una entidad publica colombiana le aplican los lineamientos del
- * MinTIC (Resolucion 1519 de 2020), es decir WCAG 2.1 AA. Por eso desde ya:
- *   - las medidas van en `rem`, para que el control de tamano de letra funcione
- *     cambiando `font-size` en la raiz;
- *   - los colores se declaran como variables, para que el modo de alto
- *     contraste sea un cambio de variables y no un rediseno.
- * Los controles en si llegan en la Fase 4.
+ * A.2.1 — NINGÚN `@import url(...)` a un origen externo, aquí ni en las hojas
+ * que se importan. Las fuentes están en `public/fuentes/` y se declaran con
+ * `@font-face` local en tokens.css. Una @font-face remota no falla de forma
+ * visible: cae al tipo del sistema y el defecto pasa inadvertido.
  */
 
-:root {
-  /* Contraste verificado sobre --fondo: todos >= 4.5:1 (WCAG 2.1 AA). */
-  --fondo: #ffffff;
-  --texto: #1a1a1a;
-  --texto-suave: #4a4a4a;
-  --acento: #00305e; /* azul institucional */
-  --correcto: #1f6b3a;
-  --incidencia: #8a1c1c;
-  --borde: #d0d4d9;
-
-  font-size: 100%;
-  font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
-  color-scheme: light;
-}
-
-* {
-  box-sizing: border-box;
-}
-
-body {
-  margin: 0;
-  background: var(--fondo);
-  color: var(--texto);
-  line-height: 1.5;
-}
-
-.contenedor {
-  max-width: 60rem;
-  margin: 0 auto;
-  padding: 2rem 1.25rem 4rem;
-}
-
-h1 {
-  margin: 0;
-  color: var(--acento);
-  font-size: 2rem;
-  letter-spacing: 0.02em;
-}
-
-.subtitulo {
-  margin: 0.25rem 0 2rem;
-  color: var(--texto-suave);
-}
-
-h2 {
-  margin: 2rem 0 0.75rem;
-  font-size: 1.125rem;
-  padding-bottom: 0.375rem;
-  border-bottom: 1px solid var(--borde);
-}
-
-.estado {
-  display: grid;
-  grid-template-columns: minmax(10rem, max-content) 1fr;
-  gap: 0.5rem 1.5rem;
-  margin: 0;
-}
-
-.estado dt {
-  font-weight: 600;
-}
-
-.estado dd {
-  margin: 0;
-}
-
-.correcto {
-  color: var(--correcto);
-}
-
-.incidencia {
-  color: var(--incidencia);
-}
-
-.nota {
-  color: var(--texto-suave);
-  font-size: 0.9375rem;
-}
-
-.invariantes {
-  padding-left: 1.25rem;
-}
-
-.invariantes li {
-  margin-bottom: 0.5rem;
-}
-
-.invariantes em {
-  color: var(--incidencia);
-  font-style: normal;
-}
-
-code {
-  background: #f2f4f6;
-  padding: 0.1rem 0.3rem;
-  border-radius: 3px;
-  font-size: 0.9em;
-}
-
-/* Foco siempre visible: requisito de WCAG 2.1 AA. */
-:focus-visible {
-  outline: 3px solid var(--acento);
-  outline-offset: 2px;
-}
+@import './estilos/tokens.css';
+@import './estilos/base.css';
+@import './estilos/marco.css';
+@import './estilos/formulario.css';
+@import './estilos/atmosfera.css';

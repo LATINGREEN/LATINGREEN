@@ -1,0 +1,289 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   PAID — Sistema de diseño
+   ═══════════════════════════════════════════════════════════════════════════
+
+   CONCEPTO: carta náutica nocturna.
+
+   El sujeto manda. Esto es la plataforma con la que unidades tácticas de la
+   Armada registran acción integral en costas y ríos de Colombia, y de la que
+   salen los consolidados del RAO. Su vocabulario propio es el de la
+   navegación: grados-minutos-segundos, rumbos, sondas, babor y estribor. La
+   interfaz se viste de ahí, no de un tablero corporativo cualquiera.
+
+   Y tiene un trabajo concreto, que viene de la advertencia final de PROMPT.md:
+   «el defecto característico de este sistema no es que falle: es que parezca
+   funcionar mientras acumula datos que no cuadran». Así que el trabajo de esta
+   interfaz es HACER VISIBLE EL ESTADO: qué pestañas faltan, cuánta cuota
+   queda, si un registro cuenta para el RAO, cuánto le queda a la sesión.
+
+   ── Decisiones que no son de estilo ──────────────────────────────────────
+
+   TIPOGRAFÍA. El cuerpo es Atkinson Hyperlegible, de la Braille Institute,
+   diseñada para maximizar la legibilidad en baja visión distinguiendo formas
+   que otras fuentes confunden. A este sistema le aplican los lineamientos de
+   accesibilidad del MinTIC (Resolución 1519 de 2020), es decir WCAG 2.1 AA:
+   elegir la tipografía diseñada para eso es una decisión sustantiva, no
+   decorativa. El display es Chakra Petch, de trazo escuadrado e instrumental.
+
+   AUTOALOJADAS. Las tres familias están en `public/fuentes/` como woff2
+   (167 KB en total). A.2.1 prohíbe internet en tiempo de ejecución: una
+   `@font-face` remota no falla de forma visible, simplemente cae al tipo del
+   sistema, y el defecto pasa inadvertido hasta que alguien compara la pantalla
+   con el manual.
+
+   BABOR Y ESTRIBOR. Rojo para lo incompleto, verde para lo completo, que en
+   convención naval son babor y estribor. Pero el color NUNCA va solo: siempre
+   con icono y con texto. WCAG 1.4.1, y aquí no es formalismo — un consolidado
+   del RAO mal leído por daltonismo es un dato equivocado.
+
+   TRES CONTRASTES Y TRES TAMAÑOS. La Fase 4 los exige («el manual muestra
+   controles de contraste y tamaño de letra»). Se implementan como atributos en
+   la raíz, de modo que cambiar de modo es cambiar tokens y no rediseñar.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* ── Tipografía autoalojada ─────────────────────────────────────────────── */
+
+@font-face {
+  font-family: 'Chakra Petch';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url('/fuentes/chakra-petch-500-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA,
+    U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193,
+    U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: 'Chakra Petch';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url('/fuentes/chakra-petch-500-latin-ext.woff2') format('woff2');
+  unicode-range: U+0100-02AF, U+0304, U+0308, U+0329, U+1E00-1E9F, U+1EF2-1EFF,
+    U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: 'Chakra Petch';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url('/fuentes/chakra-petch-600-latin.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Chakra Petch';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url('/fuentes/chakra-petch-700-latin.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Chakra Petch';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url('/fuentes/chakra-petch-700-latin-ext.woff2') format('woff2');
+  unicode-range: U+0100-02AF, U+1E00-1E9F, U+1EF2-1EFF, U+2C60-2C7F, U+A720-A7FF;
+}
+
+@font-face {
+  font-family: 'Atkinson Hyperlegible';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/fuentes/atkinson-hyperlegible-400-latin.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Atkinson Hyperlegible';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/fuentes/atkinson-hyperlegible-400-latin-ext.woff2') format('woff2');
+  unicode-range: U+0100-02AF, U+1E00-1E9F, U+1EF2-1EFF, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: 'Atkinson Hyperlegible';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url('/fuentes/atkinson-hyperlegible-700-latin.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Atkinson Hyperlegible';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url('/fuentes/atkinson-hyperlegible-700-latin-ext.woff2') format('woff2');
+  unicode-range: U+0100-02AF, U+1E00-1E9F, U+1EF2-1EFF, U+2C60-2C7F, U+A720-A7FF;
+}
+
+@font-face {
+  font-family: 'IBM Plex Mono';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/fuentes/ibm-plex-mono-400-latin.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'IBM Plex Mono';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url('/fuentes/ibm-plex-mono-500-latin.woff2') format('woff2');
+}
+
+/* ── Tokens ─────────────────────────────────────────────────────────────── */
+
+:root {
+  /* Familias. La pila de reserva existe para el instante antes de que cargue
+     la woff2, no como alternativa: las fuentes están en el propio despliegue. */
+  --tipo-display: 'Chakra Petch', 'Segoe UI Semibold', system-ui, sans-serif;
+  --tipo-cuerpo: 'Atkinson Hyperlegible', 'Segoe UI', system-ui, sans-serif;
+  --tipo-datos: 'IBM Plex Mono', 'Cascadia Mono', ui-monospace, monospace;
+
+  /* Escala fluida. `clamp()` en lugar de saltos por breakpoint. */
+  --t-3xl: clamp(2rem, 1.3rem + 2.6vw, 3.1rem);
+  --t-2xl: clamp(1.5rem, 1.15rem + 1.3vw, 2.1rem);
+  --t-xl: clamp(1.2rem, 1.05rem + 0.6vw, 1.5rem);
+  --t-lg: 1.0625rem;
+  --t-md: 0.9375rem;
+  --t-sm: 0.8125rem;
+  --t-xs: 0.75rem;
+
+  /* Espaciado en una escala, no a ojo. */
+  --e-1: 0.25rem;
+  --e-2: 0.5rem;
+  --e-3: 0.75rem;
+  --e-4: 1rem;
+  --e-5: 1.5rem;
+  --e-6: 2rem;
+  --e-7: 3rem;
+  --e-8: 4rem;
+
+  --radio-sm: 6px;
+  --radio-md: 10px;
+  --radio-lg: 16px;
+  --radio-xl: 22px;
+  --radio-pleno: 999px;
+
+  /* Movimiento. Una sola curva, para que todo se mueva igual. */
+  --curva: cubic-bezier(0.22, 1, 0.36, 1);
+  --rapido: 140ms;
+  --medio: 260ms;
+  --lento: 520ms;
+
+  --riel: 16.5rem;
+  --barra: 3.75rem;
+
+  color-scheme: dark;
+}
+
+/* ── Modo por omisión: carta náutica nocturna ───────────────────────────── */
+
+:root,
+:root[data-contraste='normal'] {
+  --abismo: #050b14;
+  --casco: #0b1626;
+  --casco-alto: #122439;
+  --casco-hundido: #07101c;
+  --linea: #1d3350;
+  --linea-viva: #2b4a70;
+
+  --arena: #e9eef7;
+  --bruma: #93a7c2;
+  --bruma-honda: #6d82a0;
+
+  /* Acento dominante: azul de señal. Sobre --abismo da 7.4:1. */
+  --estela: #4da3ff;
+  --estela-honda: #1d6fd0;
+  /* Estribor es verde; babor, rojo. Convención naval, y significado real. */
+  --estribor: #3ddc9a;
+  --babor: #ff6f5e;
+  --sonda: #f5c451;
+
+  --sombra-baja: 0 1px 2px rgb(0 0 0 / 0.5);
+  --sombra-media: 0 8px 24px -8px rgb(0 0 0 / 0.65);
+  --sombra-honda: 0 24px 60px -20px rgb(0 0 0 / 0.8);
+  --vidrio: rgb(255 255 255 / 0.04);
+  --vidrio-borde: rgb(255 255 255 / 0.09);
+  --reflejo: inset 0 1px 0 rgb(255 255 255 / 0.06);
+}
+
+/* ── Modo claro ─────────────────────────────────────────────────────────── */
+
+:root[data-contraste='claro'] {
+  --abismo: #eef3f9;
+  --casco: #ffffff;
+  --casco-alto: #ffffff;
+  --casco-hundido: #e3ebf4;
+  --linea: #ccd8e6;
+  --linea-viva: #a9bdd3;
+
+  --arena: #071322;
+  --bruma: #47607d;
+  --bruma-honda: #5d7593;
+
+  --estela: #00539f;
+  --estela-honda: #003a70;
+  --estribor: #0c6b45;
+  --babor: #a92218;
+  --sonda: #7a5300;
+
+  --sombra-baja: 0 1px 2px rgb(11 32 58 / 0.08);
+  --sombra-media: 0 8px 24px -10px rgb(11 32 58 / 0.18);
+  --sombra-honda: 0 24px 56px -22px rgb(11 32 58 / 0.26);
+  --vidrio: rgb(255 255 255 / 0.7);
+  --vidrio-borde: rgb(11 32 58 / 0.1);
+  --reflejo: inset 0 1px 0 rgb(255 255 255 / 0.9);
+
+  color-scheme: light;
+}
+
+/* ── Modo alto contraste ────────────────────────────────────────────────────
+   Aquí SÍ se usan negro y blanco puros, y es deliberado. La regla estética de
+   no usarlos existe para que una interfaz no quede plana; este modo no es
+   estético: es para quien no distingue matices. Maximizar el contraste es
+   exactamente su función. Los bordes se hacen sólidos y anchos porque en alto
+   contraste la separación no puede depender de una sombra. */
+
+:root[data-contraste='alto'] {
+  --abismo: #000000;
+  --casco: #000000;
+  --casco-alto: #0d0d0d;
+  --casco-hundido: #000000;
+  --linea: #ffffff;
+  --linea-viva: #ffffff;
+
+  --arena: #ffffff;
+  --bruma: #ffffff;
+  --bruma-honda: #e8e8e8;
+
+  --estela: #63b8ff;
+  --estela-honda: #63b8ff;
+  --estribor: #4ff0a8;
+  --babor: #ff9a8c;
+  --sonda: #ffd75f;
+
+  --sombra-baja: none;
+  --sombra-media: none;
+  --sombra-honda: none;
+  --vidrio: #000000;
+  --vidrio-borde: #ffffff;
+  --reflejo: none;
+
+  color-scheme: dark;
+}
+
+:root[data-contraste='alto'] * {
+  /* Sin translucidez: el vidrio reduce el contraste del texto que lleva
+     encima, que es lo contrario de lo que este modo busca. */
+  backdrop-filter: none !important;
+}
+
+/* ── Tamaño de letra ────────────────────────────────────────────────────────
+   Se cambia el `font-size` de la raíz, y como TODAS las medidas del sistema
+   están en `rem`, la interfaz entera escala: texto, espaciado y controles.
+   Si hubiera píxeles sueltos, subir la letra rompería el layout. */
+
+:root[data-letra='normal'] { font-size: 100%; }
+:root[data-letra='grande'] { font-size: 112.5%; }
+:root[data-letra='mayor'] { font-size: 125%; }

@@ -1,0 +1,79 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   Atmósfera: carta náutica.
+   ═══════════════════════════════════════════════════════════════════════════
+
+   Tres capas, ninguna decorativa por decorativa:
+
+   1. RETÍCULA de carta — la malla de meridianos y paralelos. Da la sensación
+      de estar sobre una carta y no sobre un fondo plano.
+   2. SONDAS — dos o tres gradientes radiales difusos, como manchas de
+      profundidad. Son lo que le da algo que difuminar al vidrio: sin nada
+      colorido detrás, un `backdrop-filter` no se ve.
+   3. GRANO — ruido SVG muy sutil, para que las superficies grandes no queden
+      como plástico.
+
+   Todo en CSS y en un SVG embebido como data URI. Nada se pide a un origen
+   externo (A.2.1).
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+body::before,
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Capa 1 y 2: retícula + sondas */
+body::before {
+  background-image:
+    /* sondas */
+    radial-gradient(
+      68rem 44rem at 12% -8%,
+      color-mix(in oklch, var(--estela) 16%, transparent),
+      transparent 65%
+    ),
+    radial-gradient(
+      52rem 40rem at 96% 8%,
+      color-mix(in oklch, var(--estribor) 9%, transparent),
+      transparent 62%
+    ),
+    radial-gradient(
+      60rem 50rem at 76% 104%,
+      color-mix(in oklch, var(--estela-honda) 18%, transparent),
+      transparent 70%
+    ),
+    /* retícula de carta: paralelos y meridianos */
+    repeating-linear-gradient(
+      0deg,
+      color-mix(in oklch, var(--linea) 55%, transparent) 0 1px,
+      transparent 1px 5.5rem
+    ),
+    repeating-linear-gradient(
+      90deg,
+      color-mix(in oklch, var(--linea) 55%, transparent) 0 1px,
+      transparent 1px 5.5rem
+    );
+  /* La retícula se desvanece hacia abajo para que no compita con el contenido. */
+  mask-image: linear-gradient(to bottom, #000 0%, #000 40%, rgb(0 0 0 / 0.35) 100%);
+}
+
+/* Capa 3: grano */
+body::after {
+  opacity: 0.035;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='r'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23r)'/%3E%3C/svg%3E");
+}
+
+/* En modo claro las sondas se atenúan: sobre fondo claro, un gradiente con la
+   misma fuerza se ve sucio en lugar de atmosférico. */
+:root[data-contraste='claro'] body::before { opacity: 0.5; }
+:root[data-contraste='claro'] body::after { opacity: 0.02; }
+
+/* En alto contraste NO hay atmósfera. Cualquier textura detrás del texto le
+   resta contraste, que es lo contrario de lo que este modo busca. */
+:root[data-contraste='alto'] body::before,
+:root[data-contraste='alto'] body::after { display: none; }
+
+/* El contenido va por encima de las tres capas. */
+#raiz { position: relative; z-index: 1; }

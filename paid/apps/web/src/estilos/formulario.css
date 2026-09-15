@@ -1,0 +1,433 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   Formulario de once pestañas, adjuntos y páginas de contenido.
+   ═══════════════════════════════════════════════════════════════════════════
+
+   La idea que ordena estas reglas: HACER VISIBLE EL ESTADO. PROMPT.md advierte
+   que «el defecto característico de este sistema no es que falle: es que
+   parezca funcionar mientras acumula datos que no cuadran». Un formulario de
+   once pestañas es exactamente donde eso pasa — se diligencian cuatro, se
+   guarda, y el registro queda fuera del consolidado del RAO sin que nada
+   avise. Por eso lo que aquí se estila con más cuidado no son los campos:
+   son los indicadores de qué falta.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* ── Secciones de formulario ────────────────────────────────────────────── */
+
+.seccion {
+  display: flex;
+  flex-direction: column;
+  gap: var(--e-5);
+  padding: var(--e-5);
+}
+.seccion > h2 {
+  padding-bottom: var(--e-3);
+  border-bottom: 1px solid var(--linea);
+}
+.seccion-pie {
+  margin-top: var(--e-1);
+  padding-top: var(--e-4);
+  border-top: 1px solid var(--linea);
+  align-items: flex-end;
+}
+.seccion-pie .ayuda { max-width: 56ch; }
+
+/* ── R9: la ARC siempre participa ───────────────────────────────────────────
+   La casilla va marcada y deshabilitada. Deshabilitada a secas sería un
+   control muerto sin explicación, así que se estila como un hecho declarado
+   —fondo de estribor tenue, no gris de «esto no funciona»— y lleva su ayuda
+   al lado diciendo por qué no se puede desmarcar. */
+
+.arc {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--e-4);
+  flex-wrap: wrap;
+  padding: var(--e-4);
+  border-color: color-mix(in oklch, var(--estribor) 38%, transparent);
+  background: color-mix(in oklch, var(--estribor) 8%, var(--casco));
+}
+.arc label { font-weight: 700; cursor: default; }
+.arc input[type='checkbox'] {
+  width: 1.15rem;
+  height: 1.15rem;
+  accent-color: var(--estribor);
+  /* Sin la opacidad de «deshabilitado»: no está apagada, está fijada. */
+  opacity: 1;
+  cursor: default;
+}
+.arc .ayuda { flex: 1; min-width: 18rem; }
+
+/* ── R18: COAMI, ninguno marcado por defecto ────────────────────────────────
+   Los diez se muestran a la vez, como una rejilla de banderines. Un
+   desplegable escondería que son varios y que se pueden marcar varios; y un
+   valor preseleccionado sería un dato inventado en el consolidado. */
+
+.coami {
+  margin: 0;
+  padding: var(--e-4);
+  border: 1px solid var(--linea);
+  border-radius: var(--radio-lg);
+  background: var(--casco);
+}
+.coami > legend { padding: 0 var(--e-2); }
+.coami > .ayuda { margin-bottom: var(--e-3); max-width: 70ch; }
+
+.coami-lista {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(13rem, 1fr));
+  gap: var(--e-2);
+}
+.coami-opcion {
+  display: flex;
+  align-items: center;
+  gap: var(--e-3);
+  min-height: 2.75rem;
+  padding: var(--e-2) var(--e-3);
+  border: 1px solid var(--linea-viva);
+  border-radius: var(--radio-md);
+  background: var(--casco-hundido);
+  font-size: var(--t-sm);
+  cursor: pointer;
+  transition: border-color var(--rapido) var(--curva),
+    background var(--rapido) var(--curva), color var(--rapido) var(--curva);
+}
+.coami-opcion:hover { border-color: var(--estela-honda); }
+.coami-opcion input { width: 1.05rem; height: 1.05rem; accent-color: var(--estela); flex-shrink: 0; }
+.coami-opcion.es-activa {
+  border-color: var(--estela);
+  background: color-mix(in oklch, var(--estela) 14%, transparent);
+  color: var(--arena);
+  font-weight: 700;
+}
+.coami-opcion:has(input:focus-visible) { outline: 3px solid var(--estela); outline-offset: 2px; }
+.coami-sigla { font-family: var(--tipo-display); font-weight: 700; letter-spacing: 0.04em; }
+.coami-nombre { font-size: var(--t-xs); color: var(--bruma); }
+
+/* ── Las once pestañas ──────────────────────────────────────────────────────
+   Rosa a la izquierda como navegador, lista vertical debajo, panel a la
+   derecha. La lista existe además de la rosa y no en su lugar: la rosa dice
+   CUÁNTAS faltan de un vistazo, la lista dice CUÁLES. Un gráfico no es un
+   navegador accesible por sí solo. */
+
+.pestanas {
+  display: grid;
+  grid-template-columns: minmax(15rem, 17rem) 1fr;
+  gap: var(--e-5);
+  align-items: start;
+  margin-top: var(--e-5);
+}
+
+.pestanas-rosa {
+  position: sticky;
+  top: calc(var(--barra) + var(--e-4));
+  display: flex;
+  flex-direction: column;
+  gap: var(--e-4);
+  padding: var(--e-4);
+  border: 1px solid var(--linea);
+  border-radius: var(--radio-lg);
+  background: var(--vidrio);
+  backdrop-filter: blur(18px) saturate(140%);
+  box-shadow: var(--sombra-media), var(--reflejo);
+}
+.pestanas-rosa > .rosa { align-self: center; }
+
+.pestanas-lista { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 1px; }
+.pestanas-enlace {
+  display: flex;
+  align-items: center;
+  gap: var(--e-3);
+  width: 100%;
+  min-height: 2.5rem;
+  padding: var(--e-2) var(--e-3);
+  border: 1px solid transparent;
+  border-radius: var(--radio-md);
+  background: transparent;
+  color: var(--bruma);
+  font-family: var(--tipo-cuerpo);
+  font-size: var(--t-sm);
+  text-align: left;
+  cursor: pointer;
+  transition: color var(--rapido) var(--curva), background var(--rapido) var(--curva),
+    border-color var(--rapido) var(--curva);
+}
+.pestanas-enlace:hover { color: var(--arena); background: var(--vidrio); }
+.pestanas-enlace.es-activa {
+  color: var(--arena);
+  background: color-mix(in oklch, var(--estela) 14%, transparent);
+  border-color: var(--estela);
+  font-weight: 700;
+}
+
+/* La marca de estado. Círculo hueco = falta; relleno con visto = lista. La
+   forma cambia además del color: en escala de grises siguen distinguiéndose. */
+.pestanas-marca {
+  display: grid;
+  place-items: center;
+  width: 1.05rem;
+  height: 1.05rem;
+  flex-shrink: 0;
+  border-radius: var(--radio-pleno);
+  border: 2px solid var(--linea-viva);
+  transition: border-color var(--medio) var(--curva), background var(--medio) var(--curva);
+}
+.pestanas-marca.es-lista {
+  border-color: var(--estribor);
+  background: var(--estribor);
+}
+.pestanas-marca.es-lista::after {
+  content: '';
+  width: 0.28rem;
+  height: 0.5rem;
+  border: solid var(--abismo);
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg) translate(-1px, -1px);
+}
+:root[data-contraste='alto'] .pestanas-marca.es-lista::after { border-color: #000; }
+
+.pestanas-panel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--e-4);
+  padding: var(--e-5);
+  min-height: 22rem;
+  /* Cambiar de pestaña no recarga la página: la animación de entrada es lo que
+     dice que el contenido cambió. Sin eso, un panel parecido al anterior
+     parece no haber cambiado. */
+  animation: emerge var(--medio) var(--curva) both;
+}
+.pestanas-panel > h2 { padding-bottom: var(--e-3); border-bottom: 1px solid var(--linea); }
+.panel-campos { align-items: start; }
+
+@media (max-width: 62rem) {
+  .pestanas { grid-template-columns: 1fr; }
+  .pestanas-rosa { position: static; }
+  .pestanas-lista {
+    flex-direction: row;
+    overflow-x: auto;
+    padding-bottom: var(--e-1);
+  }
+  .pestanas-enlace { white-space: nowrap; }
+}
+
+/* ── Adjuntos y cuota (R11) ─────────────────────────────────────────────── */
+
+.adjuntar {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
+  gap: var(--e-4);
+  align-items: end;
+  padding: var(--e-4);
+  border: 1px dashed var(--linea-viva);
+  border-radius: var(--radio-lg);
+  background: var(--casco-hundido);
+}
+.adjuntar input[type='file'] {
+  padding: var(--e-2);
+  font-size: var(--t-sm);
+  cursor: pointer;
+}
+.adjuntar input[type='file']::file-selector-button {
+  min-height: 2.25rem;
+  margin-right: var(--e-3);
+  padding: 0 var(--e-3);
+  border: 1px solid var(--linea-viva);
+  border-radius: var(--radio-sm);
+  background: var(--casco-alto);
+  color: var(--arena);
+  font-family: var(--tipo-display);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.cuota {
+  display: flex;
+  flex-direction: column;
+  gap: var(--e-2);
+  padding: var(--e-4);
+  border: 1px solid var(--linea);
+  border-radius: var(--radio-lg);
+  background: var(--casco);
+}
+.cuota-cifra { font-size: var(--t-sm); color: var(--arena); }
+.cuota-pista {
+  height: 0.6rem;
+  border-radius: var(--radio-pleno);
+  background: var(--casco-hundido);
+  border: 1px solid var(--linea);
+  overflow: hidden;
+}
+.cuota-relleno {
+  display: block;
+  height: 100%;
+  width: 100%;
+  transform-origin: left;
+  background: var(--estribor);
+  transition: transform var(--medio) var(--curva), background var(--medio) var(--curva);
+}
+/* El aviso llega ANTES del rechazo, no después: a 80 % cambia a sonda, y
+   lleno se dice también con palabras en la ayuda del medidor. */
+.cuota-apretado { border-color: var(--sonda); }
+.cuota-apretado .cuota-relleno { background: var(--sonda); }
+.cuota-apretado .cuota-cifra { color: var(--sonda); }
+.cuota-lleno { border-color: var(--babor); }
+.cuota-lleno .cuota-relleno { background: var(--babor); }
+.cuota-lleno .cuota-cifra { color: var(--babor); }
+
+.adjuntos-lista { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: var(--e-2); }
+.adjuntos-fila {
+  display: flex;
+  align-items: center;
+  gap: var(--e-3);
+  padding: var(--e-3);
+  border: 1px solid var(--linea);
+  border-radius: var(--radio-md);
+  background: var(--casco-hundido);
+}
+.adjuntos-fila .crecer { min-width: 0; }
+.adjuntos-nombre {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-weight: 700;
+}
+.adjuntos-meta { font-size: var(--t-xs); color: var(--bruma); }
+
+/* ── Inicio: tablero de estado ──────────────────────────────────────────── */
+
+.tablero { display: grid; grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr)); gap: var(--e-4); }
+.indicador {
+  display: flex;
+  flex-direction: column;
+  gap: var(--e-2);
+  padding: var(--e-4);
+  position: relative;
+  overflow: hidden;
+}
+/* Un filo de luz arriba, del color del estado. Es la única decoración de la
+   tarjeta y dice algo: verde va bien, rojo hay pendientes. */
+.indicador::before {
+  content: '';
+  position: absolute;
+  inset: 0 0 auto;
+  height: 2px;
+  background: var(--estela);
+}
+.indicador-bien::before { background: var(--estribor); }
+.indicador-ojo::before { background: var(--sonda); }
+.indicador-mal::before { background: var(--babor); }
+.indicador-cifra {
+  font-family: var(--tipo-display);
+  font-size: clamp(1.9rem, 1.4rem + 1.6vw, 2.6rem);
+  font-weight: 700;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+.indicador-bien .indicador-cifra { color: var(--estribor); }
+.indicador-ojo .indicador-cifra { color: var(--sonda); }
+.indicador-mal .indicador-cifra { color: var(--babor); }
+.indicador-nota { font-size: var(--t-xs); color: var(--bruma); }
+
+.escala {
+  display: flex;
+  align-items: stretch;
+  gap: var(--e-2);
+  flex-wrap: wrap;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.escala-tramo {
+  display: grid;
+  place-items: center;
+  min-width: 3.4rem;
+  min-height: 2.75rem;
+  padding: 0 var(--e-2);
+  border: 1px solid var(--linea-viva);
+  border-radius: var(--radio-md);
+  background: var(--casco-hundido);
+  font-family: var(--tipo-datos);
+  font-variant-numeric: tabular-nums;
+  font-weight: 500;
+}
+.escala-tramo.es-cierre { border-color: var(--estribor); color: var(--estribor); }
+/* R10 — 80 y 90 no existen. Se dibujan tachados justamente para que quien
+   mantenga esto no los añada «porque faltaban».
+   ⚠️ SIN `opacity`. Tenía 0.75 y la revisión automática de la Puerta 4 lo
+   cazó: el rojo de babor sobre el fondo daba 4,41:1, por debajo del 4,5:1 que
+   pide WCAG 2.1 AA. La opacidad es la forma más fácil de romper un contraste
+   que se calculó bien, porque no se ve en el token. Lo «apagado» lo dan el
+   borde discontinuo y el tachado, que además no dependen del color. */
+.escala-hueco {
+  display: grid;
+  place-items: center;
+  min-width: 3.4rem;
+  min-height: 2.75rem;
+  border: 1px dashed var(--babor);
+  border-radius: var(--radio-md);
+  color: var(--babor);
+  font-family: var(--tipo-datos);
+  text-decoration: line-through;
+}
+
+/* ── Sugerencia de duplicados por similitud (Fase 4, punto 3) ───────────────
+   Aparece ANTES de guardar, no como error después. Se estila como una
+   advertencia (sonda) y no como un fallo (babor): puede que sea una entidad
+   distinta con nombre parecido, y la decisión es de la persona. */
+
+.similitud {
+  display: flex;
+  flex-direction: column;
+  gap: var(--e-3);
+  padding: var(--e-4);
+  border: 1px solid var(--sonda);
+  border-radius: var(--radio-lg);
+  background: color-mix(in oklch, var(--sonda) 9%, var(--casco));
+}
+.similitud-lista { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: var(--e-2); }
+.similitud-fila {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--e-3);
+  flex-wrap: wrap;
+  padding: var(--e-3);
+  border: 1px solid var(--linea);
+  border-radius: var(--radio-md);
+  background: var(--casco);
+}
+.similitud-nombre { font-weight: 700; }
+.similitud-meta { font-size: var(--t-xs); color: var(--bruma); }
+.similitud-grado {
+  font-family: var(--tipo-datos);
+  font-variant-numeric: tabular-nums;
+  font-size: var(--t-sm);
+  color: var(--sonda);
+  white-space: nowrap;
+}
+
+/* ── Fichas de normatividad y herramientas ──────────────────────────────── */
+
+.fichas { display: grid; grid-template-columns: repeat(auto-fill, minmax(20rem, 1fr)); gap: var(--e-4); }
+.ficha {
+  display: flex;
+  flex-direction: column;
+  gap: var(--e-3);
+  padding: var(--e-4);
+  transition: border-color var(--rapido) var(--curva), transform var(--rapido) var(--curva);
+}
+.ficha:hover { border-color: var(--estela-honda); transform: translateY(-2px); }
+.ficha h3 { font-size: var(--t-lg); }
+.ficha-cuerpo { color: var(--bruma); font-size: var(--t-sm); flex: 1; }
+.ficha-pie {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--e-3);
+  flex-wrap: wrap;
+  padding-top: var(--e-3);
+  border-top: 1px solid var(--linea);
+  font-size: var(--t-xs);
+  color: var(--bruma);
+}

@@ -1,0 +1,397 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   Base y componentes. Todo sobre los tokens de tokens.css.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+*,
+*::before,
+*::after { box-sizing: border-box; }
+
+html { -webkit-text-size-adjust: 100%; }
+
+body {
+  margin: 0;
+  background: var(--abismo);
+  color: var(--arena);
+  font-family: var(--tipo-cuerpo);
+  font-size: var(--t-md);
+  line-height: 1.55;
+  min-height: 100vh;
+  /* La atmósfera está en atmosfera.css. */
+  position: relative;
+}
+
+h1, h2, h3, h4 {
+  font-family: var(--tipo-display);
+  font-weight: 600;
+  letter-spacing: -0.005em;
+  margin: 0;
+  text-wrap: balance;
+}
+h1 { font-size: var(--t-2xl); }
+h2 { font-size: var(--t-xl); }
+h3 { font-size: var(--t-lg); }
+p { margin: 0; text-wrap: pretty; }
+
+/* Los números siempre tabulares: una columna de cifras que baila es una
+   columna que no se puede comparar de un vistazo. */
+.datos,
+td.num,
+input[type='number'] {
+  font-family: var(--tipo-datos);
+  font-variant-numeric: tabular-nums;
+}
+
+a { color: var(--estela); text-underline-offset: 3px; }
+
+/* ── Foco. Requisito de WCAG 2.1 AA, y lo primero que se pierde al estilar
+   controles a mano. Se declara una vez y para todo. ─────────────────────── */
+:focus-visible {
+  outline: 3px solid var(--estela);
+  outline-offset: 2px;
+  border-radius: var(--radio-sm);
+}
+:root[data-contraste='alto'] :focus-visible {
+  outline: 4px solid var(--sonda);
+  outline-offset: 3px;
+}
+
+/* ── Salto al contenido: primer elemento enfocable de la página ─────────── */
+.salto-contenido {
+  position: absolute;
+  left: var(--e-3);
+  top: calc(var(--e-3) * -1);
+  transform: translateY(-140%);
+  z-index: 100;
+  background: var(--estela);
+  color: var(--abismo);
+  padding: var(--e-2) var(--e-4);
+  border-radius: var(--radio-md);
+  font-weight: 700;
+  transition: transform var(--rapido) var(--curva);
+}
+.salto-contenido:focus { transform: translateY(0); top: var(--e-3); }
+
+/* ── Superficies ────────────────────────────────────────────────────────── */
+.tarjeta {
+  background: var(--casco);
+  border: 1px solid var(--linea);
+  border-radius: var(--radio-lg);
+  box-shadow: var(--sombra-media), var(--reflejo);
+}
+.tarjeta-vidrio {
+  background: var(--vidrio);
+  border: 1px solid var(--vidrio-borde);
+  border-radius: var(--radio-lg);
+  backdrop-filter: blur(18px) saturate(140%);
+  box-shadow: var(--sombra-honda), var(--reflejo);
+}
+
+.rotulo {
+  font-family: var(--tipo-display);
+  font-size: var(--t-xs);
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--bruma);
+}
+
+/* ── Botones ────────────────────────────────────────────────────────────────
+   Objetivo táctil mínimo 44px de alto (WCAG 2.1 AA pide 24; 44 es el criterio
+   AAA y el que de verdad se puede tocar en una tableta en cubierta). */
+.boton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--e-2);
+  min-height: 2.75rem;
+  padding: 0 var(--e-4);
+  border-radius: var(--radio-md);
+  border: 1px solid transparent;
+  font-family: var(--tipo-display);
+  font-size: var(--t-md);
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  cursor: pointer;
+  transition: background var(--rapido) var(--curva),
+    border-color var(--rapido) var(--curva), transform var(--rapido) var(--curva),
+    box-shadow var(--rapido) var(--curva);
+}
+/* Un `<a>` con clase `.boton` es un botón para quien lo mira: sin subrayado.
+   Se veía «Registrar jornada» subrayado en la cabecera de todas las
+   pantallas. El subrayado de los enlaces se declara para el texto corrido,
+   donde es la señal de que algo es un enlace; en un botón sobra y delata que
+   la regla se aplicó sin mirar. */
+a.boton { text-decoration: none; }
+.boton:active:not(:disabled) { transform: translateY(1px); }
+.boton:disabled { opacity: 0.45; cursor: not-allowed; }
+
+.boton-primario {
+  background: var(--estela);
+  color: #04121f;
+  box-shadow: 0 0 0 0 color-mix(in oklch, var(--estela) 45%, transparent);
+}
+.boton-primario:hover:not(:disabled) {
+  background: color-mix(in oklch, var(--estela) 88%, white);
+  box-shadow: 0 6px 22px -6px color-mix(in oklch, var(--estela) 60%, transparent);
+}
+:root[data-contraste='claro'] .boton-primario { color: #ffffff; }
+:root[data-contraste='alto'] .boton-primario {
+  background: var(--sonda); color: #000; border-color: #fff;
+}
+
+.boton-secundario {
+  background: var(--casco-alto);
+  color: var(--arena);
+  border-color: var(--linea-viva);
+}
+.boton-secundario:hover:not(:disabled) { border-color: var(--estela); }
+
+.boton-fantasma {
+  background: transparent;
+  color: var(--bruma);
+  border-color: transparent;
+}
+.boton-fantasma:hover:not(:disabled) { color: var(--arena); background: var(--vidrio); }
+
+.boton-peligro { background: transparent; color: var(--babor); border-color: var(--babor); }
+.boton-peligro:hover:not(:disabled) {
+  background: color-mix(in oklch, var(--babor) 16%, transparent);
+}
+
+/* ── Campos ─────────────────────────────────────────────────────────────── */
+.campo { display: flex; flex-direction: column; gap: var(--e-2); }
+.campo > label {
+  font-size: var(--t-sm);
+  font-weight: 700;
+  color: var(--arena);
+}
+.campo .ayuda { font-size: var(--t-xs); color: var(--bruma); }
+.campo .obligatorio { color: var(--babor); margin-left: 2px; }
+
+.entrada,
+select.entrada,
+textarea.entrada {
+  width: 100%;
+  min-height: 2.75rem;
+  padding: var(--e-2) var(--e-3);
+  background: var(--casco-hundido);
+  color: var(--arena);
+  border: 1px solid var(--linea-viva);
+  border-radius: var(--radio-md);
+  font-family: inherit;
+  font-size: var(--t-md);
+  transition: border-color var(--rapido) var(--curva), box-shadow var(--rapido) var(--curva);
+}
+textarea.entrada { min-height: 7rem; resize: vertical; line-height: 1.6; }
+.entrada::placeholder { color: var(--bruma-honda); }
+.entrada:hover:not(:disabled) { border-color: var(--estela-honda); }
+.entrada:focus-visible { border-color: var(--estela); }
+.entrada:disabled { opacity: 0.55; cursor: not-allowed; }
+
+/* `:user-invalid` en lugar de `:invalid`: solo marca en rojo DESPUÉS de que la
+   persona interactuó con el campo. Un formulario que se abre todo en rojo
+   antes de escribir nada regaña sin motivo. */
+.entrada:user-invalid,
+.entrada[aria-invalid='true'] {
+  border-color: var(--babor);
+  box-shadow: 0 0 0 1px var(--babor);
+}
+.campo .error {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--e-2);
+  font-size: var(--t-sm);
+  color: var(--babor);
+  font-weight: 700;
+}
+
+/* ── Avisos ─────────────────────────────────────────────────────────────── */
+.aviso {
+  display: flex;
+  gap: var(--e-3);
+  padding: var(--e-3) var(--e-4);
+  border-radius: var(--radio-md);
+  border: 1px solid;
+  font-size: var(--t-sm);
+  line-height: 1.5;
+}
+.aviso-info { border-color: var(--estela-honda); background: color-mix(in oklch, var(--estela) 10%, transparent); }
+.aviso-bien { border-color: var(--estribor); background: color-mix(in oklch, var(--estribor) 10%, transparent); }
+.aviso-ojo { border-color: var(--sonda); background: color-mix(in oklch, var(--sonda) 12%, transparent); }
+.aviso-mal { border-color: var(--babor); background: color-mix(in oklch, var(--babor) 12%, transparent); }
+.aviso-icono { flex-shrink: 0; margin-top: 1px; }
+
+/* ── Distintivos de estado ──────────────────────────────────────────────────
+   Nunca solo color: llevan icono y texto. WCAG 1.4.1, y aquí es que un
+   consolidado del RAO mal leído es un dato equivocado. */
+.distintivo {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--e-1);
+  padding: 2px var(--e-2);
+  border-radius: var(--radio-pleno);
+  border: 1px solid;
+  font-family: var(--tipo-display);
+  font-size: var(--t-xs);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+}
+.distintivo-completo { color: var(--estribor); border-color: var(--estribor); }
+.distintivo-incompleto { color: var(--babor); border-color: var(--babor); }
+.distintivo-neutro { color: var(--bruma); border-color: var(--linea-viva); }
+
+/* ── Tablas ─────────────────────────────────────────────────────────────── */
+.tabla-envoltura {
+  overflow-x: auto;
+  border: 1px solid var(--linea);
+  border-radius: var(--radio-lg);
+  background: var(--casco);
+}
+table.tabla { width: 100%; border-collapse: collapse; font-size: var(--t-sm); }
+.tabla thead th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background: var(--casco-alto);
+  text-align: left;
+  padding: var(--e-3) var(--e-4);
+  font-family: var(--tipo-display);
+  font-size: var(--t-xs);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--bruma);
+  border-bottom: 1px solid var(--linea);
+  white-space: nowrap;
+}
+.tabla tbody td {
+  padding: var(--e-3) var(--e-4);
+  border-bottom: 1px solid var(--linea);
+  vertical-align: middle;
+}
+.tabla tbody tr:last-child td { border-bottom: none; }
+.tabla tbody tr { transition: background var(--rapido) var(--curva); }
+.tabla tbody tr:hover { background: var(--vidrio); }
+.tabla .num { text-align: right; }
+
+/* ── Estados vacíos: una invitación, no un callejón ─────────────────────── */
+.vacio {
+  display: grid;
+  place-items: center;
+  gap: var(--e-3);
+  padding: var(--e-7) var(--e-4);
+  text-align: center;
+  color: var(--bruma);
+}
+.vacio h3 { color: var(--arena); }
+.vacio p { max-width: 46ch; }
+
+/* ── Carga: barrido, no giro ────────────────────────────────────────────── */
+.esqueleto {
+  background: linear-gradient(90deg, var(--casco-alto) 25%, var(--linea) 50%, var(--casco-alto) 75%);
+  background-size: 240% 100%;
+  border-radius: var(--radio-sm);
+  animation: barrido 1.3s ease-in-out infinite;
+}
+@keyframes barrido {
+  from { background-position: 120% 0; }
+  to { background-position: -120% 0; }
+}
+
+/* ── Entrada escalonada: el momento de movimiento orquestado ────────────────
+   Un momento que aterriza vale más que diez efectos dispersos. */
+@keyframes emerge {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: none; }
+}
+.emerge { animation: emerge var(--medio) var(--curva) both; }
+.escalonado > * { animation: emerge var(--medio) var(--curva) both; }
+.escalonado > *:nth-child(1) { animation-delay: 0ms; }
+.escalonado > *:nth-child(2) { animation-delay: 45ms; }
+.escalonado > *:nth-child(3) { animation-delay: 90ms; }
+.escalonado > *:nth-child(4) { animation-delay: 135ms; }
+.escalonado > *:nth-child(5) { animation-delay: 180ms; }
+.escalonado > *:nth-child(6) { animation-delay: 225ms; }
+.escalonado > *:nth-child(n + 7) { animation-delay: 270ms; }
+
+/* ── Respeto por quien pidió menos movimiento. No negociable. ──────────── */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ── Utilidades ─────────────────────────────────────────────────────────── */
+.solo-lectores {
+  position: absolute;
+  width: 1px; height: 1px;
+  padding: 0; margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+.fila { display: flex; align-items: center; gap: var(--e-3); }
+.fila-sep { display: flex; align-items: center; justify-content: space-between; gap: var(--e-3); }
+.columna { display: flex; flex-direction: column; gap: var(--e-3); }
+.envolver { flex-wrap: wrap; }
+.crecer { flex: 1; min-width: 0; }
+.rejilla-2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr)); gap: var(--e-4); }
+.rejilla-4 { display: grid; grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr)); gap: var(--e-4); }
+
+/* ── La Rosa de Pestañas (elemento firma) ───────────────────────────────── */
+.rosa { position: relative; display: inline-grid; place-items: center; flex-shrink: 0; }
+.rosa-svg { display: block; overflow: visible; }
+
+.rosa-seg {
+  fill: none;
+  stroke-linecap: round;
+  transition: stroke var(--medio) var(--curva), opacity var(--medio) var(--curva);
+}
+.rosa-seg-falta { stroke: var(--linea-viva); opacity: 0.75; }
+.rosa-seg-lista {
+  stroke: var(--estribor);
+  /* El encendido: cada segmento se dibuja al aparecer, en cascada. */
+  animation: rosa-encender var(--lento) var(--curva) both;
+}
+@keyframes rosa-encender {
+  from { stroke-dasharray: 0 200; opacity: 0; }
+  to { stroke-dasharray: 200 0; opacity: 1; }
+}
+.rosa-seg-activa { stroke: var(--estela); }
+.rosa-seg-tocable { cursor: pointer; }
+.rosa-seg-tocable:hover .rosa-seg { stroke: var(--estela); opacity: 1; }
+.rosa-seg-tocable:focus-visible { outline: none; }
+.rosa-seg-tocable:focus-visible .rosa-seg { stroke: var(--estela); stroke-width: 20; }
+
+.rosa-rumbos line { stroke: var(--bruma-honda); stroke-width: 1.5; }
+
+.rosa-centro {
+  position: absolute;
+  display: grid;
+  place-items: center;
+  line-height: 1;
+  text-align: center;
+}
+.rosa-cuenta { font-weight: 500; color: var(--arena); }
+.rosa-de { color: var(--bruma); }
+.rosa-pequena .rosa-cuenta { font-size: 0.6875rem; }
+.rosa-pequena .rosa-de { display: none; }
+.rosa-grande .rosa-cuenta { font-size: 2.2rem; }
+.rosa-grande .rosa-de { font-size: 1.1rem; }
+.rosa-leyenda {
+  margin-top: var(--e-1);
+  font-family: var(--tipo-display);
+  font-size: var(--t-xs);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.rosa-leyenda.es-completo { color: var(--estribor); }
+.rosa-leyenda.es-incompleto { color: var(--babor); }
