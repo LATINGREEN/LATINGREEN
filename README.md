@@ -75,15 +75,45 @@ categoría** (APROVECHABLES / NO APROVECHABLES / ORGÁNICOS).
   API, sin archivos externos).
 - Efectos de lanzamiento, acierto, error, combos y cuenta regresiva.
 
-## 📲 Cómo llevarlo al celular
+## 📲 Instalar como app en el celular (Android y iOS)
 
-1. **Publicarlo como enlace** (GitHub Pages, Netlify o un artifact de Claude)
-   y abrirlo desde el navegador del teléfono: funciona en Android y iPhone
-   sin instalar nada. Es la opción recomendada.
-2. **Un solo archivo**: `node build-single-file.mjs` genera
-   `eco-arcade-latin-green.html` con todo incrustado; compártelo por WhatsApp
-   o correo. En Android se abre con Chrome; en iPhone los archivos locales no
-   ejecutan juegos, así que usa la opción 1.
+El juego es una **aplicación web instalable (PWA)**: se instala desde el
+navegador, queda con su propio ícono en la pantalla de inicio, abre a pantalla
+completa como cualquier app y **funciona sin internet** después de la primera
+carga. No pasa por tiendas ni necesita permisos especiales.
+
+**Dirección del juego (GitHub Pages):** https://latingreen.github.io/LATINGREEN/
+
+| Dispositivo | Pasos |
+|-------------|-------|
+| 🤖 **Android** (Chrome, Edge, Samsung Internet) | Abre la dirección y toca el botón **📲 Instalar en este dispositivo** que aparece bajo "¡A JUGAR!" (o el menú ⋮ → *Instalar aplicación*). |
+| 🍎 **iPhone / iPad** (Safari) | Abre la dirección, toca **Compartir** (cuadrado con flecha ⬆) y luego **"Añadir a pantalla de inicio"**. El juego muestra estas instrucciones en pantalla. |
+| 💻 **Computador** (Chrome, Edge) | Ícono de instalar en la barra de direcciones. |
+
+Archivos que hacen posible la instalación: `manifest.webmanifest` (nombre,
+ícono y colores de la app), `sw.js` (service worker: copia el juego en el
+dispositivo para jugar sin conexión) e `icons/` (íconos de la app). Cuando
+publiques una nueva versión del juego, sube el número de `CACHE` en `sw.js`
+para que los dispositivos ya instalados la descarguen.
+
+**Publicación automática:** cada cambio subido al repositorio se publica en
+GitHub Pages mediante `.github/workflows/pages.yml`.
+
+**¿Y una tienda de aplicaciones?** Si más adelante quieres el juego en Google
+Play, la herramienta gratuita [PWABuilder](https://www.pwabuilder.com) genera
+un paquete Android (APK/AAB) a partir de la dirección publicada. Para la App
+Store de Apple se requiere una cuenta de desarrollador de Apple (de pago) y
+publicar mediante Xcode; la instalación desde Safari descrita arriba no la
+necesita.
+
+### Otras formas de compartirlo
+
+- **Enlace directo** sin instalar: la misma dirección de arriba, o el artifact
+  de Claude.
+- **Un solo archivo**: `node build-single-file.mjs` genera
+  `eco-arcade-latin-green.html` con todo incrustado; compártelo por WhatsApp o
+  correo. En Android se abre con Chrome; en iPhone los archivos locales no
+  ejecutan juegos, así que usa la instalación desde Safari.
 
 ## 🌱 Objetivo educativo
 

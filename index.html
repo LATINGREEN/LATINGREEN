@@ -2,7 +2,16 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<!-- App instalable (PWA): Android y iOS -->
+<meta name="theme-color" content="#0b1f16">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Eco-Arcade">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/icon-180.png">
 <title>EcoArcade LatinGreen — ¡Lanza el residuo a la caneca correcta!</title>
 <style>
   :root {
@@ -296,6 +305,32 @@
     line-height: 1.5;
   }
   .gamepad-hint b { color: #cbd5e1; }
+  .install-btn {
+    margin-top: 14px;
+    background: transparent;
+    color: var(--lime);
+    border: 2px solid var(--lime);
+    border-radius: 50px;
+    padding: 10px 26px;
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+    font-family: inherit;
+    transition: background 0.2s ease, color 0.2s ease;
+  }
+  .install-btn:hover { background: var(--lime); color: #0b1f16; }
+  .install-hint {
+    margin-top: 14px;
+    max-width: 420px;
+    font-size: 13px;
+    color: #94a3b8;
+    line-height: 1.5;
+    background: rgba(166, 206, 57, 0.08);
+    border: 1px solid rgba(166, 206, 57, 0.3);
+    border-radius: 10px;
+    padding: 10px 14px;
+  }
+  .install-hint b { color: #e2e8f0; }
 
   /* ============================================================
      Reglas responsivas para celular (al final para tener prioridad)
@@ -379,6 +414,9 @@
       <b>⬜/X → Blanca</b> · <b>✕/A → Negra</b> · <b>⭕/B → Verde</b> (o la cruceta ⬅⬇➡),
       y <b>START</b> avanza las pantallas.</p>
     <button class="big-btn" id="start-btn">▶ ¡A JUGAR!</button>
+    <button class="install-btn" id="install-btn" style="display:none">📲 Instalar en este dispositivo</button>
+    <p class="install-hint" id="ios-hint" style="display:none">📲 <b>Para instalarlo en iPhone o iPad:</b> en Safari toca
+      <b>Compartir</b> (el cuadrado con la flecha ⬆) y luego <b>"Añadir a pantalla de inicio"</b>.</p>
   </div>
 
   <!-- Pantalla intermedia entre rondas -->
@@ -1472,6 +1510,37 @@ function endGame() {
 }
 
 showRecord(); // récord personal en la pantalla de inicio
+
+// --- Instalación como app (PWA) ---------------------------------
+// Con el service worker el juego queda disponible sin conexión; en
+// Android/Chrome aparece el botón de instalar y en iPhone se muestran
+// las instrucciones de "Añadir a pantalla de inicio".
+if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('sw.js').catch(() => { /* sin instalación offline */ });
+  });
+}
+let installPrompt = null;
+const installBtn = document.getElementById('install-btn');
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  installPrompt = e;
+  installBtn.style.display = '';
+});
+installBtn.addEventListener('click', async () => {
+  if (!installPrompt) return;
+  installPrompt.prompt();
+  try { await installPrompt.userChoice; } catch (err) { /* el usuario cerró el diálogo */ }
+  installPrompt = null;
+  installBtn.style.display = 'none';
+});
+window.addEventListener('appinstalled', () => { installBtn.style.display = 'none'; });
+const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent)
+  || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+const isInstalled = window.matchMedia('(display-mode: standalone)').matches
+  || window.matchMedia('(display-mode: fullscreen)').matches
+  || window.navigator.standalone === true;
+if (isIOS && !isInstalled) document.getElementById('ios-hint').style.display = '';
 
 document.getElementById('start-btn').addEventListener('click', startGame);
 document.getElementById('next-round-btn').addEventListener('click', nextRound);

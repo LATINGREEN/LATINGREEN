@@ -1,0 +1,18 @@
+{
+  "name": "Eco-Arcade Latin Green",
+  "short_name": "Eco-Arcade",
+  "description": "Juego arcade educativo de separación de residuos de Latin Green E.S.P.: lanza cada residuo a la caneca blanca, negra o verde.",
+  "lang": "es",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "fullscreen",
+  "orientation": "any",
+  "background_color": "#0b1f16",
+  "theme_color": "#0b1f16",
+  "categories": ["games", "education"],
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
