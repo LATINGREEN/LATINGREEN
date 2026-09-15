@@ -1,0 +1,19 @@
+# apps/ia NO figura aquí a propósito: es un servicio Python (FastAPI) y
+# PROMPT.md B.3 lo exige «aislado del resto del monorepo».
+packages:
+  - 'apps/api'
+  - 'apps/web'
+  - 'packages/*'
+  - 'e2e'
+
+# pnpm 10 no ejecuta scripts de instalacion salvo declaracion explicita.
+# Cada entrada aqui es una decision, no un descuido:
+#
+#   esbuild — su script de instalacion coloca el binario nativo de la
+#     plataforma. Sin el, `vite build` no arranca. Es una dependencia de
+#     compilacion, no de tiempo de ejecucion: no llega al despliegue.
+#
+# Lo que NO se habilita: @nestjs/core, cuyo postinstall solo imprime un mensaje
+# de patrocinio y hace una peticion de red que en la Intranet ARC fallaria.
+onlyBuiltDependencies:
+  - esbuild

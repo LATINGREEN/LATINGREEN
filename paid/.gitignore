@@ -1,0 +1,29 @@
+node_modules/
+dist/
+build/
+*.tsbuildinfo
+coverage/
+.vite/
+playwright-report/
+test-results/
+
+# Entorno: .env NUNCA se versiona; .env.example si.
+.env
+.env.local
+.env.*.local
+
+# Volumenes de docker compose
+.docker-data/
+
+# Python (apps/ia)
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+.ruff_cache/
+
+# Teselas del mapa: binario grande, se distribuye aparte (ver Q11)
+apps/web/public/teselas/*.pmtiles
+
+.DS_Store
