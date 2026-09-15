@@ -50,9 +50,32 @@ describe('A.2.4/A.2.5 — fecha dd/mm/aaaa a DATE', () => {
     expect(fechaDdMmAaaa.safeParse('01/13/2026').success).toBe(false);
   });
 
-  it('rechaza el formato estadounidense y el ISO en el formulario', () => {
-    expect(fechaDdMmAaaa.safeParse('2026-03-05').success).toBe(false);
+  /*
+   * ⚠️ Esta prueba CAMBIÓ, y el cambio es deliberado. Antes exigía que la
+   * forma ISO se rechazara.
+   *
+   * A.2.4 existe para que una fecha DIGITADA no se lea al revés: `03/05/2026`
+   * es el 3 de mayo o el 5 de marzo según el país, y de esa ambigüedad salen
+   * informes que no cuadran. Eso sigue impuesto: el formato estadounidense
+   * `3/5/2026` se rechaza.
+   *
+   * Lo que ya no se rechaza es `2026-03-05`, que no tiene esa ambigüedad —el
+   * año va delante— y que es la PROPIA SALIDA de este esquema. Tenía que
+   * aceptarse, porque el esquema es el mismo en el formulario y en el
+   * controlador (A.6) y por tanto se ejecuta dos veces sobre el mismo dato: el
+   * formulario validaba, enviaba `2026-03-05` y el controlador lo rechazaba.
+   * El formulario de jornadas no podía guardar. Lo encontró la Puerta 4; la
+   * propiedad está fijada en `idempotencia.test.ts`, y el motivo en
+   * docs/DECISIONES.md, D-25.
+   *
+   * La interfaz sigue pidiendo y mostrando dd/mm/aaaa: esto es lo que el
+   * esquema admite por el cable, no lo que la pantalla ofrece.
+   */
+  it('sigue rechazando el formato estadounidense, pero admite su propia salida ISO', () => {
     expect(fechaDdMmAaaa.safeParse('3/5/2026').success).toBe(false);
+    expect(fechaDdMmAaaa.safeParse('03/05/26').success).toBe(false);
+    expect(fechaDdMmAaaa.safeParse('2026/03/05').success).toBe(false);
+    expect(fechaDdMmAaaa.parse('2026-03-05')).toBe('2026-03-05');
   });
 
   it('vuelve a dd/mm/aaaa para presentacion', () => {

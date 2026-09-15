@@ -39,6 +39,27 @@ export const cantidadEntera = z
 
 const RE_FECHA_DDMMAAAA = /^(\d{2})\/(\d{2})\/(\d{4})$/;
 
+/**
+ * La MISMA fecha ya normalizada a `aaaa-mm-dd`.
+ *
+ * ⚠️ Existe por una razon de diseno, no por comodidad: `fechaDdMmAaaa`
+ * **transforma**, y este esquema se ejecuta DOS VECES sobre el mismo dato —una
+ * en el formulario y otra en el controlador (A.6: un solo esquema para cliente
+ * y servidor). Si la transformacion no admitiera su propia salida, la segunda
+ * pasada rechazaria lo que la primera acepto, y el formulario no podria
+ * guardar nunca.
+ *
+ * Paso: lo detecto la Puerta 4. El formulario validaba, obtenia `2026-03-02` y
+ * lo enviaba; el controlador volvia a validar, exigia `dd/mm/aaaa` y respondia
+ * «No se pudo registrar la jornada». Ver docs/DECISIONES.md, D-25.
+ *
+ * Aceptar la forma ISO no debilita A.2.4. Lo que A.2.4 evita es que una fecha
+ * DIGITADA se lea al reves —`03/05/2026` es 3 de mayo o 5 de marzo segun el
+ * pais—, y `2026-03-02` no tiene esa ambiguedad: el ano va delante y el orden
+ * es el de la norma. La interfaz sigue pidiendo y mostrando `dd/mm/aaaa`.
+ */
+const RE_FECHA_ISO = /^(\d{4})-(\d{2})-(\d{2})$/;
+
 /** Verifica que dd/mm/aaaa exista de verdad en el calendario. */
 function esFechaReal(dia: number, mes: number, anio: number): boolean {
   if (mes < 1 || mes > 12 || dia < 1) return false;
@@ -58,23 +79,44 @@ function esFechaReal(dia: number, mes: number, anio: number): boolean {
 export const fechaDdMmAaaa = z
   .string()
   .trim()
-  .refine((v) => RE_FECHA_DDMMAAAA.test(v), {
+  .refine((v) => RE_FECHA_DDMMAAAA.test(v) || RE_FECHA_ISO.test(v), {
     message: 'La fecha se digita como dd/mm/aaaa. Ejemplo: 05/03/2026',
   })
   .refine(
     (v) => {
-      const m = RE_FECHA_DDMMAAAA.exec(v);
-      if (m === null) return false;
-      return esFechaReal(Number(m[1]), Number(m[2]), Number(m[3]));
+      const partes = descomponerFecha(v);
+      if (partes === null) return false;
+      return esFechaReal(partes.dia, partes.mes, partes.anio);
     },
     { message: 'Esa fecha no existe en el calendario.' },
   )
+  // Idempotente: aplicar este esquema a su propia salida devuelve lo mismo.
   .transform((v) => {
-    const m = RE_FECHA_DDMMAAAA.exec(v);
-    // El refine anterior garantiza el match; esto satisface al verificador.
-    if (m === null) throw new Error('fecha invalida');
-    return `${m[3]}-${m[2]}-${m[1]}`;
+    const partes = descomponerFecha(v);
+    // Los refine anteriores lo garantizan; esto satisface al verificador.
+    if (partes === null) throw new Error('fecha invalida');
+    const dosDigitos = (n: number): string => String(n).padStart(2, '0');
+    return `${String(partes.anio)}-${dosDigitos(partes.mes)}-${dosDigitos(partes.dia)}`;
   });
+
+/** Descompone `dd/mm/aaaa` o `aaaa-mm-dd`. `null` si no es ninguna. */
+function descomponerFecha(
+  valor: string,
+): { readonly dia: number; readonly mes: number; readonly anio: number } | null {
+  const digitada = RE_FECHA_DDMMAAAA.exec(valor);
+  if (digitada !== null) {
+    return {
+      dia: Number(digitada[1]),
+      mes: Number(digitada[2]),
+      anio: Number(digitada[3]),
+    };
+  }
+  const iso = RE_FECHA_ISO.exec(valor);
+  if (iso !== null) {
+    return { dia: Number(iso[3]), mes: Number(iso[2]), anio: Number(iso[1]) };
+  }
+  return null;
+}
 
 /** Formatea `aaaa-mm-dd` (o un Date) como `dd/mm/aaaa` para la interfaz. */
 export function formatearFechaDdMmAaaa(valor: string | Date): string {
