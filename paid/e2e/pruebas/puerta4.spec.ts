@@ -39,10 +39,17 @@ test.describe('Puerta 4 — camino completo por la interfaz', () => {
     await page.locator('#fechaEjecucion').fill('05/03/2026');
     await page.locator('#lugar').fill('Vereda La Playa');
 
-    // R9 — la casilla de la ARC está marcada y no se puede desmarcar.
-    const casillaArc = page.locator('.arc input[type="checkbox"]');
-    await expect(casillaArc).toBeChecked();
-    await expect(casillaArc).toBeDisabled();
+    // R9 — la ARC está fijada en «Sí» y no se puede cambiar.
+    const arc = page.getByLabel('Armada (ARC)');
+    await expect(arc).toHaveValue('SI');
+    await expect(arc).toBeDisabled();
+
+    // Láminas 20–21 — tipo de jornada, EJC, FAC y población afecta arrancan
+    // SIN responder: un «No» de partida sería la respuesta de quien no
+    // contestó (D-30).
+    for (const campo of ['#idTipoJornada', '#participoEjc', '#participoFac', '#poblacionAfectaTropa']) {
+      await expect(page.locator(campo)).toHaveValue('');
+    }
 
     // R18 — ninguno de los COAMI viene marcado.
     const coami = page.locator('.coami-opcion input[type="checkbox"]');
@@ -67,7 +74,14 @@ test.describe('Puerta 4 — camino completo por la interfaz', () => {
     const resumen = page.locator('.resumen-errores');
     await expect(resumen).toBeVisible();
     await expect(resumen).toContainText('Latitud: grados');
+    await expect(resumen).toContainText('Tipo de jornada');
+    await expect(resumen).toContainText('Población afecta a la tropa');
     await expect(resumen).toBeFocused();
+
+    await page.getByLabel('Tipo de jornada').selectOption({ label: 'Conjunta' });
+    await page.getByLabel('Ejército (EJC)').selectOption('NO');
+    await page.getByLabel('Fuerza Aérea (FAC)').selectOption('SI');
+    await page.getByLabel('Población afecta a la tropa').selectOption('SI');
 
     // Coordenadas GMS del Pacífico nariñense, y la conversión a decimales a la
     // vista (Fase 4, punto 5).
@@ -98,6 +112,10 @@ test.describe('Puerta 4 — camino completo por la interfaz', () => {
     // El título es el CÓDIGO DE ACTIVIDAD, no el identificador interno, y el
     // clavegrama queda a la vista mientras se diligencian las pestañas.
     await expect(page.locator('h1')).toHaveText(/^2813304R32026[A-Z0-9]{5}$/u);
+    // Y los datos de la lámina 20 vuelven como se eligieron: «No» es «No».
+    const datosGenerales = page.locator('.clavegrama-datos');
+    await expect(datosGenerales).toContainText('Conjunta');
+    await expect(datosGenerales).toContainText('EJC No · ARC Sí · FAC Sí');
     await expect(page.locator('.clavegrama-texto')).toContainText('VEREDA LA PLAYA');
 
     // ── 3. La rosa dice que faltan las once ───────────────────────────────

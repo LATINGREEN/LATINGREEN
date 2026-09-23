@@ -72,6 +72,22 @@ export function JornadaFormulario(): JSX.Element {
   return <JornadaExistente idJornada={Number(id)} />;
 }
 
+/** «Sí», «No» o «Sin registrar»: NULL no es «No» (migración 0015, D-30). */
+function siNoTexto(valor: boolean | null): string {
+  if (valor === null) return 'Sin registrar';
+  return valor ? 'Sí' : 'No';
+}
+
+/** Una jornada anterior a la migración 0015 no tiene los datos de las láminas 20–21. */
+function faltanDatosDelManual(d: JornadaDetalle): boolean {
+  return (
+    d.idTipoJornada === null ||
+    d.participoEjc === null ||
+    d.participoFac === null ||
+    d.poblacionAfectaTropa === null
+  );
+}
+
 function JornadaExistente({ idJornada }: { readonly idJornada: number }): JSX.Element {
   const { puede } = useSesion();
   const clienteConsultas = useQueryClient();
@@ -264,6 +280,20 @@ function JornadaExistente({ idJornada }: { readonly idJornada: number }): JSX.El
             <p className="clavegrama-texto">{d.descripcion}</p>
             <dl className="clavegrama-datos">
               <div>
+                <dt>Tipo de jornada</dt>
+                <dd>{d.tipoJornada ?? <span className="sin-dato">Sin registrar</span>}</dd>
+              </div>
+              <div>
+                <dt>Participación</dt>
+                <dd>
+                  EJC {siNoTexto(d.participoEjc)} · ARC Sí · FAC {siNoTexto(d.participoFac)}
+                </dd>
+              </div>
+              <div>
+                <dt>Población afecta</dt>
+                <dd>{siNoTexto(d.poblacionAfectaTropa)}</dd>
+              </div>
+              <div>
                 <dt>Inicio</dt>
                 <dd className="datos">{formatearFechaDdMmAaaa(d.fechaInicio)}</dd>
               </div>
@@ -288,6 +318,18 @@ function JornadaExistente({ idJornada }: { readonly idJornada: number }): JSX.El
                 <dd>{d.coami.length === 0 ? 'Ninguno' : d.coami.join(', ')}</dd>
               </div>
             </dl>
+            {faltanDatosDelManual(d) && (
+              <div className="aviso aviso-ojo" role="note">
+                <span className="aviso-icono">
+                  <Alerta tamano={17} />
+                </span>
+                <p>
+                  Esta jornada se registró antes de que la plataforma pidiera el tipo de
+                  jornada, la participación de EJC y FAC y si la población es afecta a la
+                  tropa, como exige el manual. Complételos con «Corregir datos generales».
+                </p>
+              </div>
+            )}
             {d.observaciones !== null && d.observaciones !== '' && (
               <p className="ayuda">
                 <strong>Observaciones:</strong> {d.observaciones}

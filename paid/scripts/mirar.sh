@@ -41,6 +41,12 @@ existe=$(psql "$URL_ADMIN/postgres" -tAc \
 
 if [[ "${CONSERVAR:-}" == "1" && "$existe" == "1" ]]; then
   paso "Reutilizando la base $BASE"
+  # Reutilizar la base no es congelarla: si llegaron migraciones nuevas, sin
+  # esto la API arranca contra columnas que no existen. Aplicar las pendientes
+  # y volver a sembrar es seguro porque las dos cosas son idempotentes.
+  DATABASE_URL_ADMIN="$URL_ADMIN/$BASE" node packages/db/dist/migrar.js | sed 's/^/    /'
+  PAID_SEMILLA_DESARROLLO=1 DATABASE_URL_ADMIN="$URL_ADMIN/$BASE" \
+    node packages/db/dist/sembrar.js | sed 's/^/    /'
 else
   paso "Preparando la base $BASE"
   psql "$URL_ADMIN/postgres" -qc "DROP DATABASE IF EXISTS $BASE" >/dev/null

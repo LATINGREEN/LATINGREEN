@@ -14,6 +14,8 @@ import { useAvisoSalida } from '../../api/avisoSalida';
 import { Campo } from '../../componentes/Campo';
 import { CampoFecha } from '../../componentes/CampoFecha';
 import { CampoSelector } from '../../componentes/CampoSelector';
+import { CampoSiNo, aSiNo, deSiNo } from '../../componentes/CampoSiNo';
+import type { SiNo } from '../../componentes/CampoSiNo';
 import {
   CoordenadasGms,
   GMS_VACIO,
@@ -41,10 +43,19 @@ import { Marca } from '../../componentes/Iconos';
  * - **Fecha de finalización**, opcional. La base exige que no sea anterior al
  *   inicio; aquí se avisa antes de enviar.
  * - El resumen de errores con enlaces a cada campo.
+ *
+ * Y el orden de los campos es el del manual (láminas 20 y 21): clavegrama,
+ * tipo de jornada, participación de EJC · ARC · FAC, COAMI, ubicación, fechas
+ * con «población afecta», y observaciones. Quien aprendió con el manual
+ * encuentra cada cosa donde la busca.
  */
 
 const ROTULOS: Readonly<Record<string, string>> = {
   descripcion: 'Descripción (clavegrama)',
+  idTipoJornada: 'Tipo de jornada',
+  participoEjc: 'Participó el EJC',
+  participoFac: 'Participó la FAC',
+  poblacionAfectaTropa: 'Población afecta a la tropa',
   fechaInicio: 'Fecha de inicio',
   fechaFin: 'Fecha de finalización',
   fechaEjecucion: 'Fecha de ejecución',
@@ -63,6 +74,10 @@ const ROTULOS: Readonly<Record<string, string>> = {
 
 interface Borrador {
   readonly descripcion: string;
+  readonly idTipoJornada: string;
+  readonly participoEjc: SiNo;
+  readonly participoFac: SiNo;
+  readonly poblacionAfectaTropa: SiNo;
   readonly fechaInicio: string;
   readonly fechaFin: string;
   readonly fechaEjecucion: string;
@@ -76,6 +91,10 @@ interface Borrador {
 
 const VACIO: Borrador = {
   descripcion: '',
+  idTipoJornada: '',
+  participoEjc: '',
+  participoFac: '',
+  poblacionAfectaTropa: '',
   fechaInicio: '',
   fechaFin: '',
   fechaEjecucion: '',
@@ -90,6 +109,12 @@ const VACIO: Borrador = {
 function desdeDetalle(d: JornadaDetalle): Borrador {
   return {
     descripcion: d.descripcion,
+    // En una jornada anterior a la migración 0015 llegan en NULL y el
+    // formulario los muestra sin responder: se piden, no se suponen.
+    idTipoJornada: d.idTipoJornada === null ? '' : String(d.idTipoJornada),
+    participoEjc: aSiNo(d.participoEjc),
+    participoFac: aSiNo(d.participoFac),
+    poblacionAfectaTropa: aSiNo(d.poblacionAfectaTropa),
     fechaInicio: formatearFechaDdMmAaaa(d.fechaInicio),
     fechaFin: d.fechaFin === null ? '' : formatearFechaDdMmAaaa(d.fechaFin),
     fechaEjecucion: formatearFechaDdMmAaaa(d.fechaEjecucion),
@@ -149,6 +174,19 @@ export function DatosGenerales({
       }
       if (b.idMunicipio !== '') cuerpo['idMunicipio'] = Number(b.idMunicipio);
 
+      // Láminas 20–21. Al corregir también se piden: es la forma de completar
+      // las jornadas registradas antes de que existieran estos campos.
+      cuerpo['idTipoJornada'] = b.idTipoJornada;
+      const siNo = {
+        participoEjc: b.participoEjc,
+        participoFac: b.participoFac,
+        poblacionAfectaTropa: b.poblacionAfectaTropa,
+      } as const;
+      for (const [clave, valor] of Object.entries(siNo)) {
+        const booleano = deSiNo(valor);
+        if (booleano !== undefined) cuerpo[clave] = booleano;
+      }
+
       const esquema = inicial === undefined ? crearJornada : actualizarJornada;
       const validado = esquema.safeParse(
         inicial === undefined ? { ...cuerpo, participoArc: true } : cuerpo,
@@ -157,6 +195,15 @@ export function DatosGenerales({
         for (const problema of validado.error.issues) {
           const clave = String(problema.path[0] ?? '');
           if (porCampo[clave] === undefined) porCampo[clave] = problema.message;
+        }
+      }
+
+      if (inicial !== undefined) {
+        if (b.idTipoJornada === '') porCampo['idTipoJornada'] = 'Elija el tipo de jornada.';
+        if (b.participoEjc === '') porCampo['participoEjc'] = 'Indique si participó el Ejército (EJC).';
+        if (b.participoFac === '') porCampo['participoFac'] = 'Indique si participó la Fuerza Aérea (FAC).';
+        if (b.poblacionAfectaTropa === '') {
+          porCampo['poblacionAfectaTropa'] = 'Indique si la población es afecta a la tropa.';
         }
       }
 
@@ -223,32 +270,79 @@ export function DatosGenerales({
         ayuda="De este texto salen las once pestañas. Péguelo completo: es la fuente de todo lo que se registra después."
       />
 
-      <div className="rejilla-3">
-        <CampoFecha
-          id="fechaInicio"
-          rotulo="Fecha de inicio"
-          valor={b.fechaInicio}
-          onCambio={(v) => fijar('fechaInicio', v)}
-          error={errores['fechaInicio']}
-        />
-        <CampoFecha
-          id="fechaEjecucion"
-          rotulo="Fecha de ejecución"
-          valor={b.fechaEjecucion}
-          onCambio={(v) => fijar('fechaEjecucion', v)}
-          error={errores['fechaEjecucion']}
-        />
-        <CampoFecha
-          id="fechaFin"
-          rotulo="Fecha de finalización"
-          valor={b.fechaFin}
-          onCambio={(v) => fijar('fechaFin', v)}
-          obligatorio={false}
-          ayuda="Opcional. Solo si la jornada duró más de un día."
-          error={errores['fechaFin']}
+      {/* ── Lámina 20 ─────────────────────────────────────────────────── */}
+      <div className="rejilla-3 rejilla-llena">
+        <CampoSelector
+          id="idTipoJornada"
+          rotulo="Tipo de jornada"
+          catalogo="tipo_jornada"
+          valor={b.idTipoJornada}
+          onCambio={(v) => fijar('idTipoJornada', v)}
+          obligatorio
+          error={errores['idTipoJornada']}
         />
       </div>
 
+      <fieldset className="participacion">
+        <legend className="rotulo">Participación de las Fuerzas</legend>
+        <div className="rejilla-3">
+          <CampoSiNo
+            id="participoEjc"
+            rotulo="Ejército (EJC)"
+            valor={b.participoEjc}
+            onCambio={(v) => fijar('participoEjc', v)}
+            error={errores['participoEjc']}
+          />
+          {/* R9 — La ARC siempre participa: fijado en «Sí» y DESHABILITADO. */}
+          <CampoSiNo
+            id="participoArc"
+            rotulo="Armada (ARC)"
+            valor="SI"
+            fijo
+            ayuda="Siempre sí: el manual lo exige y la base de datos lo impone."
+          />
+          <CampoSiNo
+            id="participoFac"
+            rotulo="Fuerza Aérea (FAC)"
+            valor={b.participoFac}
+            onCambio={(v) => fijar('participoFac', v)}
+            error={errores['participoFac']}
+          />
+        </div>
+      </fieldset>
+
+      {/* R18 — COAMI: cero a muchos, NINGUNO por defecto. */}
+      <fieldset className="tarjeta coami">
+        <legend className="rotulo">COAMI participantes</legend>
+        <p className="ayuda">
+          Si no hubo participación de la Reserva Naval, <strong>no seleccione ninguno</strong>
+          . Dejarlo vacío es un valor válido.
+        </p>
+        <div className="coami-lista">
+          {COAMI.map((codigo) => {
+            const elegido = b.coami.includes(codigo);
+            return (
+              <label key={codigo} className={`coami-opcion ${elegido ? 'es-activa' : ''}`}>
+                <input
+                  type="checkbox"
+                  checked={elegido}
+                  onChange={(e) =>
+                    fijar(
+                      'coami',
+                      e.target.checked
+                        ? [...b.coami, codigo]
+                        : b.coami.filter((c) => c !== codigo),
+                    )
+                  }
+                />
+                <span>{ETIQUETA_COAMI[codigo]}</span>
+              </label>
+            );
+          })}
+        </div>
+      </fieldset>
+
+      {/* ── Lámina 21 ─────────────────────────────────────────────────── */}
       <div className="rejilla-3">
         <Campo
           id="lugar"
@@ -285,60 +379,51 @@ export function DatosGenerales({
         {...(b.lugar !== '' ? { lugar: b.lugar } : {})}
       />
 
+      <div className="rejilla-3">
+        <CampoFecha
+          id="fechaInicio"
+          rotulo="Fecha de inicio"
+          valor={b.fechaInicio}
+          onCambio={(v) => fijar('fechaInicio', v)}
+          error={errores['fechaInicio']}
+        />
+        <CampoFecha
+          id="fechaEjecucion"
+          rotulo="Fecha de ejecución"
+          valor={b.fechaEjecucion}
+          onCambio={(v) => fijar('fechaEjecucion', v)}
+          error={errores['fechaEjecucion']}
+        />
+        <CampoFecha
+          id="fechaFin"
+          rotulo="Fecha de finalización"
+          valor={b.fechaFin}
+          onCambio={(v) => fijar('fechaFin', v)}
+          obligatorio={false}
+          ayuda="Opcional. Solo si la jornada duró más de un día."
+          error={errores['fechaFin']}
+        />
+      </div>
+
+      <div className="rejilla-3 rejilla-llena">
+        <CampoSiNo
+          id="poblacionAfectaTropa"
+          rotulo="Población afecta a la tropa"
+          valor={b.poblacionAfectaTropa}
+          onCambio={(v) => fijar('poblacionAfectaTropa', v)}
+          error={errores['poblacionAfectaTropa']}
+        />
+      </div>
+
       <Campo
         id="observaciones"
         rotulo="Observaciones"
         valor={b.observaciones}
         onCambio={(v) => fijar('observaciones', v)}
         multilinea
-        ayuda="Opcional. Lo que no cabe en el clavegrama: novedades, motivos de un cambio de fecha, lo que haya que recordar al revisar el registro."
+        ayuda="Como pide el manual: satisfacción de la población, novedades ocurridas en el desarrollo de la jornada e impacto causado."
         error={errores['observaciones']}
       />
-
-      {/* R9 — La ARC siempre participa: marcado y DESHABILITADO. */}
-      <div className="tarjeta arc">
-        <label className="fila">
-          <input type="checkbox" checked disabled aria-describedby="ayuda-arc" />
-          <span>
-            <strong>Participación de la ARC</strong>
-          </span>
-        </label>
-        <p className="ayuda" id="ayuda-arc">
-          Siempre sí. El manual lo exige y la base de datos lo impone: no es un campo
-          que se pueda cambiar.
-        </p>
-      </div>
-
-      {/* R18 — COAMI: cero a muchos, NINGUNO por defecto. */}
-      <fieldset className="tarjeta coami">
-        <legend className="rotulo">COAMI participantes</legend>
-        <p className="ayuda">
-          Si no hubo participación de la Reserva Naval, <strong>no seleccione ninguno</strong>
-          . Dejarlo vacío es un valor válido.
-        </p>
-        <div className="coami-lista">
-          {COAMI.map((codigo) => {
-            const elegido = b.coami.includes(codigo);
-            return (
-              <label key={codigo} className={`coami-opcion ${elegido ? 'es-activa' : ''}`}>
-                <input
-                  type="checkbox"
-                  checked={elegido}
-                  onChange={(e) =>
-                    fijar(
-                      'coami',
-                      e.target.checked
-                        ? [...b.coami, codigo]
-                        : b.coami.filter((c) => c !== codigo),
-                    )
-                  }
-                />
-                <span>{ETIQUETA_COAMI[codigo]}</span>
-              </label>
-            );
-          })}
-        </div>
-      </fieldset>
 
       <div className="fila-sep seccion-pie">
         <p className="ayuda">

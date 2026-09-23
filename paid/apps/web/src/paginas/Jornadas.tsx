@@ -23,6 +23,12 @@ import { Alerta, Copiar, Descargar, Lupa, Mas } from '../componentes/Iconos';
  * hoy nadie se enteraría. Por eso el filtro «Solo completas» dice, en su
  * propia ayuda, qué significa.
  */
+/** NULL es «—», no «No»: la jornada es anterior a la migración 0015. */
+function siNoCorto(valor: boolean | null): string {
+  if (valor === null) return '—';
+  return valor ? 'Sí' : 'No';
+}
+
 export function Jornadas(): JSX.Element {
   const { puede } = useSesion();
   const anunciar = useAnuncio();
@@ -213,6 +219,7 @@ export function Jornadas(): JSX.Element {
                   <th scope="col">Pestañas</th>
                   <th scope="col">Código</th>
                   <th scope="col">Ejecución</th>
+                  <th scope="col">Tipo</th>
                   <th scope="col">Lugar</th>
                   <th scope="col">Municipio</th>
                   <th scope="col">Coordenadas</th>
@@ -236,6 +243,13 @@ export function Jornadas(): JSX.Element {
                         <p className="celda-sub">{fila.unidad}</p>
                       </td>
                       <td className="datos">{formatearFechaDdMmAaaa(fila.fechaEjecucion)}</td>
+                      {/* Lámina 19: tipo de jornada y participación de EJC y FAC. */}
+                      <td>
+                        {fila.tipoJornada ?? <span className="sin-dato">Sin registrar</span>}
+                        <p className="celda-sub">
+                          EJC {siNoCorto(fila.participoEjc)} · FAC {siNoCorto(fila.participoFac)}
+                        </p>
+                      </td>
                       <td>
                         <span className="celda-lugar">{fila.lugar}</span>
                         <p className="celda-sub celda-clavegrama">{fila.descripcion}</p>
