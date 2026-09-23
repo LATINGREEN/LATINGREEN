@@ -17,8 +17,9 @@ Dos cosas que la Puerta 4 exige, y una advertencia sobre la segunda.
   ninguna de las otras podía ver — están en `docs/DECISIONES.md`, D-25 a D-28.
 
 - **`pruebas/accesibilidad.spec.ts`** — la revisión automatizada con axe sobre
-  WCAG 2.1 AA, en los **tres modos de contraste** y con el tamaño de letra
-  mayor.
+  WCAG 2.1 AA, en los **dos modos de contraste** (institucional y alto) y con
+  el tamaño de letra mayor; y una prueba que maneja el menú desplegable y las
+  pestañas solo con el teclado, que axe no hace.
 
   ⚠️ axe encuentra entre el 30 % y el 40 % de los problemas reales de
   accesibilidad. Pasar esto **no** significa que la aplicación sea accesible:

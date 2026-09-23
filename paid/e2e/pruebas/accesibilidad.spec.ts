@@ -22,17 +22,18 @@ import { ingresar, irA } from './apoyo';
  * (Resolución 1519 de 2020), es decir WCAG 2.1 AA. De ahí las etiquetas que se
  * le piden a axe.
  *
- * ── Se revisan los TRES contrastes ──────────────────────────────────────────
+ * ── Se revisan LOS DOS contrastes ───────────────────────────────────────────
  *
- * Y es la parte que importa. Los controles de contraste de la Fase 4 no son
- * decorativos: cada modo redefine los tokens de color, así que cada modo es
- * una paleta distinta que puede fallar por su cuenta. Revisar solo el modo por
- * omisión dejaría sin comprobar exactamente los dos modos que existen para
- * quien necesita accesibilidad.
+ * Y es la parte que importa. El control de contraste no es decorativo: cada
+ * modo redefine los tokens de color, así que cada modo es una paleta distinta
+ * que puede fallar por su cuenta. El institucional sigue la paleta del Manual
+ * de Identidad Visual ARC; el alto contraste existe justo para quien necesita
+ * accesibilidad, y dejarlo sin revisar sería dejar sin comprobar lo único que
+ * lo justifica.
  */
 
 const ETIQUETAS_WCAG = ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa'];
-const CONTRASTES = ['normal', 'claro', 'alto'] as const;
+const CONTRASTES = ['institucional', 'alto'] as const;
 
 /**
  * Espera a que TODAS las animaciones terminen antes de medir.
@@ -167,6 +168,44 @@ test.describe('Puerta 4 — accesibilidad (WCAG 2.1 AA)', () => {
       }
     });
   }
+
+  /**
+   * axe no pulsa teclas. El menú desplegable y la fila de pestañas son los dos
+   * controles compuestos de la interfaz, y los dos tienen que manejarse sin
+   * ratón: el desplegable se abre con Intro y se cierra con Escape devolviendo
+   * el foco a su botón; las pestañas se recorren con flechas, Inicio y Fin.
+   */
+  test('el menú y las pestañas se manejan con el teclado', async ({ page }) => {
+    await ingresar(page, 'BIM23_PAID');
+    const menu = page.getByRole('navigation', { name: 'Menú principal' });
+    const grupo = menu.getByRole('button', { name: 'Cooperación Civil Militar', exact: true });
+
+    await grupo.focus();
+    await page.keyboard.press('Enter');
+    await expect(grupo).toHaveAttribute('aria-expanded', 'true');
+    await expect(menu.getByRole('link', { name: 'Jornadas de apoyo' })).toBeVisible();
+    await page.keyboard.press('Escape');
+    await expect(grupo).toHaveAttribute('aria-expanded', 'false');
+    await expect(grupo).toBeFocused();
+
+    await irA(page, '/jornadas');
+    await page.locator('.enlace-codigo').first().click();
+    const primera = page.getByRole('tab').first();
+    await primera.click();
+    await expect(primera).toHaveAttribute('aria-selected', 'true');
+
+    await page.keyboard.press('ArrowRight');
+    const segunda = page.getByRole('tab').nth(1);
+    await expect(segunda).toBeFocused();
+    await expect(segunda).toHaveAttribute('aria-selected', 'true');
+
+    await page.keyboard.press('End');
+    await expect(page.getByRole('tab').last()).toBeFocused();
+    await page.keyboard.press('ArrowRight');
+    await expect(primera).toBeFocused();
+    // Una sola parada de tabulación para toda la fila.
+    await expect(page.locator('[role="tab"][tabindex="0"]')).toHaveCount(1);
+  });
 
   /**
    * Los formularios desplegados son donde se concentran los defectos de

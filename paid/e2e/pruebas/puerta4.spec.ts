@@ -101,7 +101,7 @@ test.describe('Puerta 4 — camino completo por la interfaz', () => {
     await expect(page.locator('.clavegrama-texto')).toContainText('VEREDA LA PLAYA');
 
     // ── 3. La rosa dice que faltan las once ───────────────────────────────
-    const rosa = page.locator('.pestanas-rosa .rosa-svg');
+    const rosa = page.locator('.franja-datos .rosa-svg');
     await expect(rosa).toHaveAttribute('aria-label', /Registro incompleto/u);
 
     // ── 4. Las diez pestañas de datos ─────────────────────────────────────
@@ -157,10 +157,10 @@ test.describe('Puerta 4 — camino completo por la interfaz', () => {
     await page.locator('#fase').selectOption('1');
     await page.getByRole('button', { name: /Adjuntar$/ }).click();
     // Y el soporte queda listado.
-    await expect(page.locator('.adjuntos-lista')).toContainText('soporte-jornada.pdf');
+    await expect(page.locator('.adjuntos-grupos')).toContainText('soporte-jornada.pdf');
 
     // ── 7. Solo con las ONCE el registro queda completo (R19) ─────────────
-    await expect(page.locator('.pestanas-rosa .rosa-svg')).toHaveAttribute(
+    await expect(page.locator('.franja-datos .rosa-svg')).toHaveAttribute(
       'aria-label',
       /Registro completo/u,
       { timeout: 15_000 },

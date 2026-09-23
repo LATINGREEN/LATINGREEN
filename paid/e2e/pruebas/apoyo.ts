@@ -62,33 +62,45 @@ export function resolver(textoReto: string): number {
  * dice «PAID». Pasó, y por eso `irA()` comprueba además que el menú sigue en
  * pie antes de dar la navegación por buena.
  */
-const ENLACE_DE_RUTA: Readonly<Record<string, string>> = {
-  '/': 'Inicio',
-  '/tripulantes': 'Tripulantes A.I.',
-  '/jornadas': 'Jornadas de Apoyo',
-  '/entidades': 'Entidades A.I.',
-  '/alianzas': 'Alianzas y convenios',
-  '/herramientas': 'Herramientas AID',
-  '/normatividad': 'Normatividad A.I.',
+const ENLACE_DE_RUTA: Readonly<Record<string, { readonly grupo?: string; readonly enlace: string }>> = {
+  '/': { enlace: 'Inicio' },
+  '/tripulantes': { grupo: 'Tripulantes A.I.', enlace: 'Personal' },
+  '/jornadas': { grupo: 'Cooperación Civil Militar', enlace: 'Jornadas de apoyo' },
+  '/entidades': { grupo: 'Asuntos Civiles', enlace: 'Entidades A.I.' },
+  '/alianzas': { grupo: 'Asuntos Civiles', enlace: 'Alianzas y convenios' },
+  '/herramientas': { grupo: 'Sensibilización', enlace: 'Herramientas AID' },
+  '/normatividad': { grupo: 'Normatividad A.I.', enlace: 'Normatividad acción integral' },
 };
 
-/** Navega dentro de la aplicación, con la sesión intacta. */
+/**
+ * Navega dentro de la aplicación, con la sesión intacta.
+ *
+ * El menú sigue al Manual del Usuario: los módulos se agrupan en desplegables
+ * («Cooperación Civil Militar › Jornadas de apoyo»), así que primero se abre
+ * el grupo —un botón con `aria-expanded`— y luego se pulsa el enlace.
+ */
 export async function irA(pagina: Page, ruta: string): Promise<void> {
   // La sesión tiene que estar en pie ANTES de navegar: si no, lo que sigue
   // mide la pantalla de ingreso y no la que se quería revisar.
-  await expect(pagina.getByRole('navigation', { name: 'Menú principal' })).toBeVisible();
+  const menu = pagina.getByRole('navigation', { name: 'Menú principal' });
+  await expect(menu).toBeVisible();
 
   if (ruta === '/jornadas/nueva') {
     await irA(pagina, '/jornadas');
     await pagina.getByRole('link', { name: /Registrar jornada|Registrar la primera/ }).first().click();
   } else {
-    const rotulo = ENLACE_DE_RUTA[ruta];
-    if (rotulo === undefined) throw new Error(`Sin enlace de menú para «${ruta}»`);
-    await pagina.getByRole('link', { name: rotulo, exact: true }).click();
+    const destino = ENLACE_DE_RUTA[ruta];
+    if (destino === undefined) throw new Error(`Sin enlace de menú para «${ruta}»`);
+    if (destino.grupo !== undefined) {
+      const grupo = menu.getByRole('button', { name: destino.grupo, exact: true });
+      if ((await grupo.getAttribute('aria-expanded')) !== 'true') await grupo.click();
+      await expect(grupo).toHaveAttribute('aria-expanded', 'true');
+    }
+    await menu.getByRole('link', { name: destino.enlace, exact: true }).click();
   }
 
   await expect(pagina).toHaveURL(new RegExp(`${escapar(ruta)}$`, 'u'));
-  await expect(pagina.getByRole('navigation', { name: 'Menú principal' })).toBeVisible();
+  await expect(menu).toBeVisible();
 }
 
 function escapar(texto: string): string {
