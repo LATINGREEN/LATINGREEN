@@ -328,6 +328,8 @@ export class JornadasService {
       fecha_ejecucion: string;
       lugar: string;
       observaciones: string | null;
+      id_municipio: number | null;
+      id_departamento: number | null;
       municipio: string | null;
       latitud_grados: number;
       latitud_minutos: number;
@@ -343,7 +345,8 @@ export class JornadasService {
     }>(
       `SELECT a.id, a.codigo_actividad, u.sigla AS unidad, a.descripcion,
               a.fecha_inicio::text, a.fecha_fin::text, j.fecha_ejecucion::text,
-              j.lugar, j.observaciones, m.nombre AS municipio,
+              j.lugar, j.observaciones, a.id_municipio, m.id_departamento,
+              m.nombre AS municipio,
               a.latitud_grados, a.latitud_minutos, a.latitud_segundos::text,
               a.latitud_hemisferio, a.longitud_grados, a.longitud_minutos,
               a.longitud_segundos::text, a.longitud_hemisferio,
@@ -379,6 +382,8 @@ export class JornadasService {
       fechaEjecucion: fila.fecha_ejecucion,
       lugar: fila.lugar,
       observaciones: fila.observaciones,
+      idMunicipio: fila.id_municipio === null ? null : Number(fila.id_municipio),
+      idDepartamento: fila.id_departamento === null ? null : Number(fila.id_departamento),
       municipio: fila.municipio,
       latitudGrados: Number(fila.latitud_grados),
       latitudMinutos: Number(fila.latitud_minutos),

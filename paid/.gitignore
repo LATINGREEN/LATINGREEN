@@ -27,3 +27,6 @@ venv/
 apps/web/public/teselas/*.pmtiles
 
 .DS_Store
+
+# Instantanea de Redis: aparece si redis-server se arranca desde aqui.
+dump.rdb

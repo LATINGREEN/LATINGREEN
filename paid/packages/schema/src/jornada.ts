@@ -115,6 +115,8 @@ export const jornadaDetalle = z.object({
   fechaEjecucion: z.string(),
   lugar: z.string(),
   observaciones: z.string().nullable(),
+  idMunicipio: z.number().int().nullable(),
+  idDepartamento: z.number().int().nullable(),
   municipio: z.string().nullable(),
   latitudGrados: z.number(),
   latitudMinutos: z.number(),
