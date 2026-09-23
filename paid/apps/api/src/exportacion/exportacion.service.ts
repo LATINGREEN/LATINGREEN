@@ -18,10 +18,18 @@ export interface ResultadoExportacion {
   readonly cantidadFilas: number;
 }
 
-/** Las columnas del listado del manual, en su orden. */
+/**
+ * Las columnas del listado del manual (lámina 19), en su orden: tipo de
+ * jornada y participación de EJC, ARC y FAC van después de la unidad.
+ */
 const COLUMNAS = [
   { clave: 'codigoActividad', titulo: 'Código', ancho: 22 },
   { clave: 'unidad', titulo: 'Unidad', ancho: 12 },
+  { clave: 'tipoJornada', titulo: 'Tipo de jornada', ancho: 16 },
+  { clave: 'participoEjc', titulo: 'Participó EJC', ancho: 14 },
+  { clave: 'participoArc', titulo: 'Participó ARC', ancho: 14 },
+  { clave: 'participoFac', titulo: 'Participó FAC', ancho: 14 },
+  { clave: 'poblacionAfectaTropa', titulo: 'Población afecta', ancho: 16 },
   { clave: 'fechaEjecucion', titulo: 'Fecha ejecución', ancho: 16 },
   { clave: 'lugar', titulo: 'Lugar', ancho: 30 },
   { clave: 'municipio', titulo: 'Municipio', ancho: 22 },
@@ -31,6 +39,11 @@ const COLUMNAS = [
   { clave: 'registroCompleto', titulo: 'Registro completo', ancho: 18 },
   { clave: 'pestanasFaltantes', titulo: 'Pestañas faltantes', ancho: 40 },
 ] as const;
+
+function siNo(valor: boolean | null): string {
+  if (valor === null) return '';
+  return valor ? 'SÍ' : 'NO';
+}
 
 @Injectable()
 export class ExportacionService {
@@ -51,6 +64,20 @@ export class ExportacionService {
         return formatearFechaDdMmAaaa(fila.fechaEjecucion);
       case 'registroCompleto':
         return fila.registroCompleto ? 'SÍ' : 'NO';
+      // R9: la ARC siempre participa; la base lo impone con un CHECK.
+      case 'participoArc':
+        return 'SÍ';
+      // Una celda vacía, no «NO»: en las jornadas anteriores a la migración
+      // 0015 el dato no se registró, y un «NO» sería una afirmación falsa en
+      // el consolidado.
+      case 'participoEjc':
+        return siNo(fila.participoEjc);
+      case 'participoFac':
+        return siNo(fila.participoFac);
+      case 'poblacionAfectaTropa':
+        return siNo(fila.poblacionAfectaTropa);
+      case 'tipoJornada':
+        return fila.tipoJornada ?? '';
       case 'pestanasFaltantes':
         return fila.pestanasFaltantes.join(', ');
       case 'latitudDecimal':

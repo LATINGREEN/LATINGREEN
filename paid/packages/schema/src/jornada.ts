@@ -30,6 +30,24 @@ export const crearJornada = coordenadaGms.extend({
   /** R9 — La ARC siempre participa. Marcado y deshabilitado en la interfaz. */
   participoArc: participoArc.default(true),
 
+  /*
+   * Manual del Usuario, láminas 20 y 21 (migración 0015). Obligatorios para
+   * toda jornada nueva: el manual dice «se debe». En la base admiten NULL solo
+   * por las jornadas anteriores, que no tenían dónde registrarlos.
+   *
+   * Los tres sí/no son `boolean` estricto, sin coerción: `z.coerce.boolean()`
+   * convierte `'false'` en `true` —toda cadena no vacía es verdadera— y un
+   * «No» del formulario llegaría a la base como «Sí».
+   */
+  /** Binacional, conjunta o estratégica (`ref.tipo_jornada`). */
+  idTipoJornada: z.coerce
+    .number({ message: 'Elija el tipo de jornada.' })
+    .int()
+    .positive({ message: 'Elija el tipo de jornada.' }),
+  participoEjc: z.boolean({ message: 'Indique si participó el Ejército (EJC).' }),
+  participoFac: z.boolean({ message: 'Indique si participó la Fuerza Aérea (FAC).' }),
+  poblacionAfectaTropa: z.boolean({ message: 'Indique si la población es afecta a la tropa.' }),
+
   /** R18 — Cero a muchos. Ninguno por defecto. */
   coami: coamiParticipantes,
 });
@@ -70,6 +88,14 @@ export const jornadaEnListado = z.object({
   fechaEjecucion: z.string(),
   lugar: z.string(),
   municipio: z.string().nullable(),
+  /*
+   * Columnas del listado del manual (lámina 19). NULL en las jornadas
+   * anteriores a la migración 0015: «sin dato», no «no».
+   */
+  tipoJornada: z.string().nullable(),
+  participoEjc: z.boolean().nullable(),
+  participoFac: z.boolean().nullable(),
+  poblacionAfectaTropa: z.boolean().nullable(),
   /** R19 — el listado senala visualmente los registros incompletos. */
   registroCompleto: z.boolean(),
   /** Que pestañas faltan, para que el aviso sea util y no solo un icono. */
@@ -118,6 +144,12 @@ export const jornadaDetalle = z.object({
   idMunicipio: z.number().int().nullable(),
   idDepartamento: z.number().int().nullable(),
   municipio: z.string().nullable(),
+  /** NULL en las jornadas anteriores a la migración 0015. */
+  idTipoJornada: z.number().int().nullable(),
+  tipoJornada: z.string().nullable(),
+  participoEjc: z.boolean().nullable(),
+  participoFac: z.boolean().nullable(),
+  poblacionAfectaTropa: z.boolean().nullable(),
   latitudGrados: z.number(),
   latitudMinutos: z.number(),
   latitudSegundos: z.number(),

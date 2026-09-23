@@ -68,6 +68,13 @@ const JORNADA_BASE = {
   longitudMinutos: 30,
   longitudSegundos: 51,
   longitudHemisferio: 'W',
+  // Manual, láminas 20–21 (migración 0015). El identificador del tipo se lee
+  // de la base en `beforeAll`: el `id` puede cambiar entre despliegues, el
+  // `codigo` no.
+  idTipoJornada: 0,
+  participoEjc: false,
+  participoFac: false,
+  poblacionAfectaTropa: true,
   coami: [] as string[],
 };
 
@@ -139,6 +146,12 @@ beforeAll(async () => {
       [unidad.rows[0]?.id],
     );
     catalogos['entidad'] = Number(entidad.rows[0]?.id);
+
+    const tipos = await cliente.query<{ id: number; codigo: string }>(
+      'SELECT id, codigo FROM ref.tipo_jornada',
+    );
+    for (const t of tipos.rows) catalogos[`tipoJornada_${t.codigo}`] = Number(t.id);
+    JORNADA_BASE.idTipoJornada = catalogos['tipoJornada_CONJUNTA'] ?? 0;
   } finally {
     cliente.release();
   }
@@ -170,6 +183,105 @@ describe('Q1 — generación del codigo_actividad', () => {
       codigos.add((r.body as { codigoActividad: string }).codigoActividad);
     }
     expect(codigos.size, 'los seis códigos deben ser distintos').toBe(6);
+  });
+});
+
+// ═════════════════════════════════════════════════════════════════════════════
+describe('Manual, láminas 20–21 — tipo de jornada, EJC, FAC y población afecta', () => {
+  it('el catálogo de tipos de jornada se puede leer para el desplegable', async () => {
+    const r = await autenticada('get', '/api/catalogos/tipo_jornada');
+    expect(r.status).toBe(200);
+    const opciones = r.body as { codigo: string; nombre: string }[];
+    expect(opciones.map((o) => o.codigo)).toEqual(['BINACIONAL', 'CONJUNTA', 'ESTRATEGICA']);
+    expect(opciones.map((o) => o.nombre)).toContain('Estratégica');
+  });
+
+  it('una jornada nueva sin tipo ni participación se rechaza campo por campo', async () => {
+    const {
+      idTipoJornada: _t,
+      participoEjc: _e,
+      participoFac: _f,
+      poblacionAfectaTropa: _p,
+      ...sinCampos
+    } = JORNADA_BASE;
+    const r = await autenticada('post', '/api/jornadas').send(sinCampos);
+    expect(r.status).toBe(400);
+    const campos = (r.body as { detalles: { campo: string }[] }).detalles.map((d) => d.campo);
+    expect(campos).toEqual(
+      expect.arrayContaining(['idTipoJornada', 'participoEjc', 'participoFac', 'poblacionAfectaTropa']),
+    );
+  });
+
+  it('se guardan, vuelven en el detalle con el nombre del tipo, y «No» es «No»', async () => {
+    const creada = await autenticada('post', '/api/jornadas').send(JORNADA_BASE);
+    expect(creada.status).toBe(201);
+    const id = (creada.body as { id: number }).id;
+
+    const r = await autenticada('get', `/api/jornadas/${id}`);
+    const d = r.body as {
+      idTipoJornada: number;
+      tipoJornada: string;
+      participoEjc: boolean | null;
+      participoFac: boolean | null;
+      poblacionAfectaTropa: boolean | null;
+    };
+    expect(d.idTipoJornada).toBe(JORNADA_BASE.idTipoJornada);
+    expect(d.tipoJornada).toBe('Conjunta');
+    // FALSE, no NULL: se respondió «No».
+    expect(d.participoEjc).toBe(false);
+    expect(d.participoFac).toBe(false);
+    expect(d.poblacionAfectaTropa).toBe(true);
+  });
+
+  it('se corrigen por separado, y un PATCH que no los nombra no los toca', async () => {
+    const creada = await autenticada('post', '/api/jornadas').send(JORNADA_BASE);
+    const id = (creada.body as { id: number }).id;
+
+    const corregida = await autenticada('patch', `/api/jornadas/${id}`).send({
+      participoFac: true,
+      idTipoJornada: catalogos['tipoJornada_BINACIONAL'],
+    });
+    expect(corregida.status).toBeLessThan(300);
+    await autenticada('patch', `/api/jornadas/${id}`).send({ lugar: 'Otro lugar' });
+
+    const d = (await autenticada('get', `/api/jornadas/${id}`)).body as {
+      tipoJornada: string;
+      participoEjc: boolean;
+      participoFac: boolean;
+      poblacionAfectaTropa: boolean;
+    };
+    expect(d.tipoJornada).toBe('Binacional');
+    expect(d.participoFac).toBe(true);
+    expect(d.participoEjc).toBe(false);
+    expect(d.poblacionAfectaTropa).toBe(true);
+  });
+
+  it('un tipo de jornada inexistente no llega a la base como un dato', async () => {
+    const r = await autenticada('post', '/api/jornadas').send({
+      ...JORNADA_BASE,
+      idTipoJornada: 9999,
+    });
+    // Antes llegaba como violación de clave foránea: un 500 sin explicación.
+    expect(r.status).toBe(400);
+    const detalles = (r.body as { detalles: { campo: string }[] }).detalles;
+    expect(detalles.map((d) => d.campo)).toEqual(['idTipoJornada']);
+  });
+
+  it('un tipo de jornada retirado del catálogo no admite jornadas nuevas', async () => {
+    const cliente = await entorno.pool.connect();
+    try {
+      await cliente.query(
+        "UPDATE ref.tipo_jornada SET activo = FALSE WHERE codigo = 'ESTRATEGICA'",
+      );
+      const r = await autenticada('post', '/api/jornadas').send({
+        ...JORNADA_BASE,
+        idTipoJornada: catalogos['tipoJornada_ESTRATEGICA'],
+      });
+      expect(r.status).toBe(400);
+    } finally {
+      await cliente.query("UPDATE ref.tipo_jornada SET activo = TRUE WHERE codigo = 'ESTRATEGICA'");
+      cliente.release();
+    }
   });
 });
 
@@ -635,6 +747,11 @@ describe('Exportación XLSX y CSV, con registro en aud.exportacion', () => {
     expect(texto).toContain('Fecha ejecución');
     expect(texto).toContain('Descripción');
     expect(texto).toContain('Pestañas faltantes');
+    // Las columnas del listado del manual (lámina 19).
+    const encabezado = texto.slice(1, texto.indexOf('\r\n'));
+    expect(encabezado).toContain('Tipo de jornada,Participó EJC,Participó ARC,Participó FAC');
+    // Y cada jornada con sus valores: Conjunta, EJC no, ARC sí, FAC no.
+    expect(texto).toContain('Conjunta,NO,SÍ,NO,SÍ');
   });
 
   it('el XLSX es un archivo de Excel de verdad', async () => {

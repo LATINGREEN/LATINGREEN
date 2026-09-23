@@ -219,6 +219,7 @@ export const CATALOGOS_EXPUESTOS = [
   'tipo_recurso',
   'tipo_operacion',
   'tipo_asistencia',
+  'tipo_jornada',
   'coami',
 ] as const;
 

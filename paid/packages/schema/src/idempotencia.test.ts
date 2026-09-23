@@ -70,12 +70,17 @@ describe('esquemas que cruzan la red', () => {
       fechaInicio: '02/03/2026',
       fechaEjecucion: '05/03/2026',
       lugar: 'Vereda La Playa',
+      idTipoJornada: 2,
+      participoEjc: false,
+      participoFac: true,
+      poblacionAfectaTropa: true,
       coami: [],
     });
   });
 
   it('actualizarJornada es idempotente', () => {
     esIdempotente(actualizarJornada, { lugar: 'Otro lugar', fechaEjecucion: '05/03/2026' });
+    esIdempotente(actualizarJornada, { idTipoJornada: '3', participoEjc: false });
   });
 
   it('crearHerramienta es idempotente', () => {

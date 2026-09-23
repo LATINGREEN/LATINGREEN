@@ -36,6 +36,10 @@ interface FilaListado {
   readonly fecha_ejecucion: string;
   readonly lugar: string;
   readonly municipio: string | null;
+  readonly tipo_jornada: string | null;
+  readonly participo_ejc: boolean | null;
+  readonly participo_fac: boolean | null;
+  readonly poblacion_afecta_tropa: boolean | null;
   readonly registro_completo: boolean;
   readonly latitud_decimal: string;
   readonly longitud_decimal: string;
@@ -65,6 +69,8 @@ export class JornadasService {
     if (contexto === undefined) {
       throw new Error('Sin contexto de sesion. No deberia ocurrir: lo fija el interceptor.');
     }
+
+    await this.exigirTipoJornadaVigente(datos.idTipoJornada);
 
     const unidad = await cliente.query<{ codigo: string }>(
       'SELECT codigo FROM org.unidad WHERE id = $1',
@@ -146,9 +152,20 @@ export class JornadasService {
     }
 
     await cliente.query(
-      `INSERT INTO ai.jornada_apoyo (id_actividad, fecha_ejecucion, lugar, observaciones)
-       VALUES ($1, $2, $3, $4)`,
-      [idActividad, datos.fechaEjecucion, datos.lugar, datos.observaciones ?? null],
+      `INSERT INTO ai.jornada_apoyo (
+         id_actividad, fecha_ejecucion, lugar, observaciones,
+         id_tipo_jornada, participo_ejc, participo_fac, poblacion_afecta_tropa)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
+      [
+        idActividad,
+        datos.fechaEjecucion,
+        datos.lugar,
+        datos.observaciones ?? null,
+        datos.idTipoJornada,
+        datos.participoEjc,
+        datos.participoFac,
+        datos.poblacionAfectaTropa,
+      ],
     );
 
     // R18 — cero a muchos, y la lista vacia es legitima.
@@ -166,6 +183,7 @@ export class JornadasService {
   async actualizar(idActividad: number, datos: ActualizarJornada): Promise<void> {
     const cliente = this.baseDatos.cliente;
     await this.exigirQueExista(idActividad);
+    if (datos.idTipoJornada !== undefined) await this.exigirTipoJornadaVigente(datos.idTipoJornada);
 
     const camposActividad: Record<string, unknown> = {};
     if (datos.descripcion !== undefined) camposActividad['descripcion'] = datos.descripcion;
@@ -195,6 +213,12 @@ export class JornadasService {
     if (datos.fechaEjecucion !== undefined) camposJornada['fecha_ejecucion'] = datos.fechaEjecucion;
     if (datos.lugar !== undefined) camposJornada['lugar'] = datos.lugar;
     if (datos.observaciones !== undefined) camposJornada['observaciones'] = datos.observaciones;
+    if (datos.idTipoJornada !== undefined) camposJornada['id_tipo_jornada'] = datos.idTipoJornada;
+    if (datos.participoEjc !== undefined) camposJornada['participo_ejc'] = datos.participoEjc;
+    if (datos.participoFac !== undefined) camposJornada['participo_fac'] = datos.participoFac;
+    if (datos.poblacionAfectaTropa !== undefined) {
+      camposJornada['poblacion_afecta_tropa'] = datos.poblacionAfectaTropa;
+    }
 
     if (Object.keys(camposJornada).length > 0) {
       const claves = Object.keys(camposJornada);
@@ -331,6 +355,11 @@ export class JornadasService {
       id_municipio: number | null;
       id_departamento: number | null;
       municipio: string | null;
+      id_tipo_jornada: number | null;
+      tipo_jornada: string | null;
+      participo_ejc: boolean | null;
+      participo_fac: boolean | null;
+      poblacion_afecta_tropa: boolean | null;
       latitud_grados: number;
       latitud_minutos: number;
       latitud_segundos: string;
@@ -347,6 +376,8 @@ export class JornadasService {
               a.fecha_inicio::text, a.fecha_fin::text, j.fecha_ejecucion::text,
               j.lugar, j.observaciones, a.id_municipio, m.id_departamento,
               m.nombre AS municipio,
+              j.id_tipo_jornada, tj.nombre AS tipo_jornada,
+              j.participo_ejc, j.participo_fac, j.poblacion_afecta_tropa,
               a.latitud_grados, a.latitud_minutos, a.latitud_segundos::text,
               a.latitud_hemisferio, a.longitud_grados, a.longitud_minutos,
               a.longitud_segundos::text, a.longitud_hemisferio,
@@ -356,6 +387,7 @@ export class JornadasService {
          JOIN ai.jornada_apoyo j ON j.id_actividad = a.id
          JOIN org.unidad u ON u.id = a.id_unidad
          LEFT JOIN ref.municipio m ON m.id = a.id_municipio
+         LEFT JOIN ref.tipo_jornada tj ON tj.id = j.id_tipo_jornada
         WHERE a.id = $1`,
       [idActividad],
     );
@@ -385,6 +417,11 @@ export class JornadasService {
       idMunicipio: fila.id_municipio === null ? null : Number(fila.id_municipio),
       idDepartamento: fila.id_departamento === null ? null : Number(fila.id_departamento),
       municipio: fila.municipio,
+      idTipoJornada: fila.id_tipo_jornada === null ? null : Number(fila.id_tipo_jornada),
+      tipoJornada: fila.tipo_jornada,
+      participoEjc: fila.participo_ejc,
+      participoFac: fila.participo_fac,
+      poblacionAfectaTropa: fila.poblacion_afecta_tropa,
       latitudGrados: Number(fila.latitud_grados),
       latitudMinutos: Number(fila.latitud_minutos),
       latitudSegundos: Number(fila.latitud_segundos),
@@ -540,12 +577,15 @@ export class JornadasService {
     const resultado = await cliente.query<FilaListado>(
       `SELECT a.id, a.codigo_actividad, u.sigla AS unidad, a.descripcion,
               a.fecha_inicio::text, j.fecha_ejecucion::text, j.lugar,
-              m.nombre AS municipio, a.registro_completo,
+              m.nombre AS municipio, tj.nombre AS tipo_jornada,
+              j.participo_ejc, j.participo_fac, j.poblacion_afecta_tropa,
+              a.registro_completo,
               a.latitud_decimal::text, a.longitud_decimal::text
          FROM ai.actividad a
          JOIN ai.jornada_apoyo j ON j.id_actividad = a.id
          JOIN org.unidad u ON u.id = a.id_unidad
          LEFT JOIN ref.municipio m ON m.id = a.id_municipio
+         LEFT JOIN ref.tipo_jornada tj ON tj.id = j.id_tipo_jornada
         WHERE ${donde}
         ORDER BY a.fecha_inicio DESC, a.id DESC
         LIMIT ${filtro.porPagina} OFFSET ${desplazamiento}`,
@@ -564,6 +604,10 @@ export class JornadasService {
         fechaEjecucion: fila.fecha_ejecucion,
         lugar: fila.lugar,
         municipio: fila.municipio,
+        tipoJornada: fila.tipo_jornada,
+        participoEjc: fila.participo_ejc,
+        participoFac: fila.participo_fac,
+        poblacionAfectaTropa: fila.poblacion_afecta_tropa,
         registroCompleto: fila.registro_completo,
         pestanasFaltantes: PESTANAS_ACTIVIDAD.filter((p) => !conDatos.includes(p)),
         latitudDecimal: Number(fila.latitud_decimal),
@@ -572,6 +616,35 @@ export class JornadasService {
     }
 
     return { filas, total: Number(total.rows[0]?.n ?? 0) };
+  }
+
+  /**
+   * El tipo de jornada tiene que existir en `ref.tipo_jornada` y estar
+   * vigente.
+   *
+   * La clave foránea ya impide guardar uno inexistente, pero lo dice como una
+   * violación de restricción que llega al cliente como error interno (500). Y
+   * no impide elegir uno retirado (`activo = FALSE`): una entrada de catálogo
+   * retirada existe por las filas históricas que la citan, no para que se
+   * sigan registrando jornadas con ella.
+   */
+  private async exigirTipoJornadaVigente(idTipoJornada: number): Promise<void> {
+    const r = await this.baseDatos.cliente.query(
+      'SELECT 1 FROM ref.tipo_jornada WHERE id = $1 AND activo',
+      [idTipoJornada],
+    );
+    if (r.rowCount === 0) {
+      throw new BadRequestException({
+        codigo: CODIGOS_ERROR.DATOS_INVALIDOS,
+        mensaje: 'El tipo de jornada no es válido.',
+        detalles: [
+          {
+            campo: 'idTipoJornada',
+            mensaje: 'Elija binacional, conjunta o estratégica.',
+          },
+        ],
+      });
+    }
   }
 
   /**
