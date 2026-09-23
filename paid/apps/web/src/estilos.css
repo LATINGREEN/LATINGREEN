@@ -1,7 +1,9 @@
 /*
  * Hoja de entrada. El orden importa: los tokens primero, porque todo lo demás
- * los lee; la atmósfera al final, porque se apoya en los tokens de color de
- * cada modo de contraste.
+ * los lee.
+ *
+ * Ya no hay «atmósfera» (retícula de carta y resplandores de fondo): era parte
+ * de la paleta nocturna propia, y el Manual del Usuario muestra fondo blanco.
  *
  * A.2.1 — NINGÚN `@import url(...)` a un origen externo, aquí ni en las hojas
  * que se importan. Las fuentes están en `public/fuentes/` y se declaran con
@@ -13,4 +15,3 @@
 @import './estilos/base.css';
 @import './estilos/marco.css';
 @import './estilos/formulario.css';
-@import './estilos/atmosfera.css';

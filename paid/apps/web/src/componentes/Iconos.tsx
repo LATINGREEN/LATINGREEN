@@ -172,3 +172,36 @@ export const Lupa = ({ tamano = 20, className }: Props) => (
     <path d="m16 16 4 4" />
   </svg>
 );
+
+export const Telefono = ({ tamano = 20, className }: Props) => (
+  <svg {...base(tamano, className)}>
+    <path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2" />
+  </svg>
+);
+
+export const Usuario = ({ tamano = 20, className }: Props) => (
+  <svg {...base(tamano, className)}>
+    <circle cx="12" cy="8" r="4" />
+    <path d="M4 21a8 8 0 0 1 16 0" />
+  </svg>
+);
+
+export const Flecha = ({ tamano = 20, className }: Props) => (
+  <svg {...base(tamano, className)}>
+    <path d="m6 9 6 6 6-6" />
+  </svg>
+);
+
+export const Llave = ({ tamano = 20, className }: Props) => (
+  <svg {...base(tamano, className)}>
+    <circle cx="8" cy="15" r="4" />
+    <path d="m10.8 12.2 8.2-8.2M16 7l3 3M14 9l2 2" />
+  </svg>
+);
+
+export const Copiar = ({ tamano = 20, className }: Props) => (
+  <svg {...base(tamano, className)}>
+    <rect x="8" y="8" width="12" height="12" rx="2" />
+    <path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2" />
+  </svg>
+);

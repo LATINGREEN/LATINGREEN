@@ -2,87 +2,99 @@
    PAID — Sistema de diseño
    ═══════════════════════════════════════════════════════════════════════════
 
-   CONCEPTO: carta náutica nocturna.
+   FUENTE: el Manual del Usuario PAID (v2, septiembre de 2022) para la
+   disposición, y el Manual de Identidad Visual de la ARC para la paleta. Las
+   dos cosas las entregó el usuario el 2026-09-23. Hasta entonces esta hoja
+   tenía una paleta propia («carta náutica nocturna», fondo oscuro), que era
+   una propuesta a falta de los manuales: ya no aplica y se retiró.
 
-   El sujeto manda. Esto es la plataforma con la que unidades tácticas de la
-   Armada registran acción integral en costas y ríos de Colombia, y de la que
-   salen los consolidados del RAO. Su vocabulario propio es el de la
-   navegación: grados-minutos-segundos, rumbos, sondas, babor y estribor. La
-   interfaz se viste de ahí, no de un tablero corporativo cualquiera.
-
-   Y tiene un trabajo concreto, que viene de la advertencia final de PROMPT.md:
-   «el defecto característico de este sistema no es que falle: es que parezca
-   funcionar mientras acumula datos que no cuadran». Así que el trabajo de esta
-   interfaz es HACER VISIBLE EL ESTADO: qué pestañas faltan, cuánta cuota
-   queda, si un registro cuenta para el RAO, cuánto le queda a la sesión.
+   Lo que el Manual del Usuario muestra, y esta hoja reproduce:
+   - fondo blanco, cabecera azul con el menú horizontal, una línea dorada
+     debajo, y un pie azul con los datos de la Jefatura;
+   - tablas de fondo claro con encabezado gris;
+   - un recuadro amarillo con «Excel · CSV · Copiar» bajo cada tabla;
+   - un control de contraste y dos de tamaño de letra, en una barra flotante a
+     la derecha.
 
    ── Decisiones que no son de estilo ──────────────────────────────────────
 
-   TIPOGRAFÍA. El cuerpo es Atkinson Hyperlegible, de la Braille Institute,
-   diseñada para maximizar la legibilidad en baja visión distinguiendo formas
-   que otras fuentes confunden. A este sistema le aplican los lineamientos de
-   accesibilidad del MinTIC (Resolución 1519 de 2020), es decir WCAG 2.1 AA:
-   elegir la tipografía diseñada para eso es una decisión sustantiva, no
-   decorativa. El display es Chakra Petch, de trazo escuadrado e instrumental.
+   EL DORADO Y EL GRIS NO SON COLORES DE TEXTO. Sobre blanco, el Dorado Naval
+   da 2,1:1 y el Gris Técnico 2,8:1; WCAG 2.1 AA exige 4,5:1 para texto y 3:1
+   para el borde de un campo. Van en líneas, realces y fondos con texto azul
+   encima (azul sobre dorado da 7,4:1). Para texto secundario y bordes de campo
+   se usan tonos del mismo azul, más claros, que sí cumplen.
 
-   AUTOALOJADAS. Las tres familias están en `public/fuentes/` como woff2
-   (167 KB en total). A.2.1 prohíbe internet en tiempo de ejecución: una
-   `@font-face` remota no falla de forma visible, simplemente cae al tipo del
-   sistema, y el defecto pasa inadvertido hasta que alguien compara la pantalla
-   con el manual.
+   EL VERDE DE «COMPLETO» NO ES DE LA PALETA, y es deliberado. La paleta de la
+   ARC es de identidad, no de estados: no trae un color de «correcto». Quitarlo
+   dejaría «completo» e «incompleto» distinguibles solo por texto, y el listado
+   es la pantalla por la que se decide qué entra al consolidado del RAO. Se usa
+   un verde funcional que cumple 4,5:1, y siempre con icono y texto (WCAG
+   1.4.1). Si el Manual de Identidad fija colores de estado, los reemplazan.
 
-   BABOR Y ESTRIBOR. Rojo para lo incompleto, verde para lo completo, que en
-   convención naval son babor y estribor. Pero el color NUNCA va solo: siempre
-   con icono y con texto. WCAG 1.4.1, y aquí no es formalismo — un consolidado
-   del RAO mal leído por daltonismo es un dato equivocado.
-
-   TRES CONTRASTES Y TRES TAMAÑOS. La Fase 4 los exige («el manual muestra
-   controles de contraste y tamaño de letra»). Se implementan como atributos en
-   la raíz, de modo que cambiar de modo es cambiar tokens y no rediseñar.
+   TIPOGRAFÍA. Oswald para el título de la cabecera (la condensada del
+   manual), Montserrat para títulos y menú (la de títulos de GOV.CO) y Atkinson
+   Hyperlegible para el texto (diseñada para baja visión: Res. MinTIC 1519 de
+   2020). Todas autoalojadas: A.2.1 prohíbe internet en tiempo de ejecución.
    ═══════════════════════════════════════════════════════════════════════════ */
 
 /* ── Tipografía autoalojada ─────────────────────────────────────────────── */
 
 @font-face {
-  font-family: 'Chakra Petch';
+  font-family: 'Oswald';
   font-style: normal;
   font-weight: 500;
   font-display: swap;
-  src: url('/fuentes/chakra-petch-500-latin.woff2') format('woff2');
+  src: url('/fuentes/oswald-500-latin.woff2') format('woff2');
   unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA,
     U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193,
     U+2212, U+2215, U+FEFF, U+FFFD;
 }
 @font-face {
-  font-family: 'Chakra Petch';
+  font-family: 'Oswald';
   font-style: normal;
   font-weight: 500;
   font-display: swap;
-  src: url('/fuentes/chakra-petch-500-latin-ext.woff2') format('woff2');
+  src: url('/fuentes/oswald-500-latin-ext.woff2') format('woff2');
   unicode-range: U+0100-02AF, U+0304, U+0308, U+0329, U+1E00-1E9F, U+1EF2-1EFF,
     U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
 }
 @font-face {
-  font-family: 'Chakra Petch';
+  font-family: 'Montserrat';
   font-style: normal;
   font-weight: 600;
   font-display: swap;
-  src: url('/fuentes/chakra-petch-600-latin.woff2') format('woff2');
+  src: url('/fuentes/montserrat-600-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA,
+    U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193,
+    U+2212, U+2215, U+FEFF, U+FFFD;
 }
 @font-face {
-  font-family: 'Chakra Petch';
+  font-family: 'Montserrat';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url('/fuentes/montserrat-600-latin-ext.woff2') format('woff2');
+  unicode-range: U+0100-02AF, U+0304, U+0308, U+0329, U+1E00-1E9F, U+1EF2-1EFF,
+    U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: 'Montserrat';
   font-style: normal;
   font-weight: 700;
   font-display: swap;
-  src: url('/fuentes/chakra-petch-700-latin.woff2') format('woff2');
+  src: url('/fuentes/montserrat-700-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA,
+    U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193,
+    U+2212, U+2215, U+FEFF, U+FFFD;
 }
 @font-face {
-  font-family: 'Chakra Petch';
+  font-family: 'Montserrat';
   font-style: normal;
   font-weight: 700;
   font-display: swap;
-  src: url('/fuentes/chakra-petch-700-latin-ext.woff2') format('woff2');
-  unicode-range: U+0100-02AF, U+1E00-1E9F, U+1EF2-1EFF, U+2C60-2C7F, U+A720-A7FF;
+  src: url('/fuentes/montserrat-700-latin-ext.woff2') format('woff2');
+  unicode-range: U+0100-02AF, U+0304, U+0308, U+0329, U+1E00-1E9F, U+1EF2-1EFF,
+    U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
 }
 
 @font-face {
@@ -131,25 +143,23 @@
   src: url('/fuentes/ibm-plex-mono-500-latin.woff2') format('woff2');
 }
 
+
 /* ── Tokens ─────────────────────────────────────────────────────────────── */
 
 :root {
-  /* Familias. La pila de reserva existe para el instante antes de que cargue
-     la woff2, no como alternativa: las fuentes están en el propio despliegue. */
-  --tipo-display: 'Chakra Petch', 'Segoe UI Semibold', system-ui, sans-serif;
+  --tipo-titulo-paid: 'Oswald', 'Arial Narrow', sans-serif;
+  --tipo-display: 'Montserrat', 'Segoe UI Semibold', system-ui, sans-serif;
   --tipo-cuerpo: 'Atkinson Hyperlegible', 'Segoe UI', system-ui, sans-serif;
   --tipo-datos: 'IBM Plex Mono', 'Cascadia Mono', ui-monospace, monospace;
 
-  /* Escala fluida. `clamp()` en lugar de saltos por breakpoint. */
   --t-3xl: clamp(2rem, 1.3rem + 2.6vw, 3.1rem);
-  --t-2xl: clamp(1.5rem, 1.15rem + 1.3vw, 2.1rem);
-  --t-xl: clamp(1.2rem, 1.05rem + 0.6vw, 1.5rem);
+  --t-2xl: clamp(1.4rem, 1.15rem + 1vw, 1.9rem);
+  --t-xl: clamp(1.15rem, 1.05rem + 0.5vw, 1.4rem);
   --t-lg: 1.0625rem;
   --t-md: 0.9375rem;
   --t-sm: 0.8125rem;
   --t-xs: 0.75rem;
 
-  /* Espaciado en una escala, no a ojo. */
   --e-1: 0.25rem;
   --e-2: 0.5rem;
   --e-3: 0.75rem;
@@ -159,91 +169,74 @@
   --e-7: 3rem;
   --e-8: 4rem;
 
-  --radio-sm: 6px;
-  --radio-md: 10px;
-  --radio-lg: 16px;
-  --radio-xl: 22px;
+  /* Radios moderados: el manual muestra la estética de Bootstrap, no
+     tarjetas redondeadas. */
+  --radio-sm: 4px;
+  --radio-md: 6px;
+  --radio-lg: 8px;
+  --radio-xl: 12px;
   --radio-pleno: 999px;
 
-  /* Movimiento. Una sola curva, para que todo se mueva igual. */
   --curva: cubic-bezier(0.22, 1, 0.36, 1);
   --rapido: 140ms;
-  --medio: 260ms;
-  --lento: 520ms;
+  --medio: 240ms;
+  --lento: 480ms;
 
-  --riel: 16.5rem;
-  --barra: 3.75rem;
+  --ancho-contenido: 82rem;
 
-  color-scheme: dark;
+  /* ── Paleta del Manual de Identidad Visual de la ARC ──────────────────── */
+  --arc-azul: #00205b;      /* Azul Armada · Pantone 281 C */
+  --arc-dorado: #d4af37;    /* Dorado Naval · Pantone 871 C */
+  --arc-rojo: #c8102e;      /* Rojo Bandera · Pantone 186 C */
+  --arc-blanco: #ffffff;    /* Blanco Naval */
+  --arc-gris: #97999b;      /* Gris Técnico · Cool Gray 7 C */
+  /* El azul del pie y de la barra GOV.CO: es el de la plantilla de GOV.CO que
+     muestra el Manual del Usuario, no de la paleta de la ARC. */
+  --govco-azul: #3366cc;
 }
 
-/* ── Modo por omisión: carta náutica nocturna ───────────────────────────── */
+/* ── Modo institucional (el del manual) ──────────────────────────────────── */
 
 :root,
-:root[data-contraste='normal'] {
-  --abismo: #050b14;
-  --casco: #0b1626;
-  --casco-alto: #122439;
-  --casco-hundido: #07101c;
-  --linea: #1d3350;
-  --linea-viva: #2b4a70;
+:root[data-contraste='institucional'] {
+  --abismo: #f3f5f9;        /* fondo de la página */
+  --casco: #ffffff;         /* tarjetas y paneles */
+  --casco-alto: #eef1f6;    /* encabezados de tabla, pestañas inactivas */
+  --casco-hundido: #ffffff; /* campos */
+  --linea: #dde2ea;         /* divisorias: decorativas, no necesitan 3:1 */
+  --linea-viva: #6b7a90;    /* borde de campo: 4,4:1 sobre blanco (WCAG 1.4.11 pide 3:1) */
 
-  --arena: #e9eef7;
-  --bruma: #93a7c2;
-  --bruma-honda: #6d82a0;
+  --arena: #0b1b33;         /* texto principal: 17:1 */
+  --bruma: #4a5a72;         /* texto secundario: 7:1 */
+  --bruma-honda: #5c6b82;   /* textos de apoyo y marcadores: 5,4:1 */
 
-  /* Acento dominante: azul de señal. Sobre --abismo da 7.4:1. */
-  --estela: #4da3ff;
-  --estela-honda: #1d6fd0;
-  /* Estribor es verde; babor, rojo. Convención naval, y significado real. */
-  --estribor: #3ddc9a;
-  --babor: #ff6f5e;
-  --sonda: #f5c451;
+  --estela: var(--arc-azul);      /* acento: botones, enlaces, foco */
+  --estela-honda: #1a3f86;
+  --sobre-estela: #ffffff;        /* texto sobre el acento */
+  --estribor: #1e7b4a;            /* «completo»: funcional, 5,3:1 */
+  --babor: var(--arc-rojo);       /* «incompleto», alertas: 5,9:1 */
+  --sonda: #8a5f00;               /* advertencia en texto: 5,6:1 */
+  --realce: var(--arc-dorado);    /* líneas y realces, NUNCA texto */
 
-  --sombra-baja: 0 1px 2px rgb(0 0 0 / 0.5);
-  --sombra-media: 0 8px 24px -8px rgb(0 0 0 / 0.65);
-  --sombra-honda: 0 24px 60px -20px rgb(0 0 0 / 0.8);
-  --vidrio: rgb(255 255 255 / 0.04);
-  --vidrio-borde: rgb(255 255 255 / 0.09);
-  --reflejo: inset 0 1px 0 rgb(255 255 255 / 0.06);
-}
-
-/* ── Modo claro ─────────────────────────────────────────────────────────── */
-
-:root[data-contraste='claro'] {
-  --abismo: #eef3f9;
-  --casco: #ffffff;
-  --casco-alto: #ffffff;
-  --casco-hundido: #e3ebf4;
-  --linea: #ccd8e6;
-  --linea-viva: #a9bdd3;
-
-  --arena: #071322;
-  --bruma: #47607d;
-  --bruma-honda: #5d7593;
-
-  --estela: #00539f;
-  --estela-honda: #003a70;
-  --estribor: #0c6b45;
-  --babor: #a92218;
-  --sonda: #7a5300;
+  --cabecera: var(--arc-azul);
+  --sobre-cabecera: #ffffff;
+  --pie: var(--govco-azul);
 
   --sombra-baja: 0 1px 2px rgb(11 32 58 / 0.08);
-  --sombra-media: 0 8px 24px -10px rgb(11 32 58 / 0.18);
-  --sombra-honda: 0 24px 56px -22px rgb(11 32 58 / 0.26);
-  --vidrio: rgb(255 255 255 / 0.7);
-  --vidrio-borde: rgb(11 32 58 / 0.1);
+  --sombra-media: 0 2px 8px -2px rgb(11 32 58 / 0.14);
+  --sombra-honda: 0 16px 40px -18px rgb(11 32 58 / 0.3);
+  --vidrio: rgb(0 32 91 / 0.04);
+  --vidrio-borde: rgb(0 32 91 / 0.12);
   --reflejo: inset 0 1px 0 rgb(255 255 255 / 0.9);
 
   color-scheme: light;
 }
 
 /* ── Modo alto contraste ────────────────────────────────────────────────────
-   Aquí SÍ se usan negro y blanco puros, y es deliberado. La regla estética de
-   no usarlos existe para que una interfaz no quede plana; este modo no es
-   estético: es para quien no distingue matices. Maximizar el contraste es
-   exactamente su función. Los bordes se hacen sólidos y anchos porque en alto
-   contraste la separación no puede depender de una sombra. */
+   Aquí SÍ negro y blanco puros, y sin colores de marca: este modo existe para
+   quien no distingue matices, y maximizar el contraste es su función. Los
+   bordes se hacen sólidos y anchos porque la separación no puede depender de
+   una sombra. */
 
 :root[data-contraste='alto'] {
   --abismo: #000000;
@@ -257,11 +250,17 @@
   --bruma: #ffffff;
   --bruma-honda: #e8e8e8;
 
-  --estela: #63b8ff;
-  --estela-honda: #63b8ff;
+  --estela: #ffd75f;
+  --estela-honda: #ffd75f;
+  --sobre-estela: #000000;
   --estribor: #4ff0a8;
   --babor: #ff9a8c;
   --sonda: #ffd75f;
+  --realce: #ffd75f;
+
+  --cabecera: #000000;
+  --sobre-cabecera: #ffffff;
+  --pie: #000000;
 
   --sombra-baja: none;
   --sombra-media: none;
@@ -280,9 +279,8 @@
 }
 
 /* ── Tamaño de letra ────────────────────────────────────────────────────────
-   Se cambia el `font-size` de la raíz, y como TODAS las medidas del sistema
-   están en `rem`, la interfaz entera escala: texto, espaciado y controles.
-   Si hubiera píxeles sueltos, subir la letra rompería el layout. */
+   Se cambia el `font-size` de la raíz, y como TODAS las medidas están en
+   `rem`, la interfaz entera escala. Son los botones «A−» y «A+» del manual. */
 
 :root[data-letra='normal'] { font-size: 100%; }
 :root[data-letra='grande'] { font-size: 112.5%; }

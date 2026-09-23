@@ -20,15 +20,20 @@ import type { ReactNode } from 'react';
  * con los valores por omisión.
  */
 
-export const CONTRASTES = ['normal', 'claro', 'alto'] as const;
+/*
+ * Dos modos, los del manual: el institucional y el de alto contraste. El
+ * manual muestra un único botón de contraste que alterna entre los dos. Hubo
+ * un tercero, «carta nocturna», con una paleta oscura propia: era una
+ * propuesta a falta del manual y se retiró al recibirlo.
+ */
+export const CONTRASTES = ['institucional', 'alto'] as const;
 export const LETRAS = ['normal', 'grande', 'mayor'] as const;
 
 export type Contraste = (typeof CONTRASTES)[number];
 export type Letra = (typeof LETRAS)[number];
 
 export const ETIQUETA_CONTRASTE: Record<Contraste, string> = {
-  normal: 'Carta nocturna',
-  claro: 'Claro',
+  institucional: 'Institucional',
   alto: 'Alto contraste',
 };
 
@@ -51,18 +56,18 @@ const CLAVE = 'paid.accesibilidad';
 function leerGuardado(): { contraste: Contraste; letra: Letra } {
   try {
     const crudo = window.localStorage.getItem(CLAVE);
-    if (crudo === null) return { contraste: 'normal', letra: 'normal' };
+    if (crudo === null) return { contraste: 'institucional', letra: 'normal' };
     const datos = JSON.parse(crudo) as { contraste?: string; letra?: string };
     return {
       contraste: (CONTRASTES as readonly string[]).includes(datos.contraste ?? '')
         ? (datos.contraste as Contraste)
-        : 'normal',
+        : 'institucional',
       letra: (LETRAS as readonly string[]).includes(datos.letra ?? '')
         ? (datos.letra as Letra)
         : 'normal',
     };
   } catch {
-    return { contraste: 'normal', letra: 'normal' };
+    return { contraste: 'institucional', letra: 'normal' };
   }
 }
 
