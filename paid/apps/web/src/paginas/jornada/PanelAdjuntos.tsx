@@ -3,6 +3,7 @@ import { useMutation, useQuery } from '@tanstack/react-query';
 import {
   EXTENSIONES_POR_CATEGORIA,
   FASES_DOCUMENTALES,
+  SOPORTES_POR_FASE_JORNADA,
   extensionDe,
   extensionPermitida,
   formatearBytes,
@@ -12,7 +13,7 @@ import type { AdjuntoEnListado, EstadoCuota } from '@paid/schema';
 import { ErrorApi, api, descargarArchivo } from '../../api/cliente';
 import { useAnuncio } from '../../api/accesibilidad';
 import { MedidorCuota } from '../../componentes/MedidorCuota';
-import { Adjuntar, Alerta, Cruz, Descargar, Info, Marca } from '../../componentes/Iconos';
+import { Adjuntar, Alerta, Cruz, Descargar, Info } from '../../componentes/Iconos';
 
 /**
  * Archivos adjuntos: R11 y R12 en pantalla.
@@ -35,6 +36,13 @@ import { Adjuntar, Alerta, Cruz, Descargar, Info, Marca } from '../../componente
  */
 
 const EXTENSIONES = Object.values(EXTENSIONES_POR_CATEGORIA).flat();
+
+const CATEGORIAS = [
+  { categoria: 'IMAGEN', titulo: 'Imágenes' },
+  { categoria: 'DOCUMENTO', titulo: 'Documentos' },
+  { categoria: 'AUDIO', titulo: 'Audios' },
+  { categoria: 'VIDEO', titulo: 'Videos' },
+] as const;
 
 export function PanelAdjuntos({
   idJornada,
@@ -126,73 +134,120 @@ export function PanelAdjuntos({
   });
 
   const lista = adjuntos.data ?? [];
+  const sinSoportes = adjuntos.isSuccess && lista.length === 0;
 
   return (
     <>
       {cuota !== undefined && <MedidorCuota cuota={cuota} />}
 
-      {lista.length > 0 ? (
-        <ul className="adjuntos-lista" aria-label="Soportes adjuntados">
-          {lista.map((a) => (
-            <li key={a.id} className="adjuntos-fila">
-              <Marca tamano={16} />
-              <div className="crecer">
-                <span className="adjuntos-nombre">{a.nombreArchivo}</span>
-                <span className="adjuntos-meta">
-                  {a.categoria} · {formatearBytes(a.pesoBytes)} · Fase {a.faseDocumental} ·{' '}
-                  {formatearFechaDdMmAaaa(a.cargadoEn)}
-                </span>
-              </div>
-              <button
-                type="button"
-                className="boton boton-fantasma boton-chico"
-                onClick={() => descargar.mutate(a)}
-                aria-label={`Descargar ${a.nombreArchivo}`}
-              >
-                <Descargar tamano={15} /> Descargar
-              </button>
-              {puedeCargar &&
-                (aQuitar === a.id ? (
-                  <span className="fila">
-                    <button
-                      type="button"
-                      className="boton boton-peligro boton-chico"
-                      disabled={quitar.isPending}
-                      onClick={() => quitar.mutate(a.id)}
-                    >
-                      Quitar
-                    </button>
-                    <button
-                      type="button"
-                      className="boton boton-fantasma boton-chico"
-                      onClick={() => setAQuitar(null)}
-                    >
-                      No
-                    </button>
-                  </span>
+      {/* El aviso del manual (lámina 22), con sus palabras. */}
+      <div className="aviso aviso-info">
+        <span className="aviso-icono"><Info tamano={17} /></span>
+        <p>
+          Existe restricción en el tamaño de los archivos: solo se permite un máximo de{' '}
+          <strong>10 MB</strong>. Si sube varios, la suma del tamaño de todos no debe
+          superar este valor.
+        </p>
+      </div>
+
+      {sinSoportes && (
+        <div className="aviso aviso-ojo">
+          <span className="aviso-icono"><Alerta tamano={17} /></span>
+          <p>
+            Sin soportes todavía. Mientras falte, la jornada <strong>no</strong> entra en
+            los consolidados del RAO.
+          </p>
+        </div>
+      )}
+
+      {/*
+       * Los soportes, agrupados por tipo como en el manual: imágenes,
+       * documentos, audios y videos, cada grupo con sus formatos permitidos.
+       */}
+      {adjuntos.isSuccess && (
+        <div className="adjuntos-grupos">
+          {CATEGORIAS.map(({ categoria, titulo }) => {
+            const delGrupo = lista.filter((a) => a.categoria.toUpperCase() === categoria);
+            const formatos = EXTENSIONES_POR_CATEGORIA[categoria].join(', ');
+            return (
+              <section key={categoria} className="adjuntos-grupo" aria-label={titulo}>
+                <h3 className="adjuntos-grupo-titulo">
+                  {titulo} <span className="adjuntos-formatos">({formatos})</span>
+                </h3>
+                {delGrupo.length === 0 ? (
+                  <p className="adjuntos-vacio">No hay archivos cargados previamente.</p>
                 ) : (
-                  <button
-                    type="button"
-                    className="boton boton-fantasma boton-chico"
-                    onClick={() => setAQuitar(a.id)}
-                    aria-label={`Quitar ${a.nombreArchivo}`}
-                  >
-                    <Cruz tamano={15} /> Quitar
-                  </button>
-                ))}
-            </li>
-          ))}
-        </ul>
-      ) : (
-        adjuntos.isSuccess && (
-          <div className="aviso aviso-ojo">
-            <span className="aviso-icono"><Info tamano={17} /></span>
-            <p>
-              Sin soportes todavía. Mientras falte, la jornada <strong>no</strong> entra en
-              los consolidados del RAO.
-            </p>
-          </div>
-        )
+                  <div className="tabla-envoltura">
+                    <table className="tabla tabla-compacta">
+                      <thead>
+                        <tr>
+                          <th scope="col">Nombre</th>
+                          <th scope="col">Fase</th>
+                          <th scope="col">Fecha de cargue</th>
+                          <th scope="col" className="num">Peso</th>
+                          <th scope="col">
+                            <span className="solo-lectores">Acciones</span>
+                          </th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {delGrupo.map((a) => (
+                          <tr key={a.id}>
+                            <td className="adjuntos-nombre">{a.nombreArchivo}</td>
+                            <td>Fase {a.faseDocumental}</td>
+                            <td className="datos">{formatearFechaDdMmAaaa(a.cargadoEn)}</td>
+                            <td className="num datos">{formatearBytes(a.pesoBytes)}</td>
+                            <td className="celda-acciones">
+                              <span className="fila">
+                                <button
+                                  type="button"
+                                  className="boton boton-fantasma boton-chico"
+                                  onClick={() => descargar.mutate(a)}
+                                  aria-label={`Descargar ${a.nombreArchivo}`}
+                                >
+                                  <Descargar tamano={15} /> Descargar
+                                </button>
+                                {puedeCargar &&
+                                  (aQuitar === a.id ? (
+                                    <>
+                                      <button
+                                        type="button"
+                                        className="boton boton-peligro boton-chico"
+                                        disabled={quitar.isPending}
+                                        onClick={() => quitar.mutate(a.id)}
+                                      >
+                                        Eliminar
+                                      </button>
+                                      <button
+                                        type="button"
+                                        className="boton boton-fantasma boton-chico"
+                                        onClick={() => setAQuitar(null)}
+                                      >
+                                        No
+                                      </button>
+                                    </>
+                                  ) : (
+                                    <button
+                                      type="button"
+                                      className="boton boton-fantasma boton-chico"
+                                      onClick={() => setAQuitar(a.id)}
+                                      aria-label={`Eliminar ${a.nombreArchivo}`}
+                                    >
+                                      <Cruz tamano={15} /> Eliminar
+                                    </button>
+                                  ))}
+                              </span>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </section>
+            );
+          })}
+        </div>
       )}
 
       {error !== null && (
@@ -258,7 +313,12 @@ export function PanelAdjuntos({
                 </option>
               ))}
             </select>
-            <p className="ayuda">TODO(JACID) Q7: significado de cada fase por confirmar.</p>
+            {/* Q7, respondida por el manual (lámina 22): qué va en cada fase. */}
+            <p className="ayuda" aria-live="polite">
+              {fase === ''
+                ? 'Fase 1: diagnóstico · Fase 2: entidades · Fase 3: ejecución y evidencias.'
+                : SOPORTES_POR_FASE_JORNADA[Number(fase) as 1 | 2 | 3]}
+            </p>
           </div>
 
           <button

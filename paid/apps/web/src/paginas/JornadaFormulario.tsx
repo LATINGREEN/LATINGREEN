@@ -195,6 +195,43 @@ function JornadaExistente({ idJornada }: { readonly idJornada: number }): JSX.El
           ))}
       </div>
 
+      <Link to="/jornadas" className="volver">
+        ← Jornadas de apoyo
+      </Link>
+
+      {/*
+       * La franja de datos del manual (lámina 22): código, unidad y fechas en
+       * recuadros de color. Se añade el estado de las once pestañas con la
+       * rosa, que es lo que la persona necesita saber al abrir la jornada.
+       */}
+      {d !== undefined && (
+        <dl className="franja-datos">
+          <div className="franja-caja franja-azul">
+            <dt>Código jornada de apoyo al desarrollo</dt>
+            <dd className="datos">{d.codigoActividad}</dd>
+          </div>
+          <div className="franja-caja franja-verde">
+            <dt>Unidad</dt>
+            <dd>{d.unidad}</dd>
+          </div>
+          <div className="franja-caja franja-gris">
+            <dt>Fecha de inicio</dt>
+            <dd className="datos">{formatearFechaDdMmAaaa(d.fechaInicio)}</dd>
+          </div>
+          <div className="franja-caja franja-amarilla">
+            <dt>Fecha de ejecución</dt>
+            <dd className="datos">{formatearFechaDdMmAaaa(d.fechaEjecucion)}</dd>
+          </div>
+          <div className="franja-caja franja-estado">
+            <dt>Pestañas</dt>
+            <dd className="fila">
+              <RosaPestanas completas={completas} />
+              <span>{completas.length} de 11</span>
+            </dd>
+          </div>
+        </dl>
+      )}
+
       <Pasos actual={estado.data?.registroCompleto === true ? 3 : 2} />
 
       {estado.data?.registroCompleto === true && (
@@ -280,52 +317,67 @@ function JornadaExistente({ idJornada }: { readonly idJornada: number }): JSX.El
         />
       )}
 
-      {/* ── Las once pestañas ───────────────────────────────────────────── */}
+      {/* ── Las pestañas, en fila como en el manual (lámina 22) ───────── */}
       {!editando && (
         <div className="pestanas">
-          <nav className="pestanas-rosa" aria-label="Pestañas de la jornada">
-            <RosaPestanas
-              completas={completas}
-              tamano="grande"
-              pestanaActiva={activa}
-              onElegir={irA}
-            />
-            <ul className="pestanas-lista">
-              {PESTANAS_ACTIVIDAD.map((pestana, indice) => {
-                const lista = completas.includes(pestana);
-                return (
-                  <li key={pestana}>
-                    <button
-                      type="button"
-                      className={`pestanas-enlace ${activa === pestana ? 'es-activa' : ''}`}
-                      /* Las pruebas navegan por este atributo y no por el
-                         rótulo, que es texto para personas y puede cambiar. */
-                      data-pestana={pestana}
-                      onClick={() => irA(pestana)}
-                      aria-current={activa === pestana ? 'step' : undefined}
-                    >
-                      <span
-                        className={`pestanas-marca ${lista ? 'es-lista' : ''}`}
-                        aria-hidden="true"
-                      >
-                        {lista ? null : <span className="pestanas-numero">{indice + 1}</span>}
-                      </span>
-                      <span>{ETIQUETA_PESTANA[pestana]}</span>
-                      <span className="solo-lectores">
-                        {lista ? '. Con datos.' : '. Sin datos.'}
-                      </span>
-                    </button>
-                  </li>
-                );
-              })}
-            </ul>
-          </nav>
+          {/*
+           * Pestañas de WAI-ARIA de verdad: `role="tablist"`, flechas izquierda
+           * y derecha, Inicio y Fin, y una sola parada de tabulación para toda
+           * la fila (la pestaña activa). Once pestañas con once paradas harían
+           * que llegar al formulario costara doce pulsaciones de Tab.
+           */}
+          <div
+            className="pestanas-fila"
+            role="tablist"
+            aria-label="Pestañas de la jornada"
+            onKeyDown={(e) => {
+              const orden = PESTANAS_ACTIVIDAD;
+              const actual = orden.indexOf(activa);
+              let destino: number | null = null;
+              if (e.key === 'ArrowRight') destino = (actual + 1) % orden.length;
+              if (e.key === 'ArrowLeft') destino = (actual - 1 + orden.length) % orden.length;
+              if (e.key === 'Home') destino = 0;
+              if (e.key === 'End') destino = orden.length - 1;
+              if (destino === null) return;
+              e.preventDefault();
+              const siguiente = orden[destino];
+              if (siguiente === undefined) return;
+              setPestanaActiva(siguiente);
+              window.setTimeout(() => document.getElementById(`pestana-${siguiente}`)?.focus(), 0);
+            }}
+          >
+            {PESTANAS_ACTIVIDAD.map((pestana) => {
+              const lista = completas.includes(pestana);
+              const seleccionada = activa === pestana;
+              return (
+                <button
+                  key={pestana}
+                  type="button"
+                  role="tab"
+                  id={`pestana-${pestana}`}
+                  aria-selected={seleccionada}
+                  aria-controls="panel-pestana"
+                  tabIndex={seleccionada ? 0 : -1}
+                  className={`pestanas-enlace ${seleccionada ? 'es-activa' : ''} ${lista ? 'es-lista' : 'es-pendiente'}`}
+                  /* Las pruebas navegan por este atributo y no por el rótulo,
+                     que es texto para personas y puede cambiar. */
+                  data-pestana={pestana}
+                  onClick={() => setPestanaActiva(pestana)}
+                >
+                  <span className={`pestanas-marca ${lista ? 'es-lista' : ''}`} aria-hidden="true" />
+                  <span>{ETIQUETA_PESTANA[pestana]}</span>
+                  <span className="solo-lectores">{lista ? ', con datos' : ', sin datos'}</span>
+                </button>
+              );
+            })}
+          </div>
 
           <section
             className="pestanas-panel tarjeta"
             id="panel-pestana"
+            role="tabpanel"
             tabIndex={-1}
-            aria-labelledby="titulo-pestana"
+            aria-labelledby={`pestana-${activa}`}
             key={activa}
           >
             <div className="fila-sep">

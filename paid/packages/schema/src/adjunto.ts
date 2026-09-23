@@ -91,6 +91,25 @@ export function mimeCoincideConExtension(extension: string, mimeReal: string): b
  * obligatoria por tramo de la escala de R10. Ver PREGUNTAS-JACID.md, Q7.
  */
 export const FASES_DOCUMENTALES = [1, 2, 3] as const;
+
+/**
+ * Q7, RESPONDIDA por el Manual del Usuario PAID (lámina 22): qué soportes van
+ * en cada fase documental de una JORNADA DE APOYO.
+ *
+ * Es propio de las jornadas. El mismo manual define otros soportes para las
+ * asistencias humanitarias (directa o indirecta, lámina 27) y los asocia a los
+ * tramos de avance en los proyectos (lámina 42): cuando esos módulos existan,
+ * llevarán su propia tabla y no esta.
+ */
+export const SOPORTES_POR_FASE_JORNADA: Readonly<Record<(typeof FASES_DOCUMENTALES)[number], string>> = {
+  1: 'Acta de reunión y planilla de asistencia de la comunidad (diagnóstico).',
+  2: 'Oficios a las entidades participantes y acta de reunión con las entidades.',
+  3:
+    'Verificación ReTHUS o tarjeta profesional del personal de salud, evidencias de ' +
+    'donaciones (facturas, informe o actas de entrega), formatos SVE de caracterización ' +
+    'y de revista, encuesta de satisfacción, informe final JAD, material fotográfico, ' +
+    'videos si aplica y formato de impacto COGFM.',
+};
 export type FaseDocumental = (typeof FASES_DOCUMENTALES)[number];
 
 export const adjuntoPropuesto = z.object({

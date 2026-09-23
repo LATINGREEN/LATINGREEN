@@ -8,7 +8,7 @@ import { useSesion } from '../api/sesion';
 import { useAnuncio } from '../api/accesibilidad';
 import { RosaPestanas } from '../componentes/RosaPestanas';
 import { TablaEnvoltura } from '../componentes/TablaEnvoltura';
-import { Alerta, Descargar, Lupa, Mas } from '../componentes/Iconos';
+import { Alerta, Copiar, Descargar, Lupa, Mas } from '../componentes/Iconos';
 
 /**
  * Listado de Jornadas de Apoyo.
@@ -42,19 +42,46 @@ export function Jornadas(): JSX.Element {
     },
   });
 
+  /*
+   * «Excel · CSV · Copiar», el recuadro amarillo del manual.
+   *
+   * ⚠️ «Copiar» también pasa por el servidor. Podría copiarse la tabla que se
+   * ve en pantalla sin preguntarle a nadie, pero entonces sería una forma de
+   * sacar el consolidado sin que quedara en `aud.exportacion`, y cada
+   * exportación tiene que quedar registrada. Se pide el CSV —que sí se
+   * registra— y se copia su texto.
+   */
   const exportar = useMutation({
-    mutationFn: async (formato: 'xlsx' | 'csv') => {
+    mutationFn: async (formato: 'xlsx' | 'csv' | 'copiar') => {
       const parametros = new URLSearchParams({ porPagina: '500', pagina: '1' });
       if (busqueda !== '') parametros.set('texto', busqueda);
       if (soloCompletas) parametros.set('soloCompletas', 'true');
+      const ruta = formato === 'copiar' ? 'csv' : formato;
       const contenido = await api.descargar(
-        `/jornadas/exportacion/${formato}?${parametros.toString()}`,
+        `/jornadas/exportacion/${ruta}?${parametros.toString()}`,
       );
+      if (formato === 'copiar') {
+        // Sin el BOM: pegado en una celda, aparecería como un carácter raro.
+        const texto = (await contenido.text()).replace(/^\uFEFF/u, '');
+        // El portapapeles solo existe en un origen seguro (https). La PAID se
+        // sirve por https según su manual; si no, se dice en lugar de fallar
+        // en silencio.
+        if (!('clipboard' in navigator)) {
+          throw new Error('Este navegador no permite copiar desde aquí. Use CSV o Excel.');
+        }
+        await navigator.clipboard.writeText(texto);
+        return formato;
+      }
       const marca = new Date().toISOString().slice(0, 10);
       descargarArchivo(contenido, `jornadas-${marca}.${formato}`);
       return formato;
     },
-    onSuccess: (formato) => anunciar(`Exportación ${formato.toUpperCase()} descargada.`),
+    onSuccess: (formato) =>
+      anunciar(
+        formato === 'copiar'
+          ? 'Tabla copiada al portapapeles.'
+          : `Exportación ${formato.toUpperCase()} descargada.`,
+      ),
   });
 
   const filas = listado.data?.filas ?? [];
@@ -68,7 +95,9 @@ export function Jornadas(): JSX.Element {
           <p className="pagina-descripcion">
             Cada jornada exige <strong>once pestañas</strong> diligenciadas. La rosa de
             cada fila muestra cuántas tienen datos; solo las completas entran en los
-            consolidados del RAO.
+            consolidados del RAO. Las campañas de apoyo al desarrollo se registran aquí,
+            divididas en jornadas, citando en la descripción la campaña a la que
+            pertenecen.
           </p>
         </div>
         {puede('JORNADA.CREAR') && (
@@ -119,32 +148,6 @@ export function Jornadas(): JSX.Element {
           <p className="ayuda">Es el filtro que usan los consolidados del RAO.</p>
         </div>
 
-        {puede('EXPORTACION.GENERAR') && (
-          <div className="campo">
-            <span className="campo-rotulo-falso">Exportar</span>
-            <div className="fila">
-              <button
-                type="button"
-                className="boton boton-secundario"
-                disabled={exportar.isPending}
-                onClick={() => exportar.mutate('xlsx')}
-              >
-                <Descargar tamano={17} />
-                XLSX
-              </button>
-              <button
-                type="button"
-                className="boton boton-secundario"
-                disabled={exportar.isPending}
-                onClick={() => exportar.mutate('csv')}
-              >
-                <Descargar tamano={17} />
-                CSV
-              </button>
-            </div>
-            <p className="ayuda">Cada exportación queda registrada.</p>
-          </div>
-        )}
       </div>
 
       {listado.isError && (
@@ -268,6 +271,43 @@ export function Jornadas(): JSX.Element {
               </tbody>
             </table>
           </TablaEnvoltura>
+
+          {puede('EXPORTACION.GENERAR') && (
+            <div className="recuadro-exportar" role="group" aria-label="Exportar la tabla">
+              <button
+                type="button"
+                className="boton-exportar"
+                disabled={exportar.isPending}
+                onClick={() => exportar.mutate('xlsx')}
+              >
+                <Descargar tamano={15} /> Excel
+              </button>
+              <button
+                type="button"
+                className="boton-exportar"
+                disabled={exportar.isPending}
+                onClick={() => exportar.mutate('csv')}
+              >
+                <Descargar tamano={15} /> CSV
+              </button>
+              <button
+                type="button"
+                className="boton-exportar"
+                disabled={exportar.isPending}
+                onClick={() => exportar.mutate('copiar')}
+              >
+                <Copiar tamano={15} /> Copiar
+              </button>
+              <span className="recuadro-exportar-nota">
+                {exportar.isError
+                  ? `${exportar.error instanceof Error ? exportar.error.message : 'No se pudo exportar.'} `
+                  : exportar.isSuccess && exportar.data === 'copiar'
+                    ? 'Copiada. '
+                    : ''}
+                Cada exportación queda registrada.
+              </span>
+            </div>
+          )}
         </>
       )}
     </>

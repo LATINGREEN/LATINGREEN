@@ -103,86 +103,63 @@
 .coami-sigla { font-family: var(--tipo-display); font-weight: 700; letter-spacing: 0.04em; }
 .coami-nombre { font-size: var(--t-xs); color: var(--bruma); }
 
-/* ── Las once pestañas ──────────────────────────────────────────────────────
-   Rosa a la izquierda como navegador, lista vertical debajo, panel a la
-   derecha. La lista existe además de la rosa y no en su lugar: la rosa dice
-   CUÁNTAS faltan de un vistazo, la lista dice CUÁLES. Un gráfico no es un
-   navegador accesible por sí solo. */
+/* ── Las once pestañas, en fila como en el manual (lámina 22) ────────────── */
 
-.pestanas {
-  display: grid;
-  grid-template-columns: minmax(15rem, 17rem) 1fr;
-  gap: var(--e-5);
-  align-items: start;
-  margin-top: var(--e-5);
-}
+.pestanas { display: flex; flex-direction: column; margin-top: var(--e-4); }
 
-.pestanas-rosa {
-  position: sticky;
-  top: calc(var(--barra) + var(--e-4));
+.pestanas-fila {
   display: flex;
-  flex-direction: column;
-  gap: var(--e-4);
-  padding: var(--e-4);
-  border: 1px solid var(--linea);
-  border-radius: var(--radio-lg);
-  background: var(--vidrio);
-  backdrop-filter: blur(18px) saturate(140%);
-  box-shadow: var(--sombra-media), var(--reflejo);
+  flex-wrap: wrap;
+  gap: 2px;
+  border-bottom: 2px solid var(--estela);
 }
-.pestanas-rosa > .rosa { align-self: center; }
-
-.pestanas-lista { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 1px; }
 .pestanas-enlace {
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  gap: var(--e-3);
-  width: 100%;
-  min-height: 2.5rem;
+  gap: var(--e-2);
+  min-height: 2.75rem;
   padding: var(--e-2) var(--e-3);
-  border: 1px solid transparent;
-  border-radius: var(--radio-md);
-  background: transparent;
+  border: 1px solid var(--linea);
+  border-bottom: none;
+  border-radius: var(--radio-md) var(--radio-md) 0 0;
+  background: var(--casco-alto);
   color: var(--bruma);
   font-family: var(--tipo-cuerpo);
   font-size: var(--t-sm);
-  text-align: left;
   cursor: pointer;
-  transition: color var(--rapido) var(--curva), background var(--rapido) var(--curva),
-    border-color var(--rapido) var(--curva);
+  transition: color var(--rapido) var(--curva), background var(--rapido) var(--curva);
 }
-.pestanas-enlace:hover { color: var(--arena); background: var(--vidrio); }
+.pestanas-enlace:hover { color: var(--arena); background: var(--casco); }
 .pestanas-enlace.es-activa {
-  color: var(--arena);
-  background: color-mix(in oklch, var(--estela) 14%, transparent);
+  background: var(--estela);
   border-color: var(--estela);
+  color: var(--sobre-estela);
   font-weight: 700;
 }
+.pestanas-enlace:focus-visible { outline-offset: -3px; }
 
-/* La marca de estado. Círculo hueco = falta; relleno con visto = lista. La
-   forma cambia además del color: en escala de grises siguen distinguiéndose. */
+/* La marca de estado: punto rojo = falta, visto verde = tiene datos. La forma
+   cambia además del color: en escala de grises se siguen distinguiendo. */
 .pestanas-marca {
-  display: grid;
+  display: inline-grid;
   place-items: center;
-  width: 1.05rem;
-  height: 1.05rem;
+  width: 0.95rem;
+  height: 0.95rem;
   flex-shrink: 0;
   border-radius: var(--radio-pleno);
-  border: 2px solid var(--linea-viva);
-  transition: border-color var(--medio) var(--curva), background var(--medio) var(--curva);
+  border: 2px solid var(--babor);
+  background: transparent;
 }
-.pestanas-marca.es-lista {
-  border-color: var(--estribor);
-  background: var(--estribor);
-}
+.pestanas-marca.es-lista { border-color: var(--estribor); background: var(--estribor); }
 .pestanas-marca.es-lista::after {
   content: '';
-  width: 0.28rem;
-  height: 0.5rem;
-  border: solid var(--abismo);
+  width: 0.24rem;
+  height: 0.45rem;
+  border: solid #fff;
   border-width: 0 2px 2px 0;
   transform: rotate(45deg) translate(-1px, -1px);
 }
+.pestanas-enlace.es-activa .pestanas-marca:not(.es-lista) { border-color: #fff; }
 :root[data-contraste='alto'] .pestanas-marca.es-lista::after { border-color: #000; }
 
 .pestanas-panel {
@@ -190,25 +167,40 @@
   flex-direction: column;
   gap: var(--e-4);
   padding: var(--e-5);
-  min-height: 22rem;
-  /* Cambiar de pestaña no recarga la página: la animación de entrada es lo que
-     dice que el contenido cambió. Sin eso, un panel parecido al anterior
-     parece no haber cambiado. */
+  min-height: 20rem;
+  border-top-left-radius: 0;
+  border-top-right-radius: 0;
   animation: emerge var(--medio) var(--curva) both;
 }
-.pestanas-panel > h2 { padding-bottom: var(--e-3); border-bottom: 1px solid var(--linea); }
+.pestanas-panel > .fila-sep h2 { font-size: var(--t-xl); }
 .panel-campos { align-items: start; }
 
-@media (max-width: 62rem) {
-  .pestanas { grid-template-columns: 1fr; }
-  .pestanas-rosa { position: static; }
-  .pestanas-lista {
-    flex-direction: row;
-    overflow-x: auto;
-    padding-bottom: var(--e-1);
-  }
-  .pestanas-enlace { white-space: nowrap; }
+/* ── Franja de datos (lámina 22) ────────────────────────────────────────── */
+.volver { display: inline-block; margin-bottom: var(--e-3); font-weight: 700; text-decoration: none; }
+.volver:hover { text-decoration: underline; }
+.franja-datos {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr));
+  gap: var(--e-2);
+  margin: 0 0 var(--e-4);
 }
+.franja-caja {
+  padding: var(--e-2) var(--e-3);
+  border-radius: var(--radio-md);
+  border: 1px solid transparent;
+  color: #0b1b33;
+}
+.franja-caja dt { font-size: var(--t-xs); font-weight: 700; color: #3a4a62; }
+.franja-caja dd { margin: var(--e-1) 0 0; font-weight: 700; }
+/* Los tonos de los recuadros del manual, aclarados para que el texto oscuro
+   cumpla 4,5:1 sobre todos. */
+.franja-azul { background: #d6e6fb; border-color: #a9c8f2; }
+.franja-verde { background: #d8f0dc; border-color: #a6d8b0; }
+.franja-gris { background: #e3e6ea; border-color: #c4c9d0; }
+.franja-amarilla { background: #fbefc7; border-color: #ecd689; }
+.franja-estado { background: var(--casco); border-color: var(--linea); }
+:root[data-contraste='alto'] .franja-caja { background: #000; color: #fff; border-color: #fff; }
+:root[data-contraste='alto'] .franja-caja dt { color: #fff; }
 
 /* ── Adjuntos y cuota (R11) ─────────────────────────────────────────────── */
 
@@ -274,17 +266,6 @@
 .cuota-lleno .cuota-relleno { background: var(--babor); }
 .cuota-lleno .cuota-cifra { color: var(--babor); }
 
-.adjuntos-lista { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: var(--e-2); }
-.adjuntos-fila {
-  display: flex;
-  align-items: center;
-  gap: var(--e-3);
-  padding: var(--e-3);
-  border: 1px solid var(--linea);
-  border-radius: var(--radio-md);
-  background: var(--casco-hundido);
-}
-.adjuntos-fila .crecer { min-width: 0; }
 .adjuntos-nombre {
   display: block;
   overflow: hidden;
@@ -292,7 +273,6 @@
   white-space: nowrap;
   font-weight: 700;
 }
-.adjuntos-meta { font-size: var(--t-xs); color: var(--bruma); }
 
 /* ── Inicio: tablero de estado ──────────────────────────────────────────── */
 
@@ -485,9 +465,9 @@
   font-size: var(--t-xs);
 }
 .paso-actual { color: var(--arena); border-color: var(--estela); }
-.paso-actual .paso-numero { border-color: var(--estela); background: var(--estela); color: var(--abismo); }
+.paso-actual .paso-numero { border-color: var(--estela); background: var(--estela); color: var(--sobre-estela); }
 .paso-hecho { color: var(--estribor); }
-.paso-hecho .paso-numero { border-color: var(--estribor); background: var(--estribor); color: var(--abismo); }
+.paso-hecho .paso-numero { border-color: var(--estribor); background: var(--estribor); color: #fff; }
 :root[data-contraste='alto'] .paso-actual .paso-numero,
 :root[data-contraste='alto'] .paso-hecho .paso-numero { color: #000; }
 
@@ -535,8 +515,6 @@
 .clavegrama-cuerpo > .boton { align-self: flex-start; }
 
 /* ── Pestañas: número de orden y posición ───────────────────────────────── */
-.pestanas-numero { font-family: var(--tipo-datos); font-size: 0.625rem; color: var(--bruma); line-height: 1; }
-.pestanas-marca:has(.pestanas-numero) { display: grid; place-items: center; }
 .pestanas-posicion { color: var(--bruma); font-size: var(--t-md); font-weight: 500; }
 .pestanas-panel:focus { outline: none; }
 .pestanas-panel:focus-visible { outline: 3px solid var(--estela); outline-offset: 2px; }
@@ -562,5 +540,91 @@
 .acciones-botones { justify-content: flex-end; }
 .nota-pendiente { color: var(--bruma-honda); }
 
-/* Los números 10 y 11 de las pestañas no cabían en el círculo. */
-.pestanas-marca { width: 1.4rem; height: 1.4rem; }
+
+/* ── La lámina de Inicio (manual, láminas 11 y 14) ──────────────────────── */
+.lamina-inicio {
+  position: relative;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: var(--e-5);
+  min-height: 15rem;
+  margin: calc(var(--e-5) * -1) 0 var(--e-5);
+  padding: var(--e-5);
+  border-radius: 0 0 var(--radio-lg) var(--radio-lg);
+  overflow: hidden;
+  /* El agua del manual, en degradado: no se entregó la fotografía. */
+  background:
+    radial-gradient(40rem 12rem at 50% 110%, rgb(120 190 255 / 0.35), transparent 70%),
+    repeating-linear-gradient(170deg, rgb(255 255 255 / 0.05) 0 2px, transparent 2px 22px),
+    linear-gradient(180deg, #0a3a80 0%, #0d5bb5 55%, #1672c9 100%);
+  box-shadow: var(--sombra-media);
+}
+.lamina-inicio > .emblema { grid-column: 2; filter: drop-shadow(0 8px 18px rgb(0 0 0 / 0.45)); }
+.lamina-inicio-texto { grid-column: 3; color: #fff; font-family: var(--tipo-display); text-align: center; }
+.lamina-inicio-sigla { font-size: 2rem; font-weight: 600; letter-spacing: 0.08em; }
+:root[data-contraste='alto'] .lamina-inicio { background: #000; border: 2px solid #fff; }
+@media (max-width: 48rem) {
+  .lamina-inicio { grid-template-columns: 1fr; justify-items: center; }
+  .lamina-inicio > .emblema, .lamina-inicio-texto { grid-column: 1; }
+}
+
+/* ── Soportes agrupados por tipo (lámina 22) ────────────────────────────── */
+.adjuntos-grupos { display: flex; flex-direction: column; gap: var(--e-3); }
+.adjuntos-grupo { border: 1px solid var(--linea); border-radius: var(--radio-md); overflow: hidden; }
+.adjuntos-grupo-titulo {
+  padding: var(--e-2) var(--e-3);
+  background: var(--estela);
+  color: var(--sobre-estela);
+  font-size: var(--t-sm);
+  text-align: center;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.adjuntos-formatos { font-weight: 400; text-transform: none; letter-spacing: 0; }
+.adjuntos-vacio {
+  margin: var(--e-2);
+  padding: var(--e-2);
+  text-align: center;
+  font-size: var(--t-sm);
+  color: #7a1020;
+  background: #fbe3e7;
+  border-radius: var(--radio-sm);
+}
+:root[data-contraste='alto'] .adjuntos-vacio { background: #000; color: #fff; border: 1px solid #fff; }
+.adjuntos-grupo .tabla-envoltura { border: none; border-radius: 0; }
+
+/* ── El recuadro amarillo de exportación (manual, láminas 16 y 19) ─────── */
+.recuadro-exportar {
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 2px;
+  margin-top: var(--e-3);
+  padding: var(--e-1);
+  border-radius: var(--radio-md);
+  background: var(--realce);
+}
+.boton-exportar {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--e-1);
+  min-height: 2.25rem;
+  padding: 0 var(--e-3);
+  border: none;
+  border-radius: var(--radio-sm);
+  background: transparent;
+  /* Azul sobre Dorado Naval: 7,4:1. */
+  color: var(--arc-azul);
+  font-family: var(--tipo-display);
+  font-weight: 700;
+  font-size: var(--t-sm);
+  text-transform: uppercase;
+  cursor: pointer;
+}
+.boton-exportar:hover:not(:disabled) { background: rgb(255 255 255 / 0.35); }
+.boton-exportar:disabled { opacity: 0.55; cursor: not-allowed; }
+.recuadro-exportar-nota { padding: 0 var(--e-2); font-size: var(--t-xs); color: var(--arc-azul); font-weight: 600; }
+:root[data-contraste='alto'] .recuadro-exportar { background: #000; border: 2px solid #ffd75f; }
+:root[data-contraste='alto'] .boton-exportar,
+:root[data-contraste='alto'] .recuadro-exportar-nota { color: #ffd75f; }
