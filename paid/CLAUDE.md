@@ -50,17 +50,19 @@ La PAID vive en `paid/`, no en la raíz: el repositorio ya contenía otro proyec
 (el juego Eco-Arcade Latin Green). Ver `docs/DECISIONES.md`, D-01.
 
 ## Estado
-**Fases 0 a 4 cerradas**, más una revisión de usabilidad del flujo de
-diligenciamiento. 290 pruebas pasando: 116 de invariantes compartidos, 60 de la
-Puerta 1 contra Postgres real, 100 de las Puertas 2, 3 y 4 sobre la API real
-con Postgres y Redis, y 14 de navegador sobre la aplicación en pie. La
-siguiente es la **Fase 5** (verificación de la Parte A).
+**Fases 0 a 4 cerradas**, más una revisión de usabilidad y la interfaz rehecha
+sobre el Manual del Usuario PAID (D-33). 288 pruebas pasando: 116 de
+invariantes compartidos, 60 de la Puerta 1 contra Postgres real, 100 de las
+Puertas 2, 3 y 4 sobre la API real con Postgres y Redis, y 12 de navegador
+sobre la aplicación en pie. La siguiente es la **Fase 5** (verificación de la
+Parte A).
 
-**Pendiente de material que no está en el repositorio:** el Manual del Usuario
-PAID (Q16) y la identidad visual oficial de la ARC (Q17). No los inventes ni
-los tomes de copias de terceros. El sitio para la identidad es
-`apps/web/public/identidad/` (ver su `LEEME.md`); se deja el archivo y se
-aplica sin código.
+**La interfaz sigue al manual.** Paleta ARC en `apps/web/src/estilos/tokens.css`
+(el dorado `#d4af37` nunca es texto sobre blanco: 2,10 : 1), emblemas en
+`apps/web/public/identidad/`. Lo que el manual pide y la base aún no tiene está
+en `docs/CONTRASTE-MANUAL.md`. Falta del material oficial: Escudo de la
+República y logos GOV.CO/CO (Q17). No los tomes de copias de terceros ni los
+dibujes de memoria.
 
 ⛔ **La Parte B (Fases 6–8, la IA) no empieza hasta cerrar la Puerta 5.**
 PROMPT.md lo ordena literalmente, y el motivo es verificable: la Puerta 5 exige
@@ -75,7 +77,7 @@ Base desechable migrada y sembrada, API en `:3000`, interfaz en `:5173`,
 credenciales impresas. `BIM23_PAID` tiene maestros; `BIM24_PAID` está vacía a
 propósito, para ver que RLS no le muestra nada de la otra unidad.
 
-Las 11 pruebas de navegador necesitan eso en pie:
+Las 12 pruebas de navegador necesitan eso en pie:
 `pnpm --filter @paid/e2e test`.
 
 ## ⚠️ El esquema está DERIVADO de PROMPT.md

@@ -115,10 +115,11 @@ patrón de jornadas.
 
 ## Resultado de la batería de pruebas
 
-Tras la revisión de usabilidad (2026-09-23): **290 pruebas, 290 pasan** —
-116 de invariantes, 60 de la Puerta 1, 100 de API y 14 de navegador—, y la
-revisión de accesibilidad cubre ahora también la jornada abierta con sus
-pestañas, en los tres contrastes. Lint limpio.
+Tras rehacer la interfaz sobre el Manual del Usuario (2026-09-23): **288
+pruebas, 288 pasan** —116 de invariantes, 60 de la Puerta 1, 100 de API y 12 de
+navegador—. La revisión de accesibilidad cubre la jornada abierta con sus
+pestañas en los dos contrastes (institucional y alto), y una prueba maneja el
+menú y las pestañas solo con teclado. Lint limpio.
 
 Ejecutado al cerrar la Fase 4:
 

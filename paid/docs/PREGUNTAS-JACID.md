@@ -190,9 +190,14 @@ uno de menos, gente que no puede trabajar.
 2. ¿Y el registro de auditoría — quién cambió qué y cuándo?
 3. ¿Hay una tabla de retención documental institucional que aplique?
 
-Además, para el manejo de adjuntos: las tres «fases documentales» (1, 2 y 3)
-que el manual menciona, **¿qué significa cada una?** ¿Hay documentos
-obligatorios por cada tramo de avance de un proyecto?
+✅ **Resuelto por el Manual del Usuario (lámina 22): qué es cada fase
+documental** de una jornada. Fase 1: acta de reunión y planilla de asistencia
+de la comunidad (diagnóstico). Fase 2: oficios a las entidades y acta de reunión
+con ellas. Fase 3: ReTHUS o tarjeta profesional, evidencias de donaciones,
+formatos SVE, encuesta de satisfacción, informe final JAD, fotografías, videos
+y formato de impacto COGFM. Está en `SOPORTES_POR_FASE_JORNADA` y la pantalla
+lo muestra al elegir la fase. Las asistencias (lámina 27) y los proyectos
+(lámina 42) tienen sus propios soportes. **Sigue abierta la retención.**
 
 **Por qué importa:** el registro de auditoría es de solo escritura — nadie, ni
 el administrador, puede modificarlo ni borrarlo. Eso es deliberado, pero
@@ -349,6 +354,14 @@ pequeño en la base, pero la pantalla cambia bastante: cada fila necesitaría un
 botón de «solicitar eliminación» y el usuario no podría corregir un error
 inmediatamente. Conviene decidirlo antes de construir la pantalla (Fase 4).
 
+**Lo que dice el manual (lámina 23)** acerca la respuesta pero no la cierra:
+«cualquier actualización y/o eliminación será evidenciado y visualizado en la
+plataforma por sus unidades superiores y para realizar algún tipo de cambio
+deberá informarse y autorizarse únicamente por JACID». Leído a la letra,
+**toda** corrección —no solo quitar filas— pasa por JACID. Leído como práctica
+de 2022, describe un sistema sin bitácora, donde la autorización previa era la
+única forma de saber qué cambió. Hace falta que JACID diga cuál de las dos.
+
 ---
 
 ## Q15 · ¿La normatividad tiene cuota de almacenamiento, y cuál? 🟡
@@ -371,37 +384,31 @@ límite que nadie fijó para ese caso.
 
 ---
 
-## Q16 · El Manual del Usuario PAID (v2, 2022), con sus pantallas 🔴
+## Q16 · El Manual del Usuario PAID (v2, 2022), con sus pantallas ✅
 
-**Qué falta.** PROMPT.md toma sus reglas de ese manual y pide un menú «fiel al
-manual» y el listado «con las columnas del manual». Se pidió además que la
-interfaz sea **igual** a la del manual, colores incluidos.
-
-**El hueco.** El manual no está en el repositorio ni publicado. Sin sus
-capturas no se puede reproducir la disposición, los colores ni los rótulos.
-
-**Qué se necesita.** El PDF del manual, o al menos las capturas de: ingreso,
-menú principal, listado de jornadas, formulario de datos generales y una de las
-once pestañas.
-
-**Por qué no se supuso.** Una interfaz inventada y presentada como «igual al
-manual» es un dato falso sobre el sistema, y nadie vuelve a revisarlo porque
-dice que ya coincide.
+**Resuelta.** Se entregó el PDF (septiembre de 2022, 56 láminas) y la interfaz
+se rehízo sobre él (D-33). Lo que el manual pide y la base todavía no tiene
+—tipo de jornada, participación de EJC y FAC, sector y país de las entidades,
+estado y responsable de las herramientas, entre otros— está en
+`docs/CONTRASTE-MANUAL.md`.
 
 ---
 
 ## Q17 · El logotipo y la paleta del Manual de Identidad Visual de la ARC 🟡
 
-**Qué falta.** Los archivos oficiales: el logotipo en SVG y los códigos de
-color. El manual está publicado en `armada.mil.co`, pero la red desde la que se
-construyó la interfaz bloquea ese dominio.
+**Recibido:** la tabla de códigos de color, el emblema de la JACID y el escudo
+de la Armada. Aplicados (D-33).
 
-**Qué se necesita.** Dejarlos en `apps/web/public/identidad/` como dice su
-`LEEME.md`. No hay que tocar código.
+**Falta:**
 
-**Qué decidir.** La Ley 2345 de 2023 pide el Escudo de la República con el
-nombre de la entidad; el artículo 4, literal g, admite excepciones. ¿Usa la
-PAID el Escudo de la República o el emblema de la Armada?
+1. El **Escudo de la República** y los logotipos **GOV.CO** y **CO** en
+   vector. Hoy se muestran como texto.
+2. **El dorado.** La tabla dice Pantone 123 C, que es un amarillo (≈ `#ffc72c`),
+   y a la vez `#d4af37`, que es un dorado viejo. No son el mismo color. Se usó el
+   hexadecimal. ¿Cuál es el correcto?
+3. **Ley 2345 de 2023.** Pide el Escudo de la República con el nombre de la
+   entidad; el artículo 4, literal g, admite excepciones. ¿Usa la PAID el Escudo
+   de la República o el emblema de la Armada, como en el manual de 2022?
 
 ---
 
@@ -416,7 +423,7 @@ PAID el Escudo de la República o el emblema de la Armada?
 | Q5 | ¿Cuáles son los rangos de IP de la Intranet ARC? | 🔴 |
 | Q3 | ¿Qué campos pide cada uno de los 11 tipos de herramienta AID? | 🟡 |
 | Q6 | ¿Qué perfiles de usuario existen hoy? | 🟡 |
-| Q7 | ¿Cuánto se conservan soportes y auditoría? ¿Qué son las fases documentales 1, 2 y 3? | 🟡 |
+| Q7 | ¿Cuánto se conservan soportes y auditoría? (Las fases documentales ya las define el manual.) | 🟡 |
 | Q8 | ¿Cómo debe consumir ArcGIS los datos? | 🟡 |
 | Q9 | ¿SIGO guarda lo mismo? ¿Cuál manda? | 🟡 |
 | Q10 | ¿Se registran datos personales de civiles? (Ley 1581 de 2012) | 🟡 |
@@ -425,5 +432,5 @@ PAID el Escudo de la República o el emblema de la Armada?
 | Q13 | ¿El avance de un convenio usa la escala de ocho tramos o un porcentaje libre? | 🟡 |
 | Q14 | ¿Quitar una fila de una pestaña exige solicitud a JACID, o es una corrección normal? | 🟡 la interfaz ya está construida: si la respuesta es «sí», cada fila necesita un botón de solicitud |
 | Q15 | ¿La normatividad tiene cuota de almacenamiento, y cuál? R11 la fija «por actividad» y esto no es una actividad. | 🟡 |
-| Q16 | El Manual del Usuario PAID (v2, 2022) con sus pantallas: sin él la interfaz no puede ser «igual al manual». | 🔴 |
-| Q17 | Logotipo y paleta oficiales de la ARC; y si la PAID usa el Escudo de la República o el emblema de la Armada (Ley 2345 de 2023). | 🟡 |
+| Q16 | El Manual del Usuario PAID (v2, 2022) con sus pantallas. | ✅ Resuelta |
+| Q17 | Faltan Escudo de la República y logos GOV.CO/CO; ¿el dorado es Pantone 123 C o `#d4af37`?; ¿Escudo de la República o emblema de la Armada (Ley 2345 de 2023)? | 🟡 |

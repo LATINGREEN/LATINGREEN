@@ -737,7 +737,12 @@ declarado a mano como `columnas`) y la lista de adjuntos.
 
 ---
 
-## D-32 · La identidad institucional se deja, no se programa · Aceptada · 2026-09-23
+## D-32 · La identidad institucional se deja, no se programa · Reemplazada por D-33 · 2026-09-23
+
+> Reemplazada el mismo día: llegaron el manual, la paleta y los emblemas, y la
+> interfaz se rehízo sobre ellos (D-33). Ya no hay `escudo.svg` ni `marca.css`
+> opcionales; se conserva el texto porque explica por qué no se usaron copias de
+> terceros.
 
 **Lo pedido.** Que la interfaz sea igual a la del Manual del Usuario PAID,
 colores incluidos, con los íconos y logos de la institución.
@@ -766,3 +771,47 @@ en el modo de alto contraste: ese modo es accesibilidad, no identidad.
 República + nombre de la entidad, con la excepción del artículo 4, literal g. Por
 eso la barra dice ahora «Armada de Colombia». Qué emblema exactamente lo decide
 el manual de la ARC, no esta interfaz.
+
+## D-33 · La interfaz sigue al Manual del Usuario y a la paleta ARC · Aceptada · 2026-09-23
+
+**Qué llegó.** El PDF del Manual del Usuario PAID (septiembre de 2022), la
+tabla de códigos de color del Manual de Identidad Visual ARC, el emblema de la
+JACID y el escudo de la Armada. Con eso, Q16 queda resuelta y Q17 casi.
+
+**Qué se hizo.**
+
+- **Marco de las láminas 10–12**: barra GOV.CO con la sesión a la derecha,
+  cabecera azul con «Ministerio de Defensa Nacional», PAID con el emblema JACID
+  y el logotipo de la Armada, menú horizontal con los desplegables del manual,
+  filete dorado, barra de pantalla flotante y pie azul GOV.CO transcrito.
+- **Paleta ARC en `tokens.css`**, no en un archivo opcional: azul `#00205b`,
+  dorado `#d4af37`, rojo `#c8102e`, gris `#97999b`, y el `#3366cc` de GOV.CO.
+  Tipografías Oswald (título PAID), Montserrat (menú y rótulos), Atkinson
+  Hyperlegible (texto) e IBM Plex Mono (datos), todas locales (A.2.1).
+- **Dos modos de contraste**, institucional y alto, en lugar de tres. El
+  manual tiene un único botón de contraste. El modo oscuro de la primera versión
+  se retiró: no está en el manual y era una tercera paleta que sostener y
+  revisar con axe.
+- **Pantallas**: ingreso de la lámina 10, lámina «A.I.» en Inicio, franja de
+  datos de color y pestañas en fila en la jornada, adjuntos agrupados por tipo,
+  recuadro amarillo de exportación con Excel, CSV y Copiar.
+
+**Reglas que salieron de medir, no de gustos.**
+
+- El dorado **nunca** es color de texto sobre blanco (2,10 : 1) ni el gris ARC
+  (2,86 : 1). Se usan como filete, ícono o fondo; el azul sobre dorado da
+  7,36 : 1.
+- El verde de «diligenciado» no está en la paleta ARC. Es funcional, como en el
+  manual, y se eligió `#1e7b4a` para llegar a 4,5 : 1.
+- «Copiar» no copia la tabla de la pantalla: pide la misma exportación CSV del
+  servidor, que queda en la bitácora (R17). Copiar lo que se ve sería una
+  exportación sin auditoría.
+- El menú es un **disclosure** de WAI-ARIA (botón con `aria-expanded`, Escape
+  cierra y devuelve el foco), no un `role="menu"`: son enlaces de navegación, y
+  un menú de aplicación cambia cómo lo anuncian los lectores de pantalla.
+- Las pestañas son pestañas de WAI-ARIA con tabulación itinerante: una sola
+  parada de Tab para las once. Hay prueba de navegador que lo comprueba.
+
+**Lo que no coincide todavía** —campos que el manual pide y la base no tiene—
+está en `docs/CONTRASTE-MANUAL.md`. Todo exige migración y no se hizo por
+suposición.

@@ -7,6 +7,51 @@ pueda continuar (PROMPT.md · A.5).
 
 ---
 
+## FASE 4 — La interfaz del Manual del Usuario (2026-09-23)
+
+Segunda parte de la revisión: llegaron el Manual del Usuario PAID (PDF de
+septiembre de 2022), la tabla de colores ARC, el emblema de la JACID y el
+escudo de la Armada. Se pidió que la interfaz sea igual a la del manual,
+colores incluidos.
+
+### Lo hecho (D-33)
+
+- Marco de las láminas 10–12: barra GOV.CO con la sesión, cabecera azul con
+  Ministerio, PAID, emblema JACID y logotipo de la Armada; menú horizontal con
+  los desplegables del manual; filete dorado; barra de pantalla flotante
+  (contraste, letra, contáctenos); pie azul GOV.CO transcrito.
+- Paleta ARC y tipografías locales en `tokens.css`. Modos de contraste:
+  institucional y alto. Se retiraron el modo oscuro, `atmosfera.css`, Chakra
+  Petch y el enganche opcional a `identidad/marca.css`.
+- Ingreso (lámina 10), Inicio con la lámina «A.I.», jornada con la franja de
+  datos de colores y las pestañas en fila (WAI-ARIA), adjuntos agrupados en
+  Imágenes · Documentos · Audios · Videos con lo que va en cada fase (Q7),
+  recuadro amarillo de exportación con «Copiar» sobre la exportación auditada.
+- Submódulos del manual que aún no existen (asistencias, ruedas, alianzas,
+  proyectos, campañas) llevan a una pantalla que dice qué falta, citando el
+  manual.
+- En pantallas angostas la sesión baja a su propia línea en la barra GOV.CO:
+  el botón de salir quedaba fuera del borde.
+
+### Pruebas
+
+288: 116 de invariantes, 60 de la Puerta 1, 100 de API y 12 de navegador. Las
+de navegador bajaron de 14 a 12 porque ahora hay dos modos de contraste que
+revisar con axe en vez de tres (−3), y se añadió una que maneja el menú
+desplegable y las pestañas solo con teclado (+1). `irA()` abre el desplegable
+del grupo antes de pulsar el enlace.
+
+### Pendiente
+
+Lo que el manual pide y la base no tiene está en `docs/CONTRASTE-MANUAL.md`
+(tipo de jornada, EJC y FAC, población afecta a la tropa, género del personal,
+sector, subsector y país de las entidades, estado y responsable de las
+herramientas, exportación auditada de los maestros). Todo exige migración.
+Q17 sigue abierta en tres puntos (Escudo de la República y logos GOV.CO/CO; el
+dorado; Ley 2345).
+
+---
+
 ## FASE 4 — Revisión de usabilidad (2026-09-23)
 
 Revisión pedida después de cerrar la Puerta 4: optimizar el flujo de
