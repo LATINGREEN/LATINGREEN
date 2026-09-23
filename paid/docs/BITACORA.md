@@ -7,6 +7,31 @@ pueda continuar (PROMPT.md · A.5).
 
 ---
 
+## FASE 4 — Datos generales de la jornada del manual (2026-09-23)
+
+Primer cierre de lo que `docs/CONTRASTE-MANUAL.md` dejó pendiente: tipo de
+jornada, participación de EJC y FAC y población afecta a la tropa (láminas
+19–21). D-34.
+
+- Migración **0015** (`ref.tipo_jornada` + cuatro columnas en
+  `ai.jornada_apoyo`), con su reversión; semilla de los tres tipos.
+- Esquema, API (detalle, listado, corrección, exportación), formulario en el
+  orden del manual, detalle con «Sin registrar» y aviso en las jornadas
+  anteriores, columna «Tipo» en el listado.
+- Defecto encontrado por las pruebas nuevas: un tipo inexistente respondía 500
+  (violación de clave foránea). Ahora 400 con el campo señalado; también un
+  tipo retirado.
+- `mirar.sh` con `CONSERVAR=1` aplica las migraciones pendientes.
+
+Pruebas: **306** — 124 de invariantes (+8), 64 de la Puerta 1 (+4), 106 de API
+(+6) y 12 de navegador.
+
+**Siguiente, del mismo documento:** los once tipos de herramienta AID que el
+manual sí nombra; género del personal; sector, subsector y país de las
+entidades; estado, fecha de potenciación y responsable de las herramientas.
+
+---
+
 ## FASE 4 — La interfaz del Manual del Usuario (2026-09-23)
 
 Segunda parte de la revisión: llegaron el Manual del Usuario PAID (PDF de

@@ -815,3 +815,37 @@ JACID y el escudo de la Armada. Con eso, Q16 queda resuelta y Q17 casi.
 **Lo que no coincide todavía** —campos que el manual pide y la base no tiene—
 está en `docs/CONTRASTE-MANUAL.md`. Todo exige migración y no se hizo por
 suposición.
+
+## D-34 · Tipo de jornada, EJC, FAC y población afecta: del manual a la base · Aceptada · 2026-09-23
+
+**Lo que pide el manual** (láminas 20 y 21): el tipo de jornada (binacional,
+conjunta o estratégica), si participaron el EJC y la FAC —«siempre se debe
+poner SÍ en ARC»— y si la población es afecta o no a la tropa. El listado
+(lámina 19) los muestra como columnas.
+
+**Lo que se hizo.** Migración 0015: `ref.tipo_jornada` y cuatro columnas en
+`ai.jornada_apoyo`. Esquema, API, exportación (con «Participó ARC» siempre
+«SÍ»), formulario en el orden del manual, detalle y listado.
+
+**Decisiones que no son obvias.**
+
+- **En el subtipo, no en `ai.actividad`.** EJC y FAC los pide el manual en
+  jornadas y asistencias; «población afecta», en jornadas, asistencias y
+  proyectos; el tipo, solo en jornadas. Ninguno es de los cinco subtipos.
+- **NULL en la base, obligatorios en la entrada.** Las jornadas anteriores no
+  tienen el dato y ponerles «No» sería inventarlo (D-30). NULL se muestra como
+  «Sin registrar», con un aviso para completarlo, y la exportación deja la
+  celda vacía en vez de escribir «NO». Toda jornada nueva, y toda corrección,
+  los exige.
+- **Se siembran los tres tipos.** La regla es no inventar catálogos; estos no
+  se inventan: el manual —fuente de JACID— los enumera literalmente.
+- **Desplegables «Seleccione… / Sí / No», no casillas.** Una casilla
+  desmarcada ya afirma «no»; el manual usa desplegables por la misma razón.
+  Tampoco `z.coerce.boolean()`: convierte la cadena `'false'` en verdadero.
+- **Un tipo inexistente o retirado es un 400 con el campo señalado.** La clave
+  foránea lo impedía, pero como error interno (500); y no impedía elegir un
+  tipo dado de baja (`activo = FALSE`).
+- **`CONSERVAR=1 ./scripts/mirar.sh` aplica ahora las migraciones
+  pendientes.** Antes reutilizaba la base tal cual, y tras esta migración la
+  API habría arrancado contra columnas que no existían.
+

@@ -24,6 +24,7 @@ lista de lo que **no** coincide todavía, con lo que costaría cerrarlo.
 | Listados | Tabla en el centro y, abajo a la izquierda, **recuadro amarillo** con Excel, CSV y Copiar (láminas 16, 19, 37 y 45) | Jornadas: igual. «Copiar» usa la misma exportación auditada que el CSV (R17), no copia lo que hay en pantalla |
 | Datos de la jornada | Cajas de color con el código, la unidad y las fechas (láminas 20–22) | `.franja-datos`: azul, verde, gris y amarilla, más una quinta con el avance de las once pestañas |
 | Pestañas | Fila horizontal de pestañas; cada una marcada como diligenciada o pendiente (lámina 22) | Pestañas WAI-ARIA con marca verde (con datos) o anillo rojo (pendiente) |
+| Datos generales de la jornada | Tipo de jornada; EJC · ARC · FAC con «Seleccione…»; población afecta; en ese orden (láminas 20–21) | Igual (migración 0015, D-34). ARC fijada en «Sí» (R9). Las jornadas anteriores muestran «Sin registrar» y un aviso para completarlos |
 | Adjuntos | Soportes agrupados en Imágenes · Documentos · Audios · Videos, cada grupo con «No hay archivos cargados previamente» cuando está vacío; máximo 10 MB por jornada (lámina 22) | Igual. La fase documental muestra lo que va en cada una (Q7, resuelta) |
 | Pie | Azul GOV.CO: copyright de la División de Informática, datos de la Jefatura, horario, redes, contacto (lámina 11) | Transcrito. Las redes van como texto: la aplicación corre en la Intranet sin salida a Internet (A.2.1) |
 
@@ -59,9 +60,9 @@ abiertas sino trabajo pendiente.
 
 | El manual pide | Hoy | Costo |
 |---|---|---|
-| **Tipo de jornada**: binacional, conjunta o estratégica | No existe | Columna + dominio + formulario |
-| **Participación de EJC y FAC** (sí/no; «en ARC siempre SÍ») | No existe | Dos columnas booleanas |
-| **Población afecta o no a la tropa** | No existe | Columna booleana |
+| **Tipo de jornada**: binacional, conjunta o estratégica | ✅ `ref.tipo_jornada` (0015) | — |
+| **Participación de EJC y FAC** (sí/no; «en ARC siempre SÍ») | ✅ (0015) | — |
+| **Población afecta o no a la tropa** | ✅ (0015) | — |
 | **Unidad seleccionable** al registrar | Se toma de la sesión | Cambia R7: una unidad superior registrando por una subordinada. Decidir con JACID |
 | Fechas de **inicio y término**; no menciona lugar ni fecha de ejecución | Inicio, ejecución (obligatorias), fin (opcional) y lugar | Revisar con JACID si «ejecución» y «lugar» sobran o si «fin» debe ser obligatoria |
 | Observaciones al inicio y en «Resumen JAD» | La pestaña se llama «Resumen» | Solo el rótulo |
@@ -89,7 +90,7 @@ abiertas sino trabajo pendiente.
 
 | El manual pide | Hoy |
 |---|---|
-| Tipo: COPAI, GEOS, VEMAI, emisoras, perifoneo, circos, impresos, reprográficas, audiovisuales, simulador de vuelo, grupos musicales | Lista de tipos; los campos propios de cada tipo siguen en Q3 |
+| Tipo: COPAI, GEOS, VEMAI, emisoras, perifoneo, circos, impresos, reprográficas, audiovisuales, simulador de vuelo, grupos musicales | `ref.tipo_herramienta_aid` sigue vacío, pero el manual **sí** nombra los once: se pueden sembrar como se hizo con los tipos de jornada. Los campos propios de cada tipo siguen en Q3 |
 | **Fecha de potenciación** (o de adquisición) | No existe |
 | **Estado**: activa o inactiva | No existe |
 | **Responsable** (inscrito en Personal) | No existe |

@@ -51,8 +51,8 @@ La PAID vive en `paid/`, no en la raíz: el repositorio ya contenía otro proyec
 
 ## Estado
 **Fases 0 a 4 cerradas**, más una revisión de usabilidad y la interfaz rehecha
-sobre el Manual del Usuario PAID (D-33). 288 pruebas pasando: 116 de
-invariantes compartidos, 60 de la Puerta 1 contra Postgres real, 100 de las
+sobre el Manual del Usuario PAID (D-33, D-34). 306 pruebas pasando: 124 de
+invariantes compartidos, 64 de la Puerta 1 contra Postgres real, 106 de las
 Puertas 2, 3 y 4 sobre la API real con Postgres y Redis, y 12 de navegador
 sobre la aplicación en pie. La siguiente es la **Fase 5** (verificación de la
 Parte A).
@@ -93,7 +93,7 @@ Lo que eso significa para ti:
   respondan. No los rellenes.
 
 ## Migraciones: SQL a mano, y no se regeneran
-Las once migraciones de `packages/db/migraciones/` son SQL escrito a mano.
+Las quince migraciones de `packages/db/migraciones/` son SQL escrito a mano.
 `pnpm db:generate` está deshabilitado a propósito: `drizzle-kit` no conoce los
 disparadores ni las políticas RLS y propondría borrarlos. Ver D-15.
 
