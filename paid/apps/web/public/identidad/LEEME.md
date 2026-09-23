@@ -23,14 +23,14 @@ Del Manual de Identidad Visual de la ARC, entregada por el usuario:
 | Tono | HEX | Uso en la interfaz |
 |---|---|---|
 | Azul Armada (primario) · Pantone 281 C | `#00205B` | Cabecera, texto principal, botones primarios |
-| Dorado Naval (primario) · Pantone 123 C / 871 C | `#D4AF37` | Línea bajo la cabecera, realces, recuadro de exportación. **Nunca texto sobre blanco**: da 2,1:1 y WCAG exige 4,5:1 |
+| Dorado Naval (primario) | `#D4AF37` | Línea bajo la cabecera, realces, recuadro de exportación. **Nunca texto sobre blanco**: da 2,1:1 y WCAG exige 4,5:1 |
 | Rojo Bandera (secundario) · Pantone 186 C | `#C8102E` | Alertas, «incompleto», cerrar sesión |
 | Blanco Naval (base) | `#FFFFFF` | Fondos |
 | Gris Técnico (soporte) · Cool Gray 7 C | `#97999B` | Líneas divisorias. **Nunca texto ni borde de campo**: da 2,8:1 |
 
-⚠️ Pantone 123 C no es `#D4AF37` (123 C es un amarillo cálido, cercano a
-`#FFC72C`). `#D4AF37` corresponde al dorado metálico (871 C). Se usa el HEX de
-la tabla; conviene confirmarlo con el manual.
+✅ **El dorado es `#D4AF37`**, confirmado el 2026-09-23. La tabla también
+nombraba Pantone 123 C, que es un amarillo (≈ `#FFC72C`); no se usa. En impresos,
+el equivalente del dorado metálico es Pantone 871 C.
 
 ## Lo que falta
 

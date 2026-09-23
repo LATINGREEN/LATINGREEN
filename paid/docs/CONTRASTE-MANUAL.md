@@ -43,9 +43,8 @@ El verde de «diligenciado» (`#1e7b4a`) **no** está en la paleta ARC: es un
 color funcional, como en el manual, donde las pestañas completas se marcan en
 verde. Se eligió el tono que da 4,5 : 1 sobre blanco.
 
-**Pendiente de confirmar:** la tabla indica Pantone 123 C para el dorado, que
-es un amarillo (≈ `#ffc72c`), mientras el hexadecimal de la misma tabla es
-`#d4af37`. Se usó el hexadecimal. Ver Q17.
+**Confirmado (2026-09-23):** el dorado es `#d4af37`. La tabla también nombraba
+Pantone 123 C, que es un amarillo (≈ `#ffc72c`); ese no se usa.
 
 ---
 

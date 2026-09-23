@@ -399,14 +399,14 @@ estado y responsable de las herramientas, entre otros— está en
 **Recibido:** la tabla de códigos de color, el emblema de la JACID y el escudo
 de la Armada. Aplicados (D-33).
 
+✅ **El dorado es `#d4af37`** (confirmado el 2026-09-23). La tabla también
+nombraba Pantone 123 C, que es un amarillo; queda descartado.
+
 **Falta:**
 
 1. El **Escudo de la República** y los logotipos **GOV.CO** y **CO** en
    vector. Hoy se muestran como texto.
-2. **El dorado.** La tabla dice Pantone 123 C, que es un amarillo (≈ `#ffc72c`),
-   y a la vez `#d4af37`, que es un dorado viejo. No son el mismo color. Se usó el
-   hexadecimal. ¿Cuál es el correcto?
-3. **Ley 2345 de 2023.** Pide el Escudo de la República con el nombre de la
+2. **Ley 2345 de 2023.** Pide el Escudo de la República con el nombre de la
    entidad; el artículo 4, literal g, admite excepciones. ¿Usa la PAID el Escudo
    de la República o el emblema de la Armada, como en el manual de 2022?
 
@@ -433,4 +433,4 @@ de la Armada. Aplicados (D-33).
 | Q14 | ¿Quitar una fila de una pestaña exige solicitud a JACID, o es una corrección normal? | 🟡 la interfaz ya está construida: si la respuesta es «sí», cada fila necesita un botón de solicitud |
 | Q15 | ¿La normatividad tiene cuota de almacenamiento, y cuál? R11 la fija «por actividad» y esto no es una actividad. | 🟡 |
 | Q16 | El Manual del Usuario PAID (v2, 2022) con sus pantallas. | ✅ Resuelta |
-| Q17 | Faltan Escudo de la República y logos GOV.CO/CO; ¿el dorado es Pantone 123 C o `#d4af37`?; ¿Escudo de la República o emblema de la Armada (Ley 2345 de 2023)? | 🟡 |
+| Q17 | Faltan Escudo de la República y logos GOV.CO/CO; ¿Escudo de la República o emblema de la Armada (Ley 2345 de 2023)? (El dorado, `#d4af37`, ya está confirmado.) | 🟡 |

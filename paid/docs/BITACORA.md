@@ -47,8 +47,8 @@ Lo que el manual pide y la base no tiene está en `docs/CONTRASTE-MANUAL.md`
 (tipo de jornada, EJC y FAC, población afecta a la tropa, género del personal,
 sector, subsector y país de las entidades, estado y responsable de las
 herramientas, exportación auditada de los maestros). Todo exige migración.
-Q17 sigue abierta en tres puntos (Escudo de la República y logos GOV.CO/CO; el
-dorado; Ley 2345).
+Q17 sigue abierta en dos puntos (Escudo de la República y logos GOV.CO/CO; Ley
+2345). El dorado quedó confirmado como `#d4af37`.
 
 ---
 
