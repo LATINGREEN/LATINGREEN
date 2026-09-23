@@ -682,3 +682,87 @@ que nunca vio.
 Las pruebas navegan pulsando, con `irA()`, que además comprueba que el menú
 sigue en pie antes de dar la navegación por buena. Una prueba que puede pasar
 sin ejecutar lo que dice ejecutar es peor que no tenerla.
+
+---
+
+## D-30 · Ningún valor por omisión plausible en un dato que va al consolidado · Aceptada · 2026-09-23
+
+**El defecto.** Las coordenadas de la jornada arrancaban en 10° N, 75° W —un
+punto cerca de Cartagena— y la fase documental de cada adjunto en «Fase 1».
+
+Las dos cosas tienen el mismo problema: si la persona no las cambia, el sistema
+guarda un dato que nadie eligió y que **parece correcto**. El punto pasa el
+control de «dentro de Colombia» y llega a ArcGIS; la fase se reparte igual en
+todos los soportes. Es el anti-patrón P6 al pie de la letra: «un punto
+equivocado es peor que uno ausente, porque parece plausible».
+
+**La regla.** Un campo que alimenta un consolidado arranca **vacío** y se exige.
+Se hace una excepción solo cuando el valor por omisión no es una suposición:
+
+- El hemisferio de la **longitud** arranca en W, porque Colombia entera está al
+  oeste de Greenwich: E es siempre un error.
+- El de la **latitud** NO: Leticia está a 4° S, y un 4° N con la misma longitud
+  cae dentro de Colombia, en el Vichada.
+
+**Consecuencia técnica.** `CoordenadasGms` trabaja con un `BorradorGms` de
+cadenas y no con números, porque `Number('')` vale 0 y borra la diferencia
+entre «vacío» y «cero». `completarGms()` convierte y dice qué falta.
+
+---
+
+## D-31 · El flujo de las once pestañas se recorre, no se busca · Aceptada · 2026-09-23
+
+Revisión de usabilidad recorriendo el registro como lo haría una unidad. Lo que
+decidió cada cambio:
+
+- **El clavegrama a la vista.** Las once pestañas son su transcripción; tenerlo
+  en otra pantalla obligaba a ir y volver.
+- **Lo registrado se ve y se corrige.** Sin la lista de filas, un error de
+  digitación en una pestaña no tenía cómo detectarse ni cómo quitarse desde la
+  pantalla, aunque el servidor admitía el borrado desde la Fase 3.
+- **«Añadir y seguir» va a la siguiente PENDIENTE**, y la jornada abre en la
+  primera pendiente. El orden del manual sigue siendo el de la lista; lo que
+  cambia es que no hay que mirar la rosa para saber adónde ir.
+- **«Faltan N» es un enlace para continuar**, en el listado.
+
+**Lo que NO se hizo, a propósito:** guardar un borrador en el navegador para
+recuperarlo tras un cierre accidental. Son datos clasificados en un equipo que
+se comparte en la unidad; por la misma razón el testigo de sesión vive en
+memoria. En su lugar, el navegador avisa antes de cerrar o recargar con
+cambios sin guardar.
+
+**Tres lecturas nuevas en la API** lo sostienen: el detalle de la jornada, las
+filas de cada pestaña con el nombre de lo registrado (`REFERENCIA_DE_COLUMNA`,
+declarado a mano como `columnas`) y la lista de adjuntos.
+
+---
+
+## D-32 · La identidad institucional se deja, no se programa · Aceptada · 2026-09-23
+
+**Lo pedido.** Que la interfaz sea igual a la del Manual del Usuario PAID,
+colores incluidos, con los íconos y logos de la institución.
+
+**Lo que se pudo y lo que no.**
+
+- El **Manual del Usuario PAID (v2, septiembre de 2022)** —el que PROMPT.md cita
+  como fuente de las reglas— no está en el repositorio ni publicado en ninguna
+  parte alcanzable. Sin él no hay forma de reproducir sus pantallas; inventarlas
+  y llamarlas «iguales al manual» sería exactamente lo que A.7 prohíbe. Queda
+  como **Q16**.
+- El **Manual de Identidad Visual de la ARC** sí es público
+  (`armada.mil.co`), pero la red de la sesión bloquea ese dominio, además de
+  `funcionpublica.gov.co` y Wikimedia. Queda como **Q17**.
+- No se usaron reproducciones de terceros del emblema ni se dibujó de memoria:
+  un símbolo institucional mal trazado en un sistema institucional es peor que
+  ninguno.
+
+**Lo que se hizo.** `apps/web/public/identidad/` es el único sitio donde la
+interfaz busca el logotipo (`escudo.svg`) y la paleta (`marca.css`). Con los
+archivos oficiales ahí, se aplican en toda la interfaz sin tocar código; sin
+ellos, vuelve la paleta por omisión y el ancla. La paleta de marca **no** entra
+en el modo de alto contraste: ese modo es accesibilidad, no identidad.
+
+**Ley 2345 de 2023.** Aplica a las Fuerzas Militares: logotipo = Escudo de la
+República + nombre de la entidad, con la excepción del artículo 4, literal g. Por
+eso la barra dice ahora «Armada de Colombia». Qué emblema exactamente lo decide
+el manual de la ARC, no esta interfaz.

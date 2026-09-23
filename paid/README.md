@@ -25,10 +25,17 @@ Especificación completa en [`PROMPT.md`](PROMPT.md). Reglas permanentes en
 | 5 · Verificación de la Parte A | ⬜ siguiente |
 | 6–8 · Asistencia por IA (Parte B) | ⬜ no empieza hasta cerrar la Puerta 5 |
 
-**281 pruebas, todas pasando:** 116 de los invariantes compartidos, 60 de la
-Puerta 1 contra PostgreSQL 16 con PostGIS y pgvector, 94 de las Puertas 2, 3 y
-4 levantando la API completa contra Postgres y Redis reales, y 11 de navegador
-sobre la aplicación en pie.
+**290 pruebas, todas pasando:** 116 de los invariantes compartidos, 60 de la
+Puerta 1 contra PostgreSQL 16 con PostGIS y pgvector, 100 de las Puertas 2, 3
+y 4 levantando la API completa contra Postgres y Redis reales, y 14 de
+navegador sobre la aplicación en pie.
+
+**Identidad institucional pendiente.** La interfaz todavía no lleva el
+logotipo ni los colores oficiales de la Armada, y no se parece aún al Manual
+del Usuario PAID: ninguno de los dos se pudo obtener (Q16, Q17 en
+[`docs/PREGUNTAS-JACID.md`](docs/PREGUNTAS-JACID.md)). El sitio está listo: se
+dejan los archivos en `apps/web/public/identidad/` y se aplican sin tocar
+código — ver su `LEEME.md`.
 
 Lo que funciona de punta a punta, **desde la pantalla**: ingresar con captcha,
 registrar los tres maestros de precedencia —con sugerencia de duplicados por

@@ -371,6 +371,40 @@ límite que nadie fijó para ese caso.
 
 ---
 
+## Q16 · El Manual del Usuario PAID (v2, 2022), con sus pantallas 🔴
+
+**Qué falta.** PROMPT.md toma sus reglas de ese manual y pide un menú «fiel al
+manual» y el listado «con las columnas del manual». Se pidió además que la
+interfaz sea **igual** a la del manual, colores incluidos.
+
+**El hueco.** El manual no está en el repositorio ni publicado. Sin sus
+capturas no se puede reproducir la disposición, los colores ni los rótulos.
+
+**Qué se necesita.** El PDF del manual, o al menos las capturas de: ingreso,
+menú principal, listado de jornadas, formulario de datos generales y una de las
+once pestañas.
+
+**Por qué no se supuso.** Una interfaz inventada y presentada como «igual al
+manual» es un dato falso sobre el sistema, y nadie vuelve a revisarlo porque
+dice que ya coincide.
+
+---
+
+## Q17 · El logotipo y la paleta del Manual de Identidad Visual de la ARC 🟡
+
+**Qué falta.** Los archivos oficiales: el logotipo en SVG y los códigos de
+color. El manual está publicado en `armada.mil.co`, pero la red desde la que se
+construyó la interfaz bloquea ese dominio.
+
+**Qué se necesita.** Dejarlos en `apps/web/public/identidad/` como dice su
+`LEEME.md`. No hay que tocar código.
+
+**Qué decidir.** La Ley 2345 de 2023 pide el Escudo de la República con el
+nombre de la entidad; el artículo 4, literal g, admite excepciones. ¿Usa la
+PAID el Escudo de la República o el emblema de la Armada?
+
+---
+
 ## Resumen para llevar a una reunión
 
 | # | Pregunta en una línea | Prioridad |
@@ -391,3 +425,5 @@ límite que nadie fijó para ese caso.
 | Q13 | ¿El avance de un convenio usa la escala de ocho tramos o un porcentaje libre? | 🟡 |
 | Q14 | ¿Quitar una fila de una pestaña exige solicitud a JACID, o es una corrección normal? | 🟡 la interfaz ya está construida: si la respuesta es «sí», cada fila necesita un botón de solicitud |
 | Q15 | ¿La normatividad tiene cuota de almacenamiento, y cuál? R11 la fija «por actividad» y esto no es una actividad. | 🟡 |
+| Q16 | El Manual del Usuario PAID (v2, 2022) con sus pantallas: sin él la interfaz no puede ser «igual al manual». | 🔴 |
+| Q17 | Logotipo y paleta oficiales de la ARC; y si la PAID usa el Escudo de la República o el emblema de la Armada (Ley 2345 de 2023). | 🟡 |

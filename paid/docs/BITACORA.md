@@ -7,6 +7,51 @@ pueda continuar (PROMPT.md · A.5).
 
 ---
 
+## FASE 4 — Revisión de usabilidad (2026-09-23)
+
+Revisión pedida después de cerrar la Puerta 4: optimizar el flujo de
+diligenciamiento, incorporar la identidad gráfica institucional y hacer la
+interfaz igual a la del Manual del Usuario.
+
+### Lo hecho
+
+**Flujo de diligenciamiento** (D-30, D-31). El clavegrama queda a la vista
+mientras se llenan las pestañas; cada pestaña muestra sus filas con el nombre de
+lo registrado y permite quitarlas; los adjuntos se listan; «Añadir y seguir»
+lleva a la siguiente pestaña pendiente; la jornada abre en la primera
+pendiente; los datos generales se pueden corregir y ahora piden departamento,
+municipio y fecha de finalización; resumen de errores con enlaces; fechas con
+barras automáticas y botón «Hoy»; aviso antes de cerrar con cambios.
+
+**Defectos corregidos por el camino:**
+
+- Coordenadas con un valor por omisión plausible (10° N 75° W) y fase
+  documental preelegida: ahora arrancan vacías (D-30).
+- Dar de baja un adjunto inexistente respondía 204 sin hacer nada; y descargar o
+  dar de baja ignoraba de qué jornada era. Ahora 404 y comprobación.
+- Dos de accesibilidad, visibles al extender la revisión con axe a la jornada
+  abierta: segmentos de la Rosa como botones dentro de una imagen (y once
+  paradas de tabulación duplicadas), y la barra de cuota sin nombre accesible.
+- Al cambiar de pantalla se conservaba el desplazamiento de la anterior.
+
+**Identidad institucional** (D-32). Sitio preparado en
+`apps/web/public/identidad/`; vacío de material oficial.
+
+### Lo que NO se pudo hacer, y por qué
+
+- **Que la interfaz sea «igual al manual».** El Manual del Usuario PAID no está
+  disponible (Q16). No se inventó.
+- **Incorporar el logo y los colores oficiales.** El manual de identidad de la
+  ARC es público pero la red de la sesión bloquea `armada.mil.co` (Q17). No se
+  usaron copias de terceros ni se dibujó de memoria.
+
+### Estado
+
+290 pruebas: 116 de invariantes, 60 de la Puerta 1, 100 de API (Puertas 2, 3 y
+4) y 14 de navegador. Lint limpio.
+
+---
+
 ## FASE 4 — Interfaz
 
 ### Antes de empezar (plan)

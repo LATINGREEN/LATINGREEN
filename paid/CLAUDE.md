@@ -50,10 +50,17 @@ La PAID vive en `paid/`, no en la raíz: el repositorio ya contenía otro proyec
 (el juego Eco-Arcade Latin Green). Ver `docs/DECISIONES.md`, D-01.
 
 ## Estado
-**Fases 0 a 4 cerradas.** 281 pruebas pasando: 116 de invariantes compartidos,
-60 de la Puerta 1 contra Postgres real, 94 de las Puertas 2, 3 y 4 sobre la API
-real con Postgres y Redis, y 11 de navegador sobre la aplicación en pie. La
+**Fases 0 a 4 cerradas**, más una revisión de usabilidad del flujo de
+diligenciamiento. 290 pruebas pasando: 116 de invariantes compartidos, 60 de la
+Puerta 1 contra Postgres real, 100 de las Puertas 2, 3 y 4 sobre la API real
+con Postgres y Redis, y 14 de navegador sobre la aplicación en pie. La
 siguiente es la **Fase 5** (verificación de la Parte A).
+
+**Pendiente de material que no está en el repositorio:** el Manual del Usuario
+PAID (Q16) y la identidad visual oficial de la ARC (Q17). No los inventes ni
+los tomes de copias de terceros. El sitio para la identidad es
+`apps/web/public/identidad/` (ver su `LEEME.md`); se deja el archivo y se
+aplica sin código.
 
 ⛔ **La Parte B (Fases 6–8, la IA) no empieza hasta cerrar la Puerta 5.**
 PROMPT.md lo ordena literalmente, y el motivo es verificable: la Puerta 5 exige
@@ -149,6 +156,19 @@ te avisarán; no las relajes, haz la transformación idempotente. Ver D-25.
    consulta queda en `isPending` para siempre porque nunca ha salido, y el
    desplegable decía «Cargando…» indefinidamente. Lo que quieres es
    `isLoading`, que es `isPending && isFetching`.
+
+## Ningún valor por omisión plausible en un dato del consolidado
+
+Las coordenadas arrancaban en 10° N 75° W (cerca de Cartagena) y la fase
+documental en «Fase 1». Quien no las cambiaba guardaba un dato que nadie eligió
+y que parece correcto: el punto pasa el control de «dentro de Colombia». Es P6.
+
+Regla: un campo que alimenta un consolidado arranca **vacío** y se exige. Solo
+se admite un valor por omisión cuando no es una suposición (la longitud en W:
+Colombia entera está al oeste de Greenwich). Ver D-30.
+
+Consecuencia: `CoordenadasGms` trabaja con cadenas (`BorradorGms`), porque
+`Number('')` vale 0 y borra la diferencia entre «vacío» y «cero».
 
 ## El tipo de un campo lo decide su esquema, no su nombre
 
