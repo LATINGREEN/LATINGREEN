@@ -7,7 +7,7 @@ import { useSesion } from '../api/sesion';
 import { useAnuncio } from '../api/accesibilidad';
 import { CampoSelector } from '../componentes/CampoSelector';
 import { TablaEnvoltura } from '../componentes/TablaEnvoltura';
-import { Campo } from './Tripulantes';
+import { Campo } from '../componentes/Campo';
 import { Alerta, Cruz, Info, Lupa, Marca, Mas } from '../componentes/Iconos';
 
 /**

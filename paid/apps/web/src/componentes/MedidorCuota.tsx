@@ -20,7 +20,7 @@ export function MedidorCuota({ cuota }: { readonly cuota: EstadoCuota }): JSX.El
   return (
     <div className={`cuota cuota-${estado}`}>
       <div className="fila-sep">
-        <span className="rotulo">Cuota de soportes</span>
+        <span className="rotulo" id="cuota-rotulo">Cuota de soportes</span>
         <span className="datos cuota-cifra">
           {formatearBytes(cuota.bytesUsados)} de{' '}
           {formatearBytes(CUOTA_BYTES_POR_ACTIVIDAD)}
@@ -29,6 +29,10 @@ export function MedidorCuota({ cuota }: { readonly cuota: EstadoCuota }): JSX.El
       <div
         className="cuota-pista"
         role="progressbar"
+        /* Una barra de progreso sin nombre se anuncia como «barra de progreso,
+           40 %» — ¿de qué? El nombre lo da el rótulo visible de encima. Lo
+           encontró la revisión con axe al cubrir la pestaña de adjuntos. */
+        aria-labelledby="cuota-rotulo"
         aria-valuemin={0}
         aria-valuemax={CUOTA_BYTES_POR_ACTIVIDAD}
         aria-valuenow={cuota.bytesUsados}

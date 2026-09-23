@@ -5,6 +5,7 @@ import type { PersonalEnListado } from '@paid/schema';
 import { ErrorApi, api } from '../api/cliente';
 import { useSesion } from '../api/sesion';
 import { useAnuncio } from '../api/accesibilidad';
+import { Campo } from '../componentes/Campo';
 import { CampoSelector } from '../componentes/CampoSelector';
 import { TablaEnvoltura } from '../componentes/TablaEnvoltura';
 import { Alerta, Cruz, Lupa, Marca, Mas } from '../componentes/Iconos';
@@ -308,65 +309,6 @@ export function Tripulantes(): JSX.Element {
         </>
       )}
     </>
-  );
-}
-
-/** Campo de texto con rótulo visible, ayuda y error asociados por `id`. */
-export function Campo({
-  id,
-  rotulo,
-  valor,
-  onCambio,
-  obligatorio = false,
-  datos = false,
-  tipo = 'text',
-  ayuda,
-  error,
-}: {
-  readonly id: string;
-  readonly rotulo: string;
-  readonly valor: string;
-  readonly onCambio: (valor: string) => void;
-  readonly obligatorio?: boolean;
-  readonly datos?: boolean;
-  readonly tipo?: 'text' | 'email';
-  /* `| undefined` explícito: ver la nota en `CampoSelector`. */
-  readonly ayuda?: string | undefined;
-  readonly error?: string | undefined;
-}): JSX.Element {
-  const idAyuda = `${id}-ayuda`;
-  return (
-    <div className="campo">
-      <label htmlFor={id}>
-        {rotulo}
-        {obligatorio && (
-          <span className="obligatorio" aria-hidden="true">
-            *
-          </span>
-        )}
-      </label>
-      <input
-        id={id}
-        type={tipo}
-        className={`entrada ${datos ? 'datos' : ''}`}
-        value={valor}
-        required={obligatorio}
-        aria-invalid={error !== undefined}
-        aria-describedby={error !== undefined || ayuda !== undefined ? idAyuda : undefined}
-        onChange={(e) => onCambio(e.target.value)}
-      />
-      {error !== undefined ? (
-        <p className="error" id={idAyuda}>
-          <Alerta tamano={15} /> {error}
-        </p>
-      ) : (
-        ayuda !== undefined && (
-          <p className="ayuda" id={idAyuda}>
-            {ayuda}
-          </p>
-        )
-      )}
-    </div>
   );
 }
 

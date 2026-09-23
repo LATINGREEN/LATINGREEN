@@ -52,8 +52,26 @@ test.describe('Puerta 4 — camino completo por la interfaz', () => {
       await expect(coami.nth(i)).not.toBeChecked();
     }
 
+    /*
+     * Las coordenadas arrancan VACÍAS. Antes arrancaban en 10° N 75° W, un
+     * punto plausible cerca de Cartagena: quien olvidara cambiarlo registraba
+     * una ubicación falsa que pasaba todos los controles (P6). Y sin completar
+     * las ocho partes, no hay decimales que mostrar.
+     */
+    await expect(page.locator('#gms-latitudGrados')).toHaveValue('');
+    await expect(page.locator('#gms-latitudHemisferio')).toHaveValue('');
+    await expect(page.locator('.gms-decimales')).toContainText('al completar');
+
+    // Guardar sin coordenadas no pasa, y el resumen nombra lo que falta.
+    await page.getByRole('button', { name: /Guardar y continuar/ }).click();
+    const resumen = page.locator('.resumen-errores');
+    await expect(resumen).toBeVisible();
+    await expect(resumen).toContainText('Latitud: grados');
+    await expect(resumen).toBeFocused();
+
     // Coordenadas GMS del Pacífico nariñense, y la conversión a decimales a la
     // vista (Fase 4, punto 5).
+    await page.locator('#gms-latitudHemisferio').selectOption('N');
     await page.locator('#gms-latitudGrados').fill('1');
     await page.locator('#gms-latitudMinutos').fill('47');
     await page.locator('#gms-latitudSegundos').fill('30');
@@ -77,18 +95,49 @@ test.describe('Puerta 4 — camino completo por la interfaz', () => {
     const urlJornada = page.url();
     expect(urlJornada).toMatch(/\/jornadas\/\d+$/u);
 
+    // El título es el CÓDIGO DE ACTIVIDAD, no el identificador interno, y el
+    // clavegrama queda a la vista mientras se diligencian las pestañas.
+    await expect(page.locator('h1')).toHaveText(/^2813304R32026[A-Z0-9]{5}$/u);
+    await expect(page.locator('.clavegrama-texto')).toContainText('VEREDA LA PLAYA');
+
     // ── 3. La rosa dice que faltan las once ───────────────────────────────
     const rosa = page.locator('.pestanas-rosa .rosa-svg');
     await expect(rosa).toHaveAttribute('aria-label', /Registro incompleto/u);
 
     // ── 4. Las diez pestañas de datos ─────────────────────────────────────
+    //
+    // Se abre sola en la primera pendiente, y «Añadir y seguir» lleva a la
+    // siguiente PENDIENTE. La prueba sigue ese recorrido: es el que va a
+    // hacer una persona.
+    await expect(page.locator('#titulo-pestana')).toContainText('Tipo Operación');
     for (const pestana of PESTANAS_CON_DATOS) {
       await page.locator(`.pestanas-enlace[data-pestana="${pestana}"]`).click();
       await rellenarPanel(page);
-      await page.getByRole('button', { name: /Añadir registro/ }).click();
-      // El aviso de «ya tiene datos» es la confirmación de que la fila entró.
-      await expect(page.locator('.aviso-bien')).toBeVisible();
+      await page
+        .getByRole('button', { name: /^(Añadir|Guardar)( y seguir| registro| resumen)/u })
+        .click();
+      // La marca de la pestaña en el navegador es la confirmación de que la
+      // fila entró: la pinta el servidor, no el formulario.
+      await expect(
+        page.locator(`.pestanas-enlace[data-pestana="${pestana}"] .pestanas-marca.es-lista`),
+      ).toBeVisible();
     }
+
+    // ── 4b. Lo registrado se ve, y se puede quitar ────────────────────────
+    //
+    // Antes, al añadir una fila desaparecía de la pantalla: no había forma de
+    // comprobarla ni de corregirla.
+    await page.locator('.pestanas-enlace[data-pestana="SERVICIOS_PRESTADOS"]').click();
+    const registradas = page.locator('.registradas tbody tr');
+    await expect(registradas).toHaveCount(1);
+    await expect(registradas.first()).toContainText('Consulta médica general');
+    // Una segunda fila, y quitarla con confirmación.
+    await rellenarPanel(page, 1);
+    await page.getByRole('button', { name: 'Añadir y agregar otro' }).click();
+    await expect(registradas).toHaveCount(2);
+    await registradas.nth(1).getByRole('button', { name: /Quitar/u }).click();
+    await registradas.nth(1).getByRole('button', { name: 'Quitar', exact: true }).click();
+    await expect(registradas).toHaveCount(1);
 
     // ── 5. La cuota ANTES de subir nada (R11) ─────────────────────────────
     await page.locator('.pestanas-enlace[data-pestana="ARCHIVOS_ADJUNTOS"]').click();
@@ -101,7 +150,14 @@ test.describe('Puerta 4 — camino completo por la interfaz', () => {
     const rutaPdf = join(carpeta, 'soporte-jornada.pdf');
     writeFileSync(rutaPdf, pdfMinimo());
     await page.locator('input[type="file"]').setInputFiles(rutaPdf);
+    // La comprobación previa: cabe, y lo dice antes de subir.
+    await expect(page.locator('#archivo-ayuda')).toContainText('cabe en la cuota');
+    // La fase documental no viene elegida (Q7): sin elegirla no se adjunta.
+    await expect(page.getByRole('button', { name: /Adjuntar$/ })).toBeDisabled();
+    await page.locator('#fase').selectOption('1');
     await page.getByRole('button', { name: /Adjuntar$/ }).click();
+    // Y el soporte queda listado.
+    await expect(page.locator('.adjuntos-lista')).toContainText('soporte-jornada.pdf');
 
     // ── 7. Solo con las ONCE el registro queda completo (R19) ─────────────
     await expect(page.locator('.pestanas-rosa .rosa-svg')).toHaveAttribute(
@@ -109,6 +165,8 @@ test.describe('Puerta 4 — camino completo por la interfaz', () => {
       /Registro completo/u,
       { timeout: 15_000 },
     );
+    // Y lo dice con palabras, con lo que significa.
+    await expect(page.locator('.aviso-destacado')).toContainText('entra en los consolidados');
 
     // ── 8. El listado lo señala como completo ─────────────────────────────
     await irA(page, '/jornadas');
@@ -171,7 +229,7 @@ test.describe('Puerta 4 — camino completo por la interfaz', () => {
 });
 
 /** Rellena los campos del panel activo con valores que el esquema acepta. */
-async function rellenarPanel(pagina: Page): Promise<void> {
+async function rellenarPanel(pagina: Page, opcion = 0): Promise<void> {
   const campos = pagina.locator('.panel-campos .campo');
   const cuantos = await campos.count();
   for (let i = 0; i < cuantos; i += 1) {
@@ -181,7 +239,8 @@ async function rellenarPanel(pagina: Page): Promise<void> {
       // Primera opción real: la vacía es «Seleccione…».
       const opciones = selector.locator('option');
       if ((await opciones.count()) > 1) {
-        await selector.selectOption({ index: 1 });
+        // La opción 0 es «Seleccione…»; `opcion` elige entre las reales.
+        await selector.selectOption({ index: 1 + opcion });
       }
       continue;
     }

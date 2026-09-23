@@ -139,6 +139,36 @@ test.describe('Puerta 4 — accesibilidad (WCAG 2.1 AA)', () => {
   }
 
   /**
+   * La jornada abierta para diligenciar: clavegrama, pasos, navegador de
+   * pestañas, filas registradas y adjuntos. Es la pantalla donde más tiempo
+   * pasa una persona, y no la cubría ninguna ruta de la lista anterior porque
+   * solo se llega pulsando una jornada del listado.
+   */
+  for (const contraste of CONTRASTES) {
+    test(`jornada abierta con sus pestañas · contraste ${contraste}`, async ({ page }) => {
+      await ingresar(page, 'BIM23_PAID');
+      await page.evaluate(
+        (modo) => document.documentElement.setAttribute('data-contraste', modo),
+        contraste,
+      );
+      await irA(page, '/jornadas');
+      await page.locator('.enlace-codigo').first().click();
+      await expect(page.locator('.pestanas')).toBeVisible();
+
+      // Una pestaña de datos y la de adjuntos: son paneles distintos.
+      for (const pestana of ['SERVICIOS_PRESTADOS', 'ARCHIVOS_ADJUNTOS']) {
+        await page.locator(`.pestanas-enlace[data-pestana="${pestana}"]`).click();
+        await expect(page.locator('#titulo-pestana')).toBeVisible();
+        const violaciones = await revisar(page);
+        expect(
+          criticas(violaciones),
+          `${pestana} (contraste ${contraste}):\n${informe(violaciones)}`,
+        ).toEqual([]);
+      }
+    });
+  }
+
+  /**
    * Los formularios desplegados son donde se concentran los defectos de
    * accesibilidad —campos sin rótulo, errores anunciados solo por color— y no
    * se revisan al abrir la página, porque están cerrados. Se abren a mano.

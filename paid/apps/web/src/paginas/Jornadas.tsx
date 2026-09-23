@@ -247,14 +247,19 @@ export function Jornadas(): JSX.Element {
                         {fila.registroCompleto ? (
                           <span className="distintivo distintivo-completo">Completo</span>
                         ) : (
-                          <span
-                            className="distintivo distintivo-incompleto"
+                          /* Un enlace y no solo un distintivo: lo que se hace con
+                             una jornada incompleta es seguir diligenciándola, y
+                             el formulario abre en la primera pestaña pendiente. */
+                          <Link
+                            to={`/jornadas/${fila.id}`}
+                            className="distintivo distintivo-incompleto enlace-continuar"
                             title={fila.pestanasFaltantes
                               .map((p) => ETIQUETA_PESTANA[p as PestanaActividad])
                               .join(', ')}
+                            aria-label={`Continuar ${fila.codigoActividad}: faltan ${fila.pestanasFaltantes.length} pestañas`}
                           >
-                            Faltan {fila.pestanasFaltantes.length}
-                          </span>
+                            Faltan {fila.pestanasFaltantes.length} · Continuar →
+                          </Link>
                         )}
                       </td>
                     </tr>

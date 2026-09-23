@@ -431,3 +431,136 @@
   font-size: var(--t-xs);
   color: var(--bruma);
 }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   Flujo de diligenciamiento (revisión de usabilidad)
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.rejilla-3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr)); gap: var(--e-4); align-items: start; }
+
+/* Fecha con su botón «Hoy» al lado. */
+.campo-fecha { display: flex; gap: var(--e-2); }
+.campo-fecha .entrada { flex: 1; min-width: 0; }
+.campo-fecha .boton { flex-shrink: 0; }
+
+.boton-chico { min-height: 2.25rem; padding: 0 var(--e-3); font-size: var(--t-sm); }
+
+/* ── Resumen de errores: cada error, un enlace a su campo ───────────────── */
+.resumen-errores { flex-direction: row; }
+.resumen-errores ul { margin: var(--e-2) 0 0; padding-left: var(--e-4); }
+.resumen-errores li { margin-bottom: var(--e-1); }
+.resumen-errores a { color: inherit; font-weight: 700; }
+.resumen-errores:focus { outline: 3px solid var(--babor); outline-offset: 2px; }
+
+/* ── Los tres pasos del registro ────────────────────────────────────────── */
+.pasos {
+  display: flex;
+  gap: var(--e-2);
+  list-style: none;
+  margin: 0 0 var(--e-5);
+  padding: 0;
+  flex-wrap: wrap;
+  counter-reset: none;
+}
+.paso {
+  display: flex;
+  align-items: center;
+  gap: var(--e-2);
+  padding: var(--e-2) var(--e-4) var(--e-2) var(--e-2);
+  border-radius: var(--radio-pleno);
+  border: 1px solid var(--linea);
+  background: var(--casco);
+  font-family: var(--tipo-display);
+  font-size: var(--t-sm);
+  font-weight: 600;
+  color: var(--bruma);
+}
+.paso-numero {
+  display: grid;
+  place-items: center;
+  width: 1.6rem;
+  height: 1.6rem;
+  border-radius: var(--radio-pleno);
+  border: 2px solid var(--linea-viva);
+  font-size: var(--t-xs);
+}
+.paso-actual { color: var(--arena); border-color: var(--estela); }
+.paso-actual .paso-numero { border-color: var(--estela); background: var(--estela); color: var(--abismo); }
+.paso-hecho { color: var(--estribor); }
+.paso-hecho .paso-numero { border-color: var(--estribor); background: var(--estribor); color: var(--abismo); }
+:root[data-contraste='alto'] .paso-actual .paso-numero,
+:root[data-contraste='alto'] .paso-hecho .paso-numero { color: #000; }
+
+.distintivo-grande { font-size: var(--t-sm); padding: var(--e-1) var(--e-3); align-self: center; }
+
+.aviso-destacado { align-items: center; margin-bottom: var(--e-5); font-size: var(--t-md); }
+.aviso-destacado > div { flex: 1; }
+
+/* ── El clavegrama, a la vista mientras se diligencia ───────────────────── */
+.clavegrama { padding: 0; margin-bottom: var(--e-5); overflow: hidden; }
+.clavegrama > summary {
+  display: flex;
+  align-items: baseline;
+  gap: var(--e-3);
+  padding: var(--e-3) var(--e-4);
+  cursor: pointer;
+  list-style: none;
+  border-bottom: 1px solid var(--linea);
+}
+.clavegrama > summary::-webkit-details-marker { display: none; }
+.clavegrama > summary::before {
+  content: '▸';
+  color: var(--estela);
+  transition: transform var(--rapido) var(--curva);
+}
+.clavegrama[open] > summary::before { transform: rotate(90deg); }
+.clavegrama:not([open]) > summary { border-bottom: none; }
+.clavegrama-pista { font-size: var(--t-xs); color: var(--bruma-honda); }
+.clavegrama-cuerpo { display: flex; flex-direction: column; gap: var(--e-3); padding: var(--e-4); }
+.clavegrama-texto {
+  /* Un clavegrama largo no puede empujar las pestañas fuera de la pantalla:
+     se desplaza dentro de su caja. */
+  max-height: 11rem;
+  overflow-y: auto;
+  white-space: pre-wrap;
+  padding: var(--e-3);
+  border-radius: var(--radio-md);
+  background: var(--casco-hundido);
+  border: 1px solid var(--linea);
+  line-height: 1.6;
+}
+.clavegrama-datos { display: flex; flex-wrap: wrap; gap: var(--e-5); margin: 0; }
+.clavegrama-datos dt { font-size: var(--t-xs); color: var(--bruma); font-weight: 700; }
+.clavegrama-datos dd { margin: 0; }
+.clavegrama-cuerpo > .boton { align-self: flex-start; }
+
+/* ── Pestañas: número de orden y posición ───────────────────────────────── */
+.pestanas-numero { font-family: var(--tipo-datos); font-size: 0.625rem; color: var(--bruma); line-height: 1; }
+.pestanas-marca:has(.pestanas-numero) { display: grid; place-items: center; }
+.pestanas-posicion { color: var(--bruma); font-size: var(--t-md); font-weight: 500; }
+.pestanas-panel:focus { outline: none; }
+.pestanas-panel:focus-visible { outline: 3px solid var(--estela); outline-offset: 2px; }
+
+/* ── Lo ya registrado en la pestaña ─────────────────────────────────────── */
+.registradas { display: flex; flex-direction: column; gap: var(--e-2); }
+.registradas-titulo { display: flex; align-items: center; gap: var(--e-2); color: var(--estribor); }
+.tabla-compacta thead th,
+.tabla-compacta tbody td { padding: var(--e-2) var(--e-3); }
+.celda-acciones { text-align: right; white-space: nowrap; width: 1%; }
+
+.enlace-continuar { text-decoration: none; }
+.enlace-continuar:hover { background: color-mix(in oklch, var(--babor) 14%, transparent); }
+
+/* Pie de un panel de pestaña: los botones a la derecha, en una fila, con la
+   acción principal al final — donde termina la lectura. */
+.acciones-pie {
+  display: flex;
+  justify-content: flex-end;
+  padding-top: var(--e-4);
+  border-top: 1px solid var(--linea);
+}
+.acciones-botones { justify-content: flex-end; }
+.nota-pendiente { color: var(--bruma-honda); }
+
+/* Los números 10 y 11 de las pestañas no cabían en el círculo. */
+.pestanas-marca { width: 1.4rem; height: 1.4rem; }

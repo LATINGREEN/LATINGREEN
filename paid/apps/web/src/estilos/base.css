@@ -367,8 +367,6 @@ table.tabla { width: 100%; border-collapse: collapse; font-size: var(--t-sm); }
 .rosa-seg-activa { stroke: var(--estela); }
 .rosa-seg-tocable { cursor: pointer; }
 .rosa-seg-tocable:hover .rosa-seg { stroke: var(--estela); opacity: 1; }
-.rosa-seg-tocable:focus-visible { outline: none; }
-.rosa-seg-tocable:focus-visible .rosa-seg { stroke: var(--estela); stroke-width: 20; }
 
 .rosa-rumbos line { stroke: var(--bruma-honda); stroke-width: 1.5; }
 

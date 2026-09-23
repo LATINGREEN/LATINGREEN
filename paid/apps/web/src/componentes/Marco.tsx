@@ -1,4 +1,5 @@
-import { NavLink, Outlet } from 'react-router-dom';
+import { useEffect, useRef } from 'react';
+import { NavLink, Outlet, useLocation } from 'react-router-dom';
 import type { ReactNode } from 'react';
 import { useSesion } from '../api/sesion';
 import { ControlesAccesibilidad } from './ControlesAccesibilidad';
@@ -89,6 +90,31 @@ const MENU: readonly Entrada[] = [
 
 export function Marco(): JSX.Element {
   const { sesion, salir, puede } = useSesion();
+  const { pathname } = useLocation();
+  const principal = useRef<HTMLElement | null>(null);
+  const primera = useRef(true);
+
+  /*
+   * Al cambiar de pantalla: arriba del todo, y el foco al contenido.
+   *
+   * Una aplicación de una sola página no recarga, así que el navegador no hace
+   * ninguna de las dos cosas. Al guardar una jornada nueva se abría la jornada
+   * con el desplazamiento del formulario anterior —a media página, sin ver el
+   * título— y un lector de pantalla se quedaba en el botón que ya no existía,
+   * sin enterarse de que la pantalla había cambiado.
+   *
+   * No en la primera carga: ahí el foco tiene que empezar por el principio,
+   * donde está «Saltar al contenido».
+   */
+  useEffect(() => {
+    if (primera.current) {
+      primera.current = false;
+      return;
+    }
+    window.scrollTo({ top: 0 });
+    principal.current?.focus({ preventScroll: true });
+  }, [pathname]);
+
   if (sesion === null) return <Outlet />;
 
   const visibles = MENU.filter((e) => e.permiso === undefined || puede(e.permiso));
@@ -175,7 +201,7 @@ export function Marco(): JSX.Element {
           </p>
         </nav>
 
-        <main className="contenido" id="contenido" tabIndex={-1}>
+        <main className="contenido" id="contenido" tabIndex={-1} ref={principal}>
           <Outlet />
         </main>
       </div>

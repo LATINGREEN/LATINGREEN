@@ -133,21 +133,28 @@ export function RosaPestanas({
           if (onElegir === undefined || tamano !== 'grande') {
             return <g key={pestana} aria-hidden="true">{camino}</g>;
           }
+          /*
+           * ⚠️ Tocable con el ratón, NO enfocable ni anunciado.
+           *
+           * Antes cada segmento era un `role="button"` con `tabIndex={0}`
+           * dentro de un SVG con `role="img"`. La revisión con axe lo marcó
+           * como `nested-interactive` —controles dentro de algo que se anuncia
+           * como imagen, que el lector de pantalla no presenta como
+           * controles— y además eran ONCE paradas de tabulación duplicadas:
+           * la lista de pestañas de al lado hace lo mismo, con texto.
+           *
+           * Así queda un solo camino accesible —la lista—, la rosa sigue
+           * siendo una imagen con su descripción en palabras, y quien usa
+           * ratón puede seguir pulsando un segmento.
+           */
           return (
             <g
               key={pestana}
-              role="button"
-              tabIndex={0}
-              aria-label={`${ETIQUETA_PESTANA[pestana]}: ${lista ? 'con datos' : 'sin datos'}`}
+              aria-hidden="true"
               className="rosa-seg-tocable"
               onClick={() => onElegir(pestana)}
-              onKeyDown={(evento) => {
-                if (evento.key === 'Enter' || evento.key === ' ') {
-                  evento.preventDefault();
-                  onElegir(pestana);
-                }
-              }}
             >
+              <title>{`${ETIQUETA_PESTANA[pestana]}: ${lista ? 'con datos' : 'sin datos'}`}</title>
               {camino}
             </g>
           );

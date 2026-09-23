@@ -1,14 +1,16 @@
 import { useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { crearHerramienta, formatearFechaDdMmAaaa } from '@paid/schema';
-import type { CoordenadaGms, HerramientaEnListado } from '@paid/schema';
+import type { HerramientaEnListado } from '@paid/schema';
 import { ErrorApi, api } from '../api/cliente';
 import { useSesion } from '../api/sesion';
 import { useAnuncio } from '../api/accesibilidad';
 import { CampoSelector } from '../componentes/CampoSelector';
 import { TablaEnvoltura } from '../componentes/TablaEnvoltura';
-import { CoordenadasGms } from '../componentes/CoordenadasGms';
-import { Campo } from './Tripulantes';
+import { CoordenadasGms, GMS_VACIO, completarGms } from '../componentes/CoordenadasGms';
+import type { BorradorGms } from '../componentes/CoordenadasGms';
+import { CampoFecha } from '../componentes/CampoFecha';
+import { Campo } from '../componentes/Campo';
 import { Alerta, Cruz, Lupa, Marca, Mas } from '../componentes/Iconos';
 
 /**
@@ -25,17 +27,6 @@ interface Listado {
   readonly filas: readonly HerramientaEnListado[];
   readonly total: number;
 }
-
-const GMS_VACIO: CoordenadaGms = {
-  latitudGrados: 0,
-  latitudMinutos: 0,
-  latitudSegundos: 0,
-  latitudHemisferio: 'N',
-  longitudGrados: 0,
-  longitudMinutos: 0,
-  longitudSegundos: 0,
-  longitudHemisferio: 'W',
-};
 
 const VACIO = {
   idTipoHerramientaAid: '',
@@ -55,7 +46,7 @@ export function Herramientas(): JSX.Element {
   const [busqueda, setBusqueda] = useState('');
   const [abierto, setAbierto] = useState(false);
   const [borrador, setBorrador] = useState(VACIO);
-  const [gms, setGms] = useState<CoordenadaGms>(GMS_VACIO);
+  const [gms, setGms] = useState<BorradorGms>(GMS_VACIO);
   const [errores, setErrores] = useState<Record<string, string>>({});
 
   const listado = useQuery({
@@ -68,11 +59,19 @@ export function Herramientas(): JSX.Element {
 
   const registrar = useMutation({
     mutationFn: async () => {
-      const datos = crearHerramienta.safeParse({ ...aPeticion(borrador), ...gms });
-      if (!datos.success) {
-        const porCampo: Record<string, string> = {};
-        for (const problema of datos.error.issues) {
-          porCampo[problema.path.join('.')] = problema.message;
+      // Las coordenadas arrancan VACÍAS y se exigen: un valor por omisión
+      // plausible es peor que ninguno (P6). Ver CoordenadasGms.
+      const coordenada = completarGms(gms);
+      const datos = crearHerramienta.safeParse({
+        ...aPeticion(borrador),
+        ...('coordenada' in coordenada ? coordenada.coordenada : {}),
+      });
+      if (!datos.success || 'faltan' in coordenada) {
+        const porCampo: Record<string, string> = 'faltan' in coordenada ? { ...coordenada.faltan } : {};
+        if (!datos.success) {
+          for (const problema of datos.error.issues) {
+            porCampo[problema.path.join('.')] ??= problema.message;
+          }
         }
         setErrores(porCampo);
         throw new Error('validacion');
@@ -159,13 +158,10 @@ export function Herramientas(): JSX.Element {
               error={errores['nombre']}
               onCambio={(v) => setBorrador({ ...borrador, nombre: v })}
             />
-            <Campo
+            <CampoFecha
               id="fecha-herramienta"
               rotulo="Fecha de registro"
               valor={borrador.fechaRegistro}
-              obligatorio
-              datos
-              ayuda="dd/mm/aaaa"
               error={errores['fechaRegistro']}
               onCambio={(v) => setBorrador({ ...borrador, fechaRegistro: v })}
             />
