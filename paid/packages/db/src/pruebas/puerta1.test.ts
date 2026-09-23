@@ -1084,6 +1084,86 @@ describe('R9 — participo_arc siempre TRUE', () => {
 });
 
 // ═════════════════════════════════════════════════════════════════════════════
+describe('Manual, láminas 20–21 — tipo de jornada, EJC, FAC y población afecta', () => {
+  it('el catálogo trae exactamente los tres tipos del manual', async () => {
+    const r = await entorno.poolAdmin.query<{ codigo: string }>(
+      'SELECT codigo FROM ref.tipo_jornada ORDER BY orden',
+    );
+    expect(r.rows.map((f) => f.codigo)).toEqual(['BINACIONAL', 'CONJUNTA', 'ESTRATEGICA']);
+  });
+
+  it('una jornada anterior a 0015 queda sin dato, no con uno inventado', async () => {
+    const c = await entorno.poolAdmin.connect();
+    try {
+      await c.query('BEGIN');
+      // crearActividad inserta el subtipo SIN las columnas nuevas, como lo
+      // hacía el servicio antes de 0015.
+      const id = await crearActividad(c, { codigo: 'MAN-1', idUnidad: unidades.bim23 });
+      const r = await c.query<{
+        id_tipo_jornada: number | null;
+        participo_ejc: boolean | null;
+        participo_fac: boolean | null;
+        poblacion_afecta_tropa: boolean | null;
+      }>(
+        `SELECT id_tipo_jornada, participo_ejc, participo_fac, poblacion_afecta_tropa
+           FROM ai.jornada_apoyo WHERE id_actividad = $1`,
+        [id],
+      );
+      // NULL, no FALSE: «no participó el EJC» es una afirmación (D-30).
+      expect(r.rows[0]).toEqual({
+        id_tipo_jornada: null,
+        participo_ejc: null,
+        participo_fac: null,
+        poblacion_afecta_tropa: null,
+      });
+    } finally {
+      await c.query('ROLLBACK').catch(() => undefined);
+      c.release();
+    }
+  });
+
+  it('un tipo de jornada fuera del catálogo es RECHAZADO (P9)', async () => {
+    const c = await entorno.poolAdmin.connect();
+    try {
+      await c.query('BEGIN');
+      const id = await crearActividad(c, { codigo: 'MAN-2', idUnidad: unidades.bim23 });
+      await expect(
+        c.query('UPDATE ai.jornada_apoyo SET id_tipo_jornada = 9999 WHERE id_actividad = $1', [id]),
+      ).rejects.toThrow(/foreign key|llave foránea|clave foránea/i);
+    } finally {
+      await c.query('ROLLBACK').catch(() => undefined);
+      c.release();
+    }
+  });
+
+  it('los cambios en los campos nuevos quedan en la bitácora (R15)', async () => {
+    const c = await entorno.poolAdmin.connect();
+    try {
+      await c.query('BEGIN');
+      const id = await crearActividad(c, { codigo: 'MAN-3', idUnidad: unidades.bim23 });
+      await c.query(
+        `UPDATE ai.jornada_apoyo
+            SET participo_ejc = TRUE,
+                id_tipo_jornada = (SELECT id FROM ref.tipo_jornada WHERE codigo = 'CONJUNTA')
+          WHERE id_actividad = $1`,
+        [id],
+      );
+      const r = await c.query<{ posterior: Record<string, unknown> }>(
+        `SELECT imagen_posterior AS posterior FROM aud.bitacora_cambio
+          WHERE esquema = 'ai' AND tabla = 'jornada_apoyo' AND operacion = 'U'
+            AND id_registro = $1
+          ORDER BY id DESC LIMIT 1`,
+        [id],
+      );
+      expect(r.rows[0]?.posterior['participo_ejc']).toBe(true);
+    } finally {
+      await c.query('ROLLBACK').catch(() => undefined);
+      c.release();
+    }
+  });
+});
+
+// ═════════════════════════════════════════════════════════════════════════════
 describe('R17 — asistencia DIRECTA exige plan operacional', () => {
   async function crearAsistencia(
     cliente: PoolClient,

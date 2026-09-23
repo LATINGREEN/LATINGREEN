@@ -241,6 +241,16 @@ INSERT INTO ref.tipo_alianza (codigo, nombre, descripcion, orden) VALUES
   ('CONVENIO', 'Convenio', 'R16: los convenios son de JACID, y solo JACID diligencia su porcentaje de avance.', 2)
 ON CONFLICT (codigo) DO NOTHING;
 
+-- ── Tipos de jornada (migracion 0015) ──────────────────────────────────────
+-- No estan en PROMPT.md, pero los enumera literalmente el Manual del Usuario
+-- PAID, lamina 20: «el tipo de jornada (binacional, conjunta o estrategica)».
+-- Es fuente de JACID, no un supuesto; por eso se siembran.
+INSERT INTO ref.tipo_jornada (codigo, nombre, orden) VALUES
+  ('BINACIONAL',  'Binacional',  1),
+  ('CONJUNTA',    'Conjunta',    2),
+  ('ESTRATEGICA', 'Estratégica', 3)
+ON CONFLICT (codigo) DO NOTHING;
+
 -- TODO(JACID): confirmar la tipologia documental.
 INSERT INTO ref.tipo_normatividad (codigo, nombre, descripcion, orden) VALUES
   ('DIRECTIVA',   'Directiva',   'TODO(JACID): confirmar.', 1),
