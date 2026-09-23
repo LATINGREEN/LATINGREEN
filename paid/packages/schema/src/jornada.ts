@@ -96,3 +96,66 @@ export type FiltroJornadas = z.infer<typeof filtroJornadas>;
 
 export const FORMATOS_EXPORTACION = ['XLSX', 'CSV'] as const;
 export type FormatoExportacion = (typeof FORMATOS_EXPORTACION)[number];
+
+/**
+ * Una jornada abierta para diligenciar: los datos generales más lo que hace
+ * falta para seguir.
+ *
+ * Existe porque sin esto el formulario de las once pestañas no mostraba el
+ * clavegrama —y las once pestañas SON su transcripción—: la persona tenía que
+ * volver al listado para releer lo que estaba transcribiendo.
+ */
+export const jornadaDetalle = z.object({
+  id: z.number().int(),
+  codigoActividad: z.string(),
+  unidad: z.string(),
+  descripcion: z.string(),
+  fechaInicio: z.string(),
+  fechaFin: z.string().nullable(),
+  fechaEjecucion: z.string(),
+  lugar: z.string(),
+  observaciones: z.string().nullable(),
+  municipio: z.string().nullable(),
+  latitudGrados: z.number(),
+  latitudMinutos: z.number(),
+  latitudSegundos: z.number(),
+  latitudHemisferio: z.string(),
+  longitudGrados: z.number(),
+  longitudMinutos: z.number(),
+  longitudSegundos: z.number(),
+  longitudHemisferio: z.string(),
+  latitudDecimal: z.number(),
+  longitudDecimal: z.number(),
+  coami: z.array(z.string()),
+  registroCompleto: z.boolean(),
+});
+
+export type JornadaDetalle = z.infer<typeof jornadaDetalle>;
+
+/**
+ * Una fila ya registrada en una de las diez pestañas de datos.
+ *
+ * `campos` trae los valores tal como están guardados, con las claves del
+ * esquema de la pestaña. `nombres` trae, para cada campo que es una clave
+ * foránea, el nombre legible de lo que apunta: sin él, la persona vería
+ * «Tipo de operación: 3» y no podría saber si registró lo que quería.
+ */
+export const filaPestana = z.object({
+  id: z.number().int(),
+  campos: z.record(z.string(), z.union([z.string(), z.number(), z.null()])),
+  nombres: z.record(z.string(), z.string()),
+});
+
+export type FilaPestana = z.infer<typeof filaPestana>;
+
+/** Un adjunto vigente de una actividad. */
+export const adjuntoEnListado = z.object({
+  id: z.number().int(),
+  nombreArchivo: z.string(),
+  categoria: z.string(),
+  pesoBytes: z.number().int(),
+  faseDocumental: z.number().int(),
+  cargadoEn: z.string(),
+});
+
+export type AdjuntoEnListado = z.infer<typeof adjuntoEnListado>;

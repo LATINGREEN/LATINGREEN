@@ -103,6 +103,29 @@ export class JornadasController {
     await this.jornadas.actualizar(id, datos.data);
   }
 
+  /** Los datos generales, para diligenciar con el clavegrama a la vista. */
+  @RequierePermiso('JORNADA.CONSULTAR')
+  @Get(':id')
+  async detalle(@Param('id', ParseIntPipe) id: number) {
+    return this.jornadas.detalle(id);
+  }
+
+  /** Las filas ya registradas en una pestaña, con sus nombres legibles. */
+  @RequierePermiso('JORNADA.CONSULTAR')
+  @Get(':id/pestanas/:pestana')
+  async filasPestana(
+    @Param('id', ParseIntPipe) id: number,
+    @Param('pestana') pestana: string,
+  ) {
+    if (!esPestanaConDatos(pestana)) {
+      throw new BadRequestException({
+        codigo: CODIGOS_ERROR.DATOS_INVALIDOS,
+        mensaje: `«${pestana}» no es una pestaña de datos.`,
+      });
+    }
+    return this.jornadas.filasPestana(id, pestana);
+  }
+
   /** R19 — qué pestañas faltan. Lo que la interfaz pinta como aviso. */
   @RequierePermiso('JORNADA.CONSULTAR')
   @Get(':id/pestanas')
@@ -203,14 +226,21 @@ export class JornadasController {
     );
   }
 
+  /** Los soportes vigentes, para que la persona vea lo que ya adjuntó. */
+  @RequierePermiso('ADJUNTO.CONSULTAR')
+  @Get(':id/adjuntos')
+  async listarAdjuntos(@Param('id', ParseIntPipe) id: number) {
+    return this.adjuntos.listar(id);
+  }
+
   @RequierePermiso('ADJUNTO.CONSULTAR')
   @Get(':id/adjuntos/:idAdjunto')
   async descargarAdjunto(
-    @Param('id', ParseIntPipe) _id: number,
+    @Param('id', ParseIntPipe) id: number,
     @Param('idAdjunto', ParseIntPipe) idAdjunto: number,
     @Res() respuesta: Response,
   ): Promise<void> {
-    const adjunto = await this.adjuntos.leer(idAdjunto);
+    const adjunto = await this.adjuntos.leer(id, idAdjunto);
     respuesta
       .status(HttpStatus.OK)
       .setHeader('Content-Type', adjunto.mime)
@@ -228,10 +258,10 @@ export class JornadasController {
   @Delete(':id/adjuntos/:idAdjunto')
   @HttpCode(HttpStatus.NO_CONTENT)
   async darDeBajaAdjunto(
-    @Param('id', ParseIntPipe) _id: number,
+    @Param('id', ParseIntPipe) id: number,
     @Param('idAdjunto', ParseIntPipe) idAdjunto: number,
   ): Promise<void> {
-    await this.adjuntos.darDeBaja(idAdjunto);
+    await this.adjuntos.darDeBaja(id, idAdjunto);
   }
 
   /** Exportación XLSX y CSV, con registro en `aud.exportacion`. */

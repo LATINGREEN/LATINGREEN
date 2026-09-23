@@ -1,4 +1,12 @@
-import { BadRequestException, Inject, Injectable, PayloadTooLargeException, UnsupportedMediaTypeException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Inject,
+  Injectable,
+  InternalServerErrorException,
+  NotFoundException,
+  PayloadTooLargeException,
+  UnsupportedMediaTypeException,
+} from '@nestjs/common';
 import { fromBuffer } from 'file-type';
 import {
   CODIGOS_ERROR,
@@ -7,7 +15,7 @@ import {
   extensionDe,
   formatearBytes,
 } from '@paid/schema';
-import type { EstadoCuota, FaseDocumental } from '@paid/schema';
+import type { AdjuntoEnListado, EstadoCuota, FaseDocumental } from '@paid/schema';
 import { createHash } from 'node:crypto';
 import { BaseDatosService } from '../basedatos/basedatos.service';
 import { ALMACEN_OBJETOS } from '../almacen/almacen';
@@ -234,17 +242,69 @@ export class AdjuntosService {
     }
   }
 
-  /** R14 — Baja logica. El binario NO se destruye. */
-  async darDeBaja(idAdjunto: number): Promise<void> {
-    await this.baseDatos.cliente.query(
-      `UPDATE ai.act_adjunto
-          SET id_estado_registro = (SELECT id FROM ref.estado_registro WHERE codigo = 'INACTIVO')
-        WHERE id = $1`,
-      [idAdjunto],
+  /**
+   * Los soportes VIGENTES de una actividad, para que la persona vea lo que ya
+   * adjuntó. Sin esto, tras subir un archivo no quedaba rastro en pantalla:
+   * solo el medidor de cuota se movía.
+   */
+  async listar(idActividad: number): Promise<readonly AdjuntoEnListado[]> {
+    const r = await this.baseDatos.cliente.query<{
+      id: string;
+      nombre_archivo: string;
+      categoria: string;
+      peso_bytes: string;
+      fase: number;
+      creado_en: string;
+    }>(
+      `SELECT a.id, a.nombre_archivo, c.nombre AS categoria, a.peso_bytes,
+              f.id AS fase, a.creado_en::text
+         FROM ai.act_adjunto a
+         JOIN ref.categoria_adjunto c ON c.id = a.id_categoria_adjunto
+         JOIN ref.fase_documental f ON f.id = a.id_fase_documental
+         JOIN ref.estado_registro e ON e.id = a.id_estado_registro
+        WHERE a.id_actividad = $1 AND e.codigo = 'ACTIVO'
+        ORDER BY a.creado_en, a.id`,
+      [idActividad],
     );
+    return r.rows.map((f) => ({
+      id: Number(f.id),
+      nombreArchivo: f.nombre_archivo,
+      categoria: f.categoria,
+      pesoBytes: Number(f.peso_bytes),
+      faseDocumental: Number(f.fase),
+      cargadoEn: f.creado_en,
+    }));
   }
 
-  async leer(idAdjunto: number): Promise<{ nombre: string; mime: string; contenido: Buffer }> {
+  /**
+   * R14 — Baja logica. El binario NO se destruye.
+   *
+   * ⚠️ Se exige que el adjunto sea de ESA actividad y que la fila exista. Antes
+   * el identificador de la actividad de la ruta se ignoraba, y un
+   * identificador inexistente respondia 204 sin haber hecho nada: la pantalla
+   * decia «quitado» sobre un soporte que seguia ahi, contando para la cuota y
+   * para el registro completo.
+   */
+  async darDeBaja(idActividad: number, idAdjunto: number): Promise<void> {
+    const r = await this.baseDatos.cliente.query(
+      `UPDATE ai.act_adjunto
+          SET id_estado_registro = (SELECT id FROM ref.estado_registro WHERE codigo = 'INACTIVO')
+        WHERE id = $1 AND id_actividad = $2
+          AND id_estado_registro = (SELECT id FROM ref.estado_registro WHERE codigo = 'ACTIVO')`,
+      [idAdjunto, idActividad],
+    );
+    if (r.rowCount === 0) {
+      throw new NotFoundException({
+        codigo: CODIGOS_ERROR.RECURSO_NO_ENCONTRADO,
+        mensaje: 'No se encontró el adjunto.',
+      });
+    }
+  }
+
+  async leer(
+    idActividad: number,
+    idAdjunto: number,
+  ): Promise<{ nombre: string; mime: string; contenido: Buffer }> {
     const fila = await this.baseDatos.cliente.query<{
       nombre_archivo: string;
       mime_detectado: string;
@@ -252,12 +312,15 @@ export class AdjuntosService {
       hash_sha256: string;
     }>(
       `SELECT nombre_archivo, mime_detectado, ruta_objeto, hash_sha256
-         FROM ai.act_adjunto WHERE id = $1`,
-      [idAdjunto],
+         FROM ai.act_adjunto WHERE id = $1 AND id_actividad = $2`,
+      [idAdjunto, idActividad],
     );
     const adjunto = fila.rows[0];
     if (adjunto === undefined) {
-      throw new BadRequestException({
+      // 404, no 400: la peticion estaba bien formada, lo que no existe es el
+      // recurso. Con 400 la interfaz decia «datos invalidos» a quien pulso un
+      // enlace que ella misma le ofrecio.
+      throw new NotFoundException({
         codigo: CODIGOS_ERROR.RECURSO_NO_ENCONTRADO,
         mensaje: 'No se encontró el adjunto.',
       });
@@ -273,7 +336,9 @@ export class AdjuntosService {
      */
     const hashActual = createHash('sha256').update(contenido).digest('hex');
     if (hashActual !== adjunto.hash_sha256) {
-      throw new BadRequestException({
+      // 500 y no 400: la peticion es correcta, lo que falla es la integridad
+      // del almacen. Un 400 invitaria a «corregir» algo que la persona no hizo.
+      throw new InternalServerErrorException({
         codigo: CODIGOS_ERROR.INTERNO,
         mensaje:
           'El contenido del soporte no coincide con el resumen registrado al adjuntarlo. ' +

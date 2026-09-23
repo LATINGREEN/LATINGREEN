@@ -110,3 +110,27 @@ export const MAPA_PESTANAS: Readonly<Record<PestanaConDatos, DefinicionPestana>>
     unoAUno: true,
   },
 };
+
+/**
+ * A qué tabla apunta cada columna de clave foránea de las pestañas, para
+ * poder mostrar el NOMBRE de lo registrado y no su identificador.
+ *
+ * Se declara por columna y no se deduce de su nombre por la misma razón que
+ * `columnas` se escribe a mano: una convención automática esconde el error
+ * hasta que alguien mira los datos. Todas las tablas de aquí tienen `nombre`.
+ *
+ * Los nombres de tabla salen de esta constante —valores del código—, nunca de
+ * la petición: se interpolan en el SQL, y un identificador no puede viajar
+ * como parámetro vinculado.
+ */
+export const REFERENCIA_DE_COLUMNA: Readonly<Record<string, string>> = {
+  id_tipo_operacion: 'ref.tipo_operacion',
+  id_entidad: 'ai.entidad',
+  id_servicio_prestado: 'ref.servicio_prestado',
+  id_grupo_poblacional: 'ref.grupo_poblacional',
+  id_medio_difusion: 'ref.medio_difusion',
+  id_medio_utilizado: 'ref.medio_utilizado',
+  id_tipo_recurso: 'ref.tipo_recurso',
+  id_tipo_bien_donado: 'ref.tipo_bien_donado',
+  id_entidad_donante: 'ai.entidad',
+};

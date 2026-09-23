@@ -258,6 +258,113 @@ describe('La jornada completa: once pestañas y tres adjuntos', () => {
     expect(cuerpo.registroCompleto, 'con las once pestañas llenas').toBe(true);
   });
 
+  /*
+   * Las tres lecturas que el formulario necesita para diligenciar SIN perder
+   * de vista lo que ya se registró. Antes no existían: al añadir una fila,
+   * desaparecía de la pantalla y no había forma de comprobarla ni corregirla.
+   */
+  it('el detalle trae el clavegrama y el código, para diligenciar con él a la vista', async () => {
+    const r = await autenticada('get', `/api/jornadas/${idJornada}`);
+    expect(r.status).toBe(200);
+    const d = r.body as {
+      codigoActividad: string;
+      descripcion: string;
+      fechaEjecucion: string;
+      latitudGrados: number;
+      latitudHemisferio: string;
+      coami: string[];
+      registroCompleto: boolean;
+    };
+    expect(d.codigoActividad).toMatch(RE_CODIGO_OBSERVADO);
+    expect(d.descripcion).toBe(JORNADA_BASE.descripcion);
+    expect(d.fechaEjecucion).toBe('2026-03-05');
+    expect(d.latitudGrados).toBe(10);
+    expect(d.latitudHemisferio).toBe('N');
+    // R18: ninguno marcado, y así vuelve — vacío, no ausente.
+    expect(d.coami).toEqual([]);
+    expect(d.registroCompleto).toBe(true);
+  });
+
+  it('las filas de una pestaña vuelven con el NOMBRE de lo registrado, no su número', async () => {
+    const servicios = await autenticada(
+      'get',
+      `/api/jornadas/${idJornada}/pestanas/SERVICIOS_PRESTADOS`,
+    );
+    expect(servicios.status).toBe(200);
+    const filas = servicios.body as {
+      id: number;
+      campos: Record<string, unknown>;
+      nombres: Record<string, string>;
+    }[];
+    expect(filas).toHaveLength(1);
+    expect(filas[0]?.campos['cantidad']).toBe(85);
+    expect(filas[0]?.nombres['idServicioPrestado']).toBe('CONSULTA_MEDICA');
+
+    // Una pestaña que apunta al maestro de entidades, no a un catálogo de ref.
+    const entidades = await autenticada(
+      'get',
+      `/api/jornadas/${idJornada}/pestanas/ENTIDADES_SERVICIOS`,
+    );
+    const filaEntidad = (entidades.body as { nombres: Record<string, string> }[])[0];
+    expect(filaEntidad?.nombres['idEntidad']).toBe('Fundación El Futuro');
+  });
+
+  it('una pestaña inexistente se rechaza también al leer', async () => {
+    const r = await autenticada('get', `/api/jornadas/${idJornada}/pestanas/NO_EXISTE`);
+    expect(r.status).toBe(400);
+  });
+
+  it('los adjuntos vigentes se listan, con su fase documental', async () => {
+    const r = await autenticada('get', `/api/jornadas/${idJornada}/adjuntos`);
+    expect(r.status).toBe(200);
+    const adjuntos = r.body as { nombreArchivo: string; faseDocumental: number }[];
+    expect(adjuntos.map((a) => a.nombreArchivo)).toEqual([
+      'acta.pdf',
+      'fotografia.png',
+      'informe.pdf',
+    ]);
+    expect(adjuntos.map((a) => a.faseDocumental)).toEqual([1, 2, 3]);
+  });
+
+  /*
+   * Antes el `:id` de la ruta se ignoraba al descargar y al dar de baja: un
+   * adjunto se alcanzaba desde la URL de CUALQUIER jornada. Y dar de baja uno
+   * inexistente respondía 204 sin hacer nada, de modo que la pantalla decía
+   * «quitado» sobre un soporte que seguía contando.
+   */
+  it('un adjunto solo se alcanza desde SU jornada, y no existir es 404', async () => {
+    const lista = await autenticada('get', `/api/jornadas/${idJornada}/adjuntos`);
+    const idAdjunto = (lista.body as { id: number }[])[0]?.id;
+    const otra = await autenticada('post', '/api/jornadas').send(JORNADA_BASE);
+    const idOtra = (otra.body as { id: number }).id;
+
+    const descarga = await autenticada('get', `/api/jornadas/${idOtra}/adjuntos/${idAdjunto}`);
+    expect(descarga.status).toBe(404);
+    const baja = await autenticada('delete', `/api/jornadas/${idOtra}/adjuntos/${idAdjunto}`);
+    expect(baja.status).toBe(404);
+    const inexistente = await autenticada('delete', `/api/jornadas/${idJornada}/adjuntos/999999`);
+    expect(inexistente.status).toBe(404);
+
+    // Y el adjunto sigue vigente en su jornada.
+    const despues = await autenticada('get', `/api/jornadas/${idJornada}/adjuntos`);
+    expect((despues.body as unknown[]).length).toBe(3);
+  });
+
+  it('R6 — otra unidad no alcanza el detalle ni las filas', async () => {
+    const propio = testigo;
+    testigo = await ingresar('BIM24_PAID');
+    try {
+      expect((await autenticada('get', `/api/jornadas/${idJornada}`)).status).toBe(404);
+      expect(
+        (await autenticada('get', `/api/jornadas/${idJornada}/pestanas/RESUMEN`)).status,
+      ).toBe(404);
+      const adjuntos = await autenticada('get', `/api/jornadas/${idJornada}/adjuntos`);
+      expect(adjuntos.body).toEqual([]);
+    } finally {
+      testigo = propio;
+    }
+  });
+
   it('y la cuota refleja los tres adjuntos', async () => {
     const r = await autenticada('get', `/api/jornadas/${idJornada}/adjuntos/cuota`);
     const cuota = r.body as { bytesUsados: number };

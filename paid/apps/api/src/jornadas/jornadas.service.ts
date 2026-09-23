@@ -13,14 +13,16 @@ import {
 import type {
   ActualizarJornada,
   CrearJornada,
+  FilaPestana,
   FiltroJornadas,
+  JornadaDetalle,
   JornadaEnListado,
   PestanaActividad,
   PestanaConDatos,
 } from '@paid/schema';
 import { BaseDatosService } from '../basedatos/basedatos.service';
 import { GeneradorCodigoObservado } from '../comun/generador-codigo';
-import { MAPA_PESTANAS } from './pestanas.mapa';
+import { MAPA_PESTANAS, REFERENCIA_DE_COLUMNA } from './pestanas.mapa';
 
 /** El tipo de actividad JORNADA_APOYO. Fijo en la migracion 0006 (P1). */
 const TIPO_JORNADA_APOYO = 1;
@@ -307,6 +309,147 @@ export class JornadasService {
         mensaje: 'No se encontró la fila.',
       });
     }
+  }
+
+  /**
+   * Los datos generales de una jornada, para diligenciar sus pestañas con el
+   * clavegrama a la vista.
+   */
+  async detalle(idActividad: number): Promise<JornadaDetalle> {
+    await this.exigirQueExista(idActividad);
+    const cliente = this.baseDatos.cliente;
+    const r = await cliente.query<{
+      id: string;
+      codigo_actividad: string;
+      unidad: string;
+      descripcion: string;
+      fecha_inicio: string;
+      fecha_fin: string | null;
+      fecha_ejecucion: string;
+      lugar: string;
+      observaciones: string | null;
+      municipio: string | null;
+      latitud_grados: number;
+      latitud_minutos: number;
+      latitud_segundos: string;
+      latitud_hemisferio: string;
+      longitud_grados: number;
+      longitud_minutos: number;
+      longitud_segundos: string;
+      longitud_hemisferio: string;
+      latitud_decimal: string;
+      longitud_decimal: string;
+      registro_completo: boolean;
+    }>(
+      `SELECT a.id, a.codigo_actividad, u.sigla AS unidad, a.descripcion,
+              a.fecha_inicio::text, a.fecha_fin::text, j.fecha_ejecucion::text,
+              j.lugar, j.observaciones, m.nombre AS municipio,
+              a.latitud_grados, a.latitud_minutos, a.latitud_segundos::text,
+              a.latitud_hemisferio, a.longitud_grados, a.longitud_minutos,
+              a.longitud_segundos::text, a.longitud_hemisferio,
+              a.latitud_decimal::text, a.longitud_decimal::text,
+              a.registro_completo
+         FROM ai.actividad a
+         JOIN ai.jornada_apoyo j ON j.id_actividad = a.id
+         JOIN org.unidad u ON u.id = a.id_unidad
+         LEFT JOIN ref.municipio m ON m.id = a.id_municipio
+        WHERE a.id = $1`,
+      [idActividad],
+    );
+    const fila = r.rows[0];
+    if (fila === undefined) {
+      throw new NotFoundException({
+        codigo: CODIGOS_ERROR.RECURSO_NO_ENCONTRADO,
+        mensaje: 'No se encontró la jornada.',
+      });
+    }
+    const coami = await cliente.query<{ codigo: string }>(
+      `SELECT c.codigo FROM ai.actividad_coami ac
+         JOIN ref.coami c ON c.id = ac.id_coami
+        WHERE ac.id_actividad = $1 ORDER BY c.orden, c.codigo`,
+      [idActividad],
+    );
+    return {
+      id: Number(fila.id),
+      codigoActividad: fila.codigo_actividad,
+      unidad: fila.unidad,
+      descripcion: fila.descripcion,
+      fechaInicio: fila.fecha_inicio,
+      fechaFin: fila.fecha_fin,
+      fechaEjecucion: fila.fecha_ejecucion,
+      lugar: fila.lugar,
+      observaciones: fila.observaciones,
+      municipio: fila.municipio,
+      latitudGrados: Number(fila.latitud_grados),
+      latitudMinutos: Number(fila.latitud_minutos),
+      latitudSegundos: Number(fila.latitud_segundos),
+      latitudHemisferio: fila.latitud_hemisferio,
+      longitudGrados: Number(fila.longitud_grados),
+      longitudMinutos: Number(fila.longitud_minutos),
+      longitudSegundos: Number(fila.longitud_segundos),
+      longitudHemisferio: fila.longitud_hemisferio,
+      latitudDecimal: Number(fila.latitud_decimal),
+      longitudDecimal: Number(fila.longitud_decimal),
+      coami: coami.rows.map((c) => c.codigo),
+      registroCompleto: fila.registro_completo,
+    };
+  }
+
+  /**
+   * Las filas ya registradas en una pestaña, con el NOMBRE de cada cosa a la
+   * que apuntan.
+   *
+   * Sin esto, al pulsar «Añadir registro» la fila desaparecía del formulario
+   * y no quedaba en ningún sitio visible: la persona no podía comprobar lo que
+   * había registrado ni corregir un error. Y quitar una fila exigía conocer su
+   * identificador, que no aparecía en ninguna parte.
+   */
+  async filasPestana(
+    idActividad: number,
+    pestana: PestanaConDatos,
+  ): Promise<readonly FilaPestana[]> {
+    await this.exigirQueExista(idActividad);
+    const definicion = MAPA_PESTANAS[pestana];
+    const columnaId = definicion.unoAUno === true ? 'id_actividad' : 'id';
+
+    const selecciones = [`t.${columnaId} AS "__id"`];
+    for (const [campo, columna] of Object.entries(definicion.columnas)) {
+      selecciones.push(`t.${columna} AS "${campo}"`);
+      const referencia = REFERENCIA_DE_COLUMNA[columna];
+      if (referencia !== undefined) {
+        // Subconsulta y no JOIN: una fila cuya referencia RLS oculte sigue
+        // apareciendo, con el nombre vacío, en lugar de desaparecer del
+        // listado y dejar una pestaña «con datos» que no muestra ninguno.
+        selecciones.push(
+          `(SELECT r.nombre FROM ${referencia} r WHERE r.id = t.${columna}) AS "__nombre_${campo}"`,
+        );
+      }
+    }
+
+    const r = await this.baseDatos.cliente.query<Record<string, unknown>>(
+      `SELECT ${selecciones.join(', ')}
+         FROM ai.${definicion.tabla} t
+        WHERE t.id_actividad = $1
+        ORDER BY 1`,
+      [idActividad],
+    );
+
+    return r.rows.map((fila) => {
+      const campos: Record<string, string | number | null> = {};
+      const nombres: Record<string, string> = {};
+      for (const campo of Object.keys(definicion.columnas)) {
+        const valor = fila[campo];
+        campos[campo] =
+          valor === null || valor === undefined
+            ? null
+            : typeof valor === 'number'
+              ? valor
+              : String(valor);
+        const nombre = fila[`__nombre_${campo}`];
+        if (typeof nombre === 'string') nombres[campo] = nombre;
+      }
+      return { id: Number(fila['__id']), campos, nombres };
+    });
   }
 
   /** Estado de las once pestañas, para pintar el aviso de R19. */
