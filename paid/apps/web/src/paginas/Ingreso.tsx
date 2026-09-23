@@ -5,8 +5,8 @@ import type { RetoCaptcha } from '@paid/schema';
 import { ErrorApi, api } from '../api/cliente';
 import { useSesion } from '../api/sesion';
 import { ControlesAccesibilidad } from '../componentes/ControlesAccesibilidad';
-import { MarcaInstitucional } from '../componentes/MarcaInstitucional';
-import { Alerta, Brujula } from '../componentes/Iconos';
+import { EmblemaJacid, LogotipoArmada } from '../componentes/Emblemas';
+import { Alerta, Llave, Usuario } from '../componentes/Iconos';
 
 /**
  * Pantalla de ingreso.
@@ -84,44 +84,35 @@ export function Ingreso(): JSX.Element {
 
   return (
     <div className="ingreso">
-      <div className="ingreso-acc">
-        <ControlesAccesibilidad />
-      </div>
+      <div className="ingreso-cuerpo">
+        {/* ── Panel azul: la lámina 10 del Manual del Usuario ─────────── */}
+        <section className="ingreso-panel" aria-labelledby="titulo-ingreso">
+          <header className="ingreso-marca">
+            <h1 id="titulo-ingreso">PAID</h1>
+            <p className="ingreso-institucion">Plataforma de Acción Integral y Desarrollo</p>
+            <EmblemaJacid alto={132} alternativo="Emblema de la Jefatura de Acción Integral y Desarrollo" />
+          </header>
 
-      <div className="ingreso-panel tarjeta-vidrio emerge">
-        <header className="ingreso-marca">
-          <MarcaInstitucional tamano={54} clase="ingreso-ancla" />
-          <div>
-            <h1>PAID</h1>
-            <p className="ingreso-institucion">
-              Plataforma de Acción Integral y Desarrollo
-              <br />
-              <strong>Armada de Colombia</strong>
-            </p>
-          </div>
-        </header>
+          {mensajeError !== null && (
+            <div
+              className="aviso aviso-mal"
+              id="aviso-ingreso"
+              role="alert"
+              tabIndex={-1}
+            >
+              <span className="aviso-icono">
+                <Alerta tamano={18} />
+              </span>
+              <p>{mensajeError}</p>
+            </div>
+          )}
 
-        {mensajeError !== null && (
-          <div
-            className="aviso aviso-mal"
-            id="aviso-ingreso"
-            role="alert"
-            tabIndex={-1}
-          >
-            <span className="aviso-icono">
-              <Alerta tamano={18} />
-            </span>
-            <p>{mensajeError}</p>
-          </div>
-        )}
-
-        {/* Sin <form>: el envío se maneja en el botón y con Enter en los
-            campos, lo que evita un recargo de página accidental. */}
-        <div className="columna" style={{ gap: 'var(--e-4)' }}>
+          <div className="columna" style={{ gap: 'var(--e-4)' }}>
           <div className="campo">
             <label htmlFor="credencial">
               Credencial de unidad<span className="obligatorio" aria-hidden="true">*</span>
             </label>
+            <span className="ingreso-campo">
             <input
               id="credencial"
               className="entrada datos"
@@ -137,6 +128,10 @@ export function Ingreso(): JSX.Element {
               required
               aria-describedby="ayuda-credencial"
             />
+            <span className="ingreso-icono" aria-hidden="true">
+              <Usuario tamano={18} />
+            </span>
+            </span>
             {/* R5 — la credencial es de la UNIDAD, no de la persona. Decirlo
                 aquí evita que alguien busque su nombre. */}
             <p className="ayuda" id="ayuda-credencial">
@@ -149,6 +144,7 @@ export function Ingreso(): JSX.Element {
             <label htmlFor="clave">
               Contraseña<span className="obligatorio" aria-hidden="true">*</span>
             </label>
+            <span className="ingreso-campo">
             <input
               id="clave"
               type="password"
@@ -161,6 +157,10 @@ export function Ingreso(): JSX.Element {
               autoComplete="current-password"
               required
             />
+            <span className="ingreso-icono" aria-hidden="true">
+              <Llave tamano={18} />
+            </span>
+            </span>
           </div>
 
           {/* R3 — captcha de un solo uso en cada ingreso. */}
@@ -210,18 +210,26 @@ export function Ingreso(): JSX.Element {
           </button>
         </div>
 
-        <footer className="ingreso-pie">
-          <p className="fila" style={{ gap: 'var(--e-2)' }}>
-            <Brujula tamano={15} />
-            <span>
+          <footer className="ingreso-pie">
+            <LogotipoArmada alto={54} />
+            <p>
               La sesión se cierra tras <strong>10 minutos</strong> de inactividad.
-            </span>
-          </p>
-          <p className="ingreso-clasificacion">
-            Intranet ARC · Información Público Clasificado
-          </p>
-        </footer>
+            </p>
+            <p>Intranet ARC · Información Público Clasificado</p>
+          </footer>
+        </section>
+
+        {/* ── Lámina: el emblema en el hexágono dorado ──────────────────── */}
+        <div className="ingreso-lamina" aria-hidden="true">
+          <div className="ingreso-hexagono">
+            <div className="ingreso-hexagono-interior">
+              <EmblemaJacid alto={260} />
+            </div>
+          </div>
+          <p className="ingreso-lema">Protegemos el azul de la bandera</p>
+        </div>
       </div>
+      <ControlesAccesibilidad />
     </div>
   );
 }

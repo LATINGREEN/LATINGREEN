@@ -1,112 +1,122 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { NavLink, Outlet, useLocation } from 'react-router-dom';
-import type { ReactNode } from 'react';
 import { useSesion } from '../api/sesion';
 import { ControlesAccesibilidad } from './ControlesAccesibilidad';
-import { MarcaInstitucional } from './MarcaInstitucional';
+import { EmblemaJacid, LogotipoArmada } from './Emblemas';
+import { PieInstitucional } from './PieInstitucional';
 import { RelojSesion } from './RelojSesion';
-import {
-  Brujula,
-  Edificio,
-  Herramienta,
-  Libro,
-  Manos,
-  Megafono,
-  Personas,
-  Salir,
-} from './Iconos';
+import { Flecha, Usuario } from './Iconos';
 
 /**
- * El marco de la aplicación: «puente de mando».
+ * El marco de la aplicación, como lo muestra el Manual del Usuario PAID
+ * (láminas 11 y 12):
  *
- * MENÚ FIEL AL MANUAL (Fase 4, punto 2):
+ *   barra GOV.CO · cabecera azul con «Ministerio de Defensa Nacional», el
+ *   título PAID con el emblema de la JACID y el logotipo de la Armada · menú
+ *   horizontal con desplegables · línea dorada · contenido · pie azul con los
+ *   datos de la Jefatura · barra de pantalla flotando a la derecha.
  *
- *   Inicio · Tripulantes A.I. · Cooperación Civil Militar · Asuntos Civiles ·
- *   Sensibilización · Normatividad A.I.
+ * MENÚ FIEL AL MANUAL, submódulo por submódulo (lámina 13 y siguientes):
  *
- * Y la segunda mitad de ese punto, que es la que importa: «Lo que no se tiene
- * permiso de usar no se muestra». No se muestra deshabilitado ni con un
- * candado: no aparece. Un menú lleno de opciones que dan 403 enseña al usuario
- * a ignorar los mensajes de error.
+ *   Tripulantes A.I.          → Personal
+ *   Cooperación Civil Militar → Jornadas de apoyo, Asistencias humanitarias,
+ *                               Ruedas de emprendimiento
+ *   Asuntos Civiles           → Alianzas y convenios, Entidades A.I.,
+ *                               Proyectos sociales
+ *   Sensibilización           → Herramientas AID, Campañas de sensibilización
+ *   Normatividad A.I.         → Normatividad acción integral
  *
- * El permiso se comprueba contra los permisos EFECTIVOS que el servidor
- * devolvió al ingresar. La interfaz oculta; el servidor prohíbe. Las dos cosas
- * —si solo ocultara, bastaría con escribir la URL.
+ * ⚠️ Antes del manual, Entidades A.I. estaba bajo Cooperación Civil Militar y
+ * Herramientas AID era una entrada propia. El manual las pone en Asuntos
+ * Civiles y en Sensibilización, y así lo aprendió quien ya usa la PAID.
+ *
+ * «Lo que no se tiene permiso de usar no se muestra» (Fase 4, punto 2): ni la
+ * entrada ni el desplegable entero si no queda ninguna. La interfaz oculta; el
+ * servidor prohíbe.
  */
 
 interface Entrada {
   readonly a: string;
   readonly rotulo: string;
-  readonly icono: ReactNode;
-  /** Permiso que hace visible la entrada. Sin permiso, no se muestra. */
   readonly permiso?: string;
-  readonly hijas?: readonly Omit<Entrada, 'icono'>[];
 }
 
-const MENU: readonly Entrada[] = [
-  { a: '/', rotulo: 'Inicio', icono: <Brujula /> },
+interface Grupo {
+  readonly rotulo: string;
+  readonly hijas: readonly Entrada[];
+}
+
+const MENU: readonly (Entrada | Grupo)[] = [
+  { a: '/', rotulo: 'Inicio' },
   {
-    a: '/tripulantes',
     rotulo: 'Tripulantes A.I.',
-    icono: <Personas />,
-    permiso: 'PERSONAL.CONSULTAR',
+    hijas: [{ a: '/tripulantes', rotulo: 'Personal', permiso: 'PERSONAL.CONSULTAR' }],
   },
   {
-    a: '/cooperacion',
     rotulo: 'Cooperación Civil Militar',
-    icono: <Manos />,
-    permiso: 'JORNADA.CONSULTAR',
     hijas: [
-      { a: '/jornadas', rotulo: 'Jornadas de Apoyo', permiso: 'JORNADA.CONSULTAR' },
-      { a: '/entidades', rotulo: 'Entidades A.I.', permiso: 'ENTIDAD.CONSULTAR' },
-      { a: '/alianzas', rotulo: 'Alianzas y convenios', permiso: 'ALIANZA.CONSULTAR' },
+      { a: '/jornadas', rotulo: 'Jornadas de apoyo', permiso: 'JORNADA.CONSULTAR' },
+      { a: '/asistencias', rotulo: 'Asistencias humanitarias', permiso: 'ASISTENCIA.CONSULTAR' },
+      { a: '/ruedas', rotulo: 'Ruedas de emprendimiento', permiso: 'RUEDA.CONSULTAR' },
     ],
   },
   {
-    a: '/asuntos-civiles',
     rotulo: 'Asuntos Civiles',
-    icono: <Edificio />,
-    permiso: 'ASISTENCIA.CONSULTAR',
+    hijas: [
+      { a: '/alianzas', rotulo: 'Alianzas y convenios', permiso: 'ALIANZA.CONSULTAR' },
+      { a: '/entidades', rotulo: 'Entidades A.I.', permiso: 'ENTIDAD.CONSULTAR' },
+      { a: '/proyectos', rotulo: 'Proyectos sociales', permiso: 'PROYECTO.CONSULTAR' },
+    ],
   },
   {
-    a: '/sensibilizacion',
     rotulo: 'Sensibilización',
-    icono: <Megafono />,
-    permiso: 'CAMPANA.CONSULTAR',
+    hijas: [
+      { a: '/herramientas', rotulo: 'Herramientas AID', permiso: 'HERRAMIENTA.CONSULTAR' },
+      { a: '/campanas', rotulo: 'Campañas de sensibilización', permiso: 'CAMPANA.CONSULTAR' },
+    ],
   },
   {
-    a: '/herramientas',
-    rotulo: 'Herramientas AID',
-    icono: <Herramienta />,
-    permiso: 'HERRAMIENTA.CONSULTAR',
-  },
-  {
-    a: '/normatividad',
     rotulo: 'Normatividad A.I.',
-    icono: <Libro />,
-    permiso: 'NORMATIVIDAD.CONSULTAR',
+    hijas: [
+      {
+        a: '/normatividad',
+        rotulo: 'Normatividad acción integral',
+        permiso: 'NORMATIVIDAD.CONSULTAR',
+      },
+    ],
   },
 ];
+
+const esGrupo = (e: Entrada | Grupo): e is Grupo => 'hijas' in e;
+
+/**
+ * «Cooperación Civil Militar» → «cooperacion-civil-militar». Va en `id` y en
+ * `aria-controls`, y `aria-controls` es una LISTA separada por espacios: un
+ * `id` con espacios apuntaría a tres elementos que no existen.
+ */
+const aClave = (rotulo: string): string =>
+  rotulo
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/gu, '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/gu, '-')
+    .replace(/^-|-$/gu, '');
 
 export function Marco(): JSX.Element {
   const { sesion, salir, puede } = useSesion();
   const { pathname } = useLocation();
   const principal = useRef<HTMLElement | null>(null);
   const primera = useRef(true);
+  const [abierto, setAbierto] = useState<string | null>(null);
+  const menu = useRef<HTMLElement | null>(null);
 
   /*
-   * Al cambiar de pantalla: arriba del todo, y el foco al contenido.
-   *
-   * Una aplicación de una sola página no recarga, así que el navegador no hace
-   * ninguna de las dos cosas. Al guardar una jornada nueva se abría la jornada
-   * con el desplazamiento del formulario anterior —a media página, sin ver el
-   * título— y un lector de pantalla se quedaba en el botón que ya no existía,
-   * sin enterarse de que la pantalla había cambiado.
-   *
-   * No en la primera carga: ahí el foco tiene que empezar por el principio,
-   * donde está «Saltar al contenido».
+   * Al cambiar de pantalla: arriba del todo, el foco al contenido y el
+   * desplegable cerrado. Una aplicación de una sola página no recarga, así que
+   * el navegador no hace ninguna de las tres cosas.
    */
   useEffect(() => {
+    setAbierto(null);
     if (primera.current) {
       primera.current = false;
       return;
@@ -115,9 +125,30 @@ export function Marco(): JSX.Element {
     principal.current?.focus({ preventScroll: true });
   }, [pathname]);
 
+  // Un desplegable abierto se cierra con Escape o al pulsar fuera.
+  useEffect(() => {
+    if (abierto === null) return;
+    const alPulsar = (e: MouseEvent): void => {
+      if (menu.current !== null && !menu.current.contains(e.target as Node)) setAbierto(null);
+    };
+    const alTeclear = (e: KeyboardEvent): void => {
+      if (e.key === 'Escape') {
+        document.getElementById(`menu-${abierto}`)?.focus();
+        setAbierto(null);
+      }
+    };
+    document.addEventListener('mousedown', alPulsar);
+    document.addEventListener('keydown', alTeclear);
+    return () => {
+      document.removeEventListener('mousedown', alPulsar);
+      document.removeEventListener('keydown', alTeclear);
+    };
+  }, [abierto]);
+
   if (sesion === null) return <Outlet />;
 
-  const visibles = MENU.filter((e) => e.permiso === undefined || puede(e.permiso));
+  const visibles = (hijas: readonly Entrada[]): readonly Entrada[] =>
+    hijas.filter((h) => h.permiso === undefined || puede(h.permiso));
 
   return (
     <div className="marco">
@@ -125,85 +156,123 @@ export function Marco(): JSX.Element {
         Saltar al contenido
       </a>
 
-      <header className="barra">
-        <div className="barra-marca">
-          <MarcaInstitucional tamano={36} clase="barra-ancla" />
-          <div>
-            <p className="barra-titulo">PAID</p>
-            {/* Ley 2345 de 2023: el logotipo va con el nombre de la entidad. */}
-            <p className="barra-sub">Armada de Colombia · Acción Integral y Desarrollo</p>
-          </div>
-        </div>
-
-        <div className="barra-derecha">
+      {/* ── Barra GOV.CO, con la sesión a la derecha como en el manual ──── */}
+      <div className="govco">
+        <span className="govco-logo">GOV.CO</span>
+        <span className="govco-texto">Conoce toda la oferta que el estado tiene para ti.</span>
+        <div className="govco-sesion">
           <RelojSesion />
-          <ControlesAccesibilidad />
-          <div className="barra-usuario">
-            <p className="barra-credencial datos">{sesion.credencial}</p>
-            <p className="barra-unidad">
-              {sesion.unidad.sigla} · {sesion.roles.join(', ')}
-            </p>
-          </div>
-          <button
-            type="button"
-            className="boton boton-fantasma"
-            onClick={() => void salir()}
-          >
-            <Salir tamano={17} />
-            <span className="oculta-angosto">Cerrar sesión</span>
-          </button>
+          <span className="pildora-usuario">
+            <span className="pildora-icono" aria-hidden="true">
+              <Usuario tamano={16} />
+            </span>
+            <span className="pildora-nombre">
+              <span className="datos">{sesion.credencial}</span>
+              <span className="pildora-unidad">
+                {sesion.unidad.sigla} · {sesion.roles.join(', ')}
+              </span>
+            </span>
+            <button
+              type="button"
+              className="pildora-salir"
+              onClick={() => void salir()}
+              aria-label="Cerrar sesión"
+              title="Cerrar sesión"
+            >
+              X
+            </button>
+          </span>
         </div>
-      </header>
+      </div>
 
-      <div className="cuerpo">
-        <nav className="riel" aria-label="Menú principal">
-          <ul className="riel-lista">
-            {visibles.map((entrada) => {
-              const hijas = (entrada.hijas ?? []).filter(
-                (h) => h.permiso === undefined || puede(h.permiso),
-              );
+      {/* ── Cabecera azul ─────────────────────────────────────────────────── */}
+      <header className="cabecera">
+        <div className="cabecera-fila">
+          <div className="cabecera-ministerio">Ministerio de Defensa Nacional</div>
+          <div className="cabecera-titulo">
+            <div>
+              <p className="cabecera-paid">PAID</p>
+              <p className="cabecera-plataforma">Plataforma de Acción Integral y Desarrollo</p>
+            </div>
+            <EmblemaJacid alto={62} alternativo="Jefatura de Acción Integral y Desarrollo" />
+          </div>
+          <div className="cabecera-armada">
+            <LogotipoArmada alto={52} />
+          </div>
+        </div>
+
+        <nav className="menu" aria-label="Menú principal" ref={menu}>
+          <ul className="menu-lista">
+            {MENU.map((entrada) => {
+              if (!esGrupo(entrada)) {
+                return (
+                  <li key={entrada.a}>
+                    <NavLink
+                      to={entrada.a}
+                      end
+                      className={({ isActive }) => `menu-enlace ${isActive ? 'es-activo' : ''}`}
+                    >
+                      {entrada.rotulo}
+                    </NavLink>
+                  </li>
+                );
+              }
+              const hijas = visibles(entrada.hijas);
+              if (hijas.length === 0) return null;
+              const clave = aClave(entrada.rotulo);
+              const activo = hijas.some((h) => pathname.startsWith(h.a));
+              const estaAbierto = abierto === clave;
               return (
-                <li key={entrada.a}>
-                  <NavLink
-                    to={hijas.length > 0 ? (hijas[0]?.a ?? entrada.a) : entrada.a}
-                    end={entrada.a === '/'}
-                    className={({ isActive }) => `riel-enlace ${isActive ? 'es-activo' : ''}`}
+                <li key={clave} className="menu-grupo">
+                  {/*
+                   * Patrón «disclosure» de WAI-ARIA: un botón con
+                   * `aria-expanded` que muestra una lista de enlaces. No es un
+                   * `role="menu"`: ese rol promete la navegación con flechas
+                   * de un menú de escritorio, y prometerla sin darla es peor
+                   * que no prometerla.
+                   */}
+                  <button
+                    type="button"
+                    id={`menu-${clave}`}
+                    className={`menu-enlace menu-boton ${activo ? 'es-activo' : ''}`}
+                    aria-expanded={estaAbierto}
+                    aria-controls={`submenu-${clave}`}
+                    onClick={() => setAbierto(estaAbierto ? null : clave)}
                   >
-                    <span className="riel-icono">{entrada.icono}</span>
-                    <span>{entrada.rotulo}</span>
-                  </NavLink>
-                  {hijas.length > 0 && (
-                    <ul className="riel-hijas">
-                      {hijas.map((hija) => (
-                        <li key={hija.a}>
-                          <NavLink
-                            to={hija.a}
-                            className={({ isActive }) =>
-                              `riel-hija ${isActive ? 'es-activo' : ''}`
-                            }
-                          >
-                            {hija.rotulo}
-                          </NavLink>
-                        </li>
-                      ))}
-                    </ul>
-                  )}
+                    {entrada.rotulo}
+                    <Flecha tamano={14} className={estaAbierto ? 'gira' : ''} />
+                  </button>
+                  <ul
+                    id={`submenu-${clave}`}
+                    className="submenu"
+                    hidden={!estaAbierto}
+                  >
+                    {hijas.map((hija) => (
+                      <li key={hija.a}>
+                        <NavLink
+                          to={hija.a}
+                          className={({ isActive }) =>
+                            `submenu-enlace ${isActive ? 'es-activo' : ''}`
+                          }
+                        >
+                          {hija.rotulo}
+                        </NavLink>
+                      </li>
+                    ))}
+                  </ul>
                 </li>
               );
             })}
           </ul>
-
-          <p className="riel-pie">
-            Intranet ARC · sin salida a internet
-            <br />
-            Información Público Clasificado
-          </p>
         </nav>
+      </header>
 
-        <main className="contenido" id="contenido" tabIndex={-1} ref={principal}>
-          <Outlet />
-        </main>
-      </div>
+      <main className="contenido" id="contenido" tabIndex={-1} ref={principal}>
+        <Outlet />
+      </main>
+
+      <PieInstitucional />
+      <ControlesAccesibilidad />
 
       {/* Región para anuncios de lector de pantalla. Una sola, viva siempre:
           crearla al momento de anunciar no funciona, el lector no la observa. */}

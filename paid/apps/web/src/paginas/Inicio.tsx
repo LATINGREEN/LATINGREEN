@@ -15,6 +15,7 @@ import { useSesion } from '../api/sesion';
 import { RosaPestanas } from '../componentes/RosaPestanas';
 import { TablaEnvoltura } from '../componentes/TablaEnvoltura';
 import { Alerta, Info, Mas } from '../componentes/Iconos';
+import { EmblemaJacid } from '../componentes/Emblemas';
 
 /**
  * Inicio.
@@ -51,9 +52,23 @@ export function Inicio(): JSX.Element {
 
   return (
     <>
+      {/*
+       * La lámina de Inicio del manual (láminas 11 y 14): el emblema de la
+       * JACID sobre fondo azul y, a la derecha, «A.I. — Acción Integral». El
+       * manual tiene además un carrusel de fotos de actividades; no se
+       * entregaron fotos, y no se ponen de relleno.
+       */}
+      <section className="lamina-inicio" aria-label="Jefatura de Acción Integral y Desarrollo">
+        <EmblemaJacid alto={170} alternativo="Emblema de la Jefatura de Acción Integral y Desarrollo" />
+        <div className="lamina-inicio-texto">
+          <p className="lamina-inicio-sigla">A.I.</p>
+          <p>Acción Integral</p>
+        </div>
+      </section>
+
       <div className="pagina-cabecera">
         <div>
-          <span className="rotulo">Puente de mando</span>
+          <span className="rotulo">Parte de estado</span>
           <h1>
             {sesion?.unidad.sigla ?? 'PAID'} · Acción Integral
           </h1>
@@ -233,9 +248,9 @@ export function Inicio(): JSX.Element {
 }
 
 const ETIQUETA_MAESTRO: Record<(typeof MAESTROS_DE_PRECEDENCIA)[number], string> = {
-  PERSONAL: 'Tripulantes A.I.',
-  ENTIDAD_AI: 'Entidades A.I.',
-  HERRAMIENTA_AID: 'Herramientas AID',
+  PERSONAL: 'Tripulantes A.I. › Personal',
+  ENTIDAD_AI: 'Asuntos Civiles › Entidades A.I.',
+  HERRAMIENTA_AID: 'Sensibilización › Herramientas AID',
 };
 
 const RUTA_MAESTRO: Record<(typeof MAESTROS_DE_PRECEDENCIA)[number], string> = {

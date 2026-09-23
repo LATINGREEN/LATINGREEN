@@ -59,36 +59,65 @@ export function App(): JSX.Element {
         <Route path="/jornadas/nueva" element={<JornadaFormulario />} />
         <Route path="/jornadas/:id" element={<JornadaFormulario />} />
 
+        {/*
+          * Los submódulos del manual que todavía no tienen módulo propio. Las
+          * cuatro actividades comparten el supertipo y las pestañas de la
+          * jornada, y cuáles pestañas lleva cada una lo dice ahora el manual
+          * (láminas 28, 32, 43 y 51): es trabajo de la Parte A que sigue.
+          */}
+        <Route
+          path="/asistencias"
+          element={
+            <Pendiente
+              rotulo="Cooperación Civil Militar"
+              titulo="Asistencias humanitarias"
+              motivo="Comparte con las jornadas el supertipo de actividad. El manual fija sus campos —tipo directa o indirecta, plan operacional— y sus pestañas (lámina 28), que no incluyen Servicios Prestados."
+            />
+          }
+        />
+        <Route
+          path="/ruedas"
+          element={
+            <Pendiente
+              rotulo="Cooperación Civil Militar"
+              titulo="Ruedas de emprendimiento"
+              motivo="Comparte con las jornadas el supertipo de actividad. Según el manual (lámina 32) lleva seis pestañas: tipo de operación, entidades apoyadas, población beneficiada, medios de difusión, medios utilizados y recursos utilizados."
+            />
+          }
+        />
         <Route
           path="/alianzas"
           element={
             <Pendiente
-              rotulo="Cooperación Civil Militar"
+              rotulo="Asuntos Civiles"
               titulo="Alianzas y convenios"
-              motivo="El porcentaje de avance de un convenio ya está implementado en el servidor, y solo JACID puede diligenciarlo. La pantalla de gestión de alianzas espera a que se defina qué distingue una alianza de un convenio en el registro, que no está escrito."
+              motivo="El porcentaje de avance de un convenio ya está implementado en el servidor, y solo JACID puede diligenciarlo. El manual (lámina 35) aclara que las unidades solo registran alianzas; los convenios los concierta JACID."
             />
           }
         />
         <Route
-          path="/asuntos-civiles"
+          path="/proyectos"
           element={
             <Pendiente
               rotulo="Asuntos Civiles"
-              titulo="Asistencia humanitaria"
-              motivo="Comparte con las jornadas el mismo supertipo de actividad y las mismas once pestañas. Cómo se agrupan las pestañas en cada tipo de actividad depende de una pregunta abierta a JACID; construirla suponiendo la respuesta obligaría a rehacerla con datos dentro."
+              titulo="Proyectos sociales"
+              motivo="La escala de avance (10, 20, 30, 40, 50, 60, 70 y 100 %) ya está impuesta en la base. El manual (lámina 42) dice qué soportes corresponden a cada tramo; la pantalla está por construir."
             />
           }
         />
         <Route
-          path="/sensibilizacion"
+          path="/campanas"
           element={
             <Pendiente
               rotulo="Sensibilización"
-              titulo="Campañas institucionales"
-              motivo="El servidor ya impone que una campaña asociada a una actividad sea una campaña de la Fuerza, no de la unidad. La pantalla espera el catálogo de campañas, que lo diligencia JACID y hoy está vacío a propósito."
+              titulo="Campañas de sensibilización"
+              motivo="Espera el catálogo de las 17 campañas institucionales de COGFM (Q2), que se dejó vacío a propósito en lugar de inventarlo."
             />
           }
         />
+        {/* Las direcciones anteriores al manual, para enlaces guardados. */}
+        <Route path="/asuntos-civiles" element={<Navigate to="/entidades" replace />} />
+        <Route path="/sensibilizacion" element={<Navigate to="/herramientas" replace />} />
 
         {/* Una ruta que no existe no es un error del usuario: se le devuelve
             al inicio en lugar de mostrarle una pantalla en blanco. */}

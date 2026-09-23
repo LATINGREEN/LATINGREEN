@@ -1,50 +1,176 @@
 /* ═══════════════════════════════════════════════════════════════════════════
-   Marco: puente de mando.
-   Barra de estado arriba, riel institucional a la izquierda, carta al centro.
+   Marco: el de las láminas 11 y 12 del Manual del Usuario PAID.
+   Barra GOV.CO · cabecera azul con logos · menú horizontal · línea dorada ·
+   contenido blanco · pie azul · barra de pantalla flotante a la derecha.
    ═══════════════════════════════════════════════════════════════════════════ */
 
 .marco { min-height: 100vh; display: flex; flex-direction: column; }
 
-/* ── Barra superior ─────────────────────────────────────────────────────── */
-.barra {
-  position: sticky;
-  top: 0;
-  z-index: 20;
+/* ── Barra GOV.CO ───────────────────────────────────────────────────────── */
+.govco {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: var(--e-4);
-  min-height: var(--barra);
-  padding: var(--e-2) var(--e-4);
-  background: color-mix(in oklch, var(--casco) 88%, transparent);
-  backdrop-filter: blur(20px) saturate(140%);
+  gap: var(--e-3);
+  min-height: 2.5rem;
+  padding: 0 var(--e-4) 0 0;
+  background: #eef3fb;
   border-bottom: 1px solid var(--linea);
-  flex-wrap: wrap;
+  font-size: var(--t-xs);
+  color: var(--bruma);
 }
-.barra-marca { display: flex; align-items: center; gap: var(--e-3); }
-.barra-ancla {
-  display: grid;
-  place-items: center;
-  width: 2.35rem;
-  height: 2.35rem;
-  border-radius: var(--radio-md);
-  color: var(--estela);
-  background: color-mix(in oklch, var(--estela) 14%, transparent);
-  border: 1px solid color-mix(in oklch, var(--estela) 32%, transparent);
-}
-.barra-titulo {
+.govco-logo {
+  align-self: stretch;
+  display: flex;
+  align-items: center;
+  padding: 0 var(--e-4);
+  background: var(--govco-azul);
+  color: #fff;
   font-family: var(--tipo-display);
-  font-size: 1.2rem;
   font-weight: 700;
-  letter-spacing: 0.14em;
-  line-height: 1;
+  font-size: var(--t-sm);
+  letter-spacing: 0.02em;
 }
-.barra-sub { font-size: var(--t-xs); color: var(--bruma); line-height: 1.3; }
+:root[data-contraste='alto'] .govco { background: #000; color: #fff; }
+:root[data-contraste='alto'] .govco-logo { background: #000; border-right: 2px solid #fff; }
+.govco-texto { flex: 1; min-width: 0; }
+.govco-sesion { display: flex; align-items: center; gap: var(--e-3); }
 
-.barra-derecha { display: flex; align-items: center; gap: var(--e-4); flex-wrap: wrap; }
-.barra-usuario { text-align: right; line-height: 1.25; }
-.barra-credencial { font-size: var(--t-sm); font-weight: 500; }
-.barra-unidad { font-size: var(--t-xs); color: var(--bruma); }
+/* La píldora del usuario: icono verde, credencial, «X» roja para salir. */
+.pildora-usuario {
+  display: flex;
+  align-items: stretch;
+  border-radius: var(--radio-md);
+  overflow: hidden;
+  border: 1px solid var(--linea);
+  background: var(--casco);
+  min-height: 2.25rem;
+}
+.pildora-icono { display: grid; place-items: center; width: 2.25rem; background: var(--estribor); color: #fff; }
+.pildora-nombre { display: flex; flex-direction: column; justify-content: center; padding: 0 var(--e-3); line-height: 1.15; color: var(--arena); }
+.pildora-unidad { font-size: 0.6875rem; color: var(--bruma); }
+.pildora-salir {
+  min-width: 2.75rem;
+  border: none;
+  background: var(--babor);
+  color: #fff;
+  font-family: var(--tipo-display);
+  font-weight: 700;
+  font-size: var(--t-md);
+  cursor: pointer;
+}
+.pildora-salir:hover { background: #9e0c24; }
+:root[data-contraste='alto'] .pildora-icono,
+:root[data-contraste='alto'] .pildora-salir { background: #000; color: #fff; border-left: 2px solid #fff; }
+
+/* ── Cabecera azul ──────────────────────────────────────────────────────── */
+.cabecera {
+  background: var(--cabecera);
+  color: var(--sobre-cabecera);
+  /* La línea dorada bajo la cabecera, como en el manual: Dorado Naval. */
+  border-bottom: 5px solid var(--realce);
+  position: relative;
+  z-index: 20;
+}
+.cabecera-fila {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: var(--e-5);
+  max-width: var(--ancho-contenido);
+  margin: 0 auto;
+  padding: var(--e-4) var(--e-5) var(--e-2);
+}
+.cabecera-ministerio {
+  justify-self: start;
+  padding: var(--e-3) var(--e-4);
+  background: #f2f2f2;
+  color: #3a3a3a;
+  font-family: var(--tipo-display);
+  font-weight: 700;
+  font-size: var(--t-sm);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  line-height: 1.2;
+  max-width: 14rem;
+}
+.cabecera-titulo { display: flex; align-items: center; gap: var(--e-4); text-align: center; }
+.cabecera-paid {
+  font-family: var(--tipo-titulo-paid);
+  font-weight: 500;
+  font-size: clamp(2rem, 1.6rem + 1.4vw, 2.8rem);
+  line-height: 1;
+  letter-spacing: 0.02em;
+}
+.cabecera-plataforma {
+  font-family: var(--tipo-titulo-paid);
+  font-weight: 500;
+  font-size: clamp(1rem, 0.9rem + 0.5vw, 1.35rem);
+  line-height: 1.15;
+}
+.cabecera-armada { justify-self: end; }
+
+.logotipo-armada { display: inline-flex; align-items: center; gap: var(--e-2); }
+.logotipo-armada-texto { display: flex; flex-direction: column; line-height: 0.95; font-family: var(--tipo-display); font-weight: 700; }
+.logotipo-armada-1 { font-size: 1.55rem; letter-spacing: 0.03em; }
+.logotipo-armada-2 { font-size: 0.86rem; letter-spacing: 0.06em; }
+.emblema { display: block; }
+.emblema-respaldo { display: inline-grid; place-items: center; color: currentColor; }
+
+/* ── Menú horizontal ────────────────────────────────────────────────────── */
+.menu { max-width: var(--ancho-contenido); margin: 0 auto; padding: 0 var(--e-4); }
+.menu-lista { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; }
+.menu-grupo { position: relative; }
+.menu-enlace {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--e-1);
+  min-height: 2.75rem;
+  padding: 0 var(--e-3);
+  border: none;
+  background: none;
+  color: #dfe7f5;
+  font-family: var(--tipo-display);
+  font-size: var(--t-sm);
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+  border-bottom: 3px solid transparent;
+  transition: color var(--rapido) var(--curva), border-color var(--rapido) var(--curva);
+}
+.menu-enlace:hover { color: #fff; }
+.menu-enlace.es-activo { color: #fff; border-bottom-color: var(--realce); }
+.menu-enlace svg { transition: transform var(--rapido) var(--curva); }
+.menu-enlace svg.gira { transform: rotate(180deg); }
+:root[data-contraste='alto'] .menu-enlace { color: #fff; }
+.menu :focus-visible { outline-color: var(--realce); }
+
+.submenu {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  z-index: 30;
+  min-width: 15rem;
+  list-style: none;
+  margin: 0;
+  padding: var(--e-1) 0;
+  background: var(--casco);
+  border: 1px solid var(--linea);
+  border-top: 3px solid var(--realce);
+  border-radius: 0 0 var(--radio-md) var(--radio-md);
+  box-shadow: var(--sombra-honda);
+}
+.submenu[hidden] { display: none; }
+.submenu-enlace {
+  display: block;
+  padding: var(--e-2) var(--e-4);
+  color: var(--arena);
+  text-decoration: none;
+  font-size: var(--t-sm);
+  min-height: 2.5rem;
+  line-height: 1.6;
+}
+.submenu-enlace:hover { background: var(--casco-alto); }
+.submenu-enlace.es-activo { font-weight: 700; color: var(--estela); border-left: 3px solid var(--realce); }
 
 /* ── El reloj de sesión (R1) ────────────────────────────────────────────── */
 .reloj {
@@ -89,127 +215,52 @@
   50% { box-shadow: 0 0 0 6px color-mix(in oklch, var(--babor) 0%, transparent); }
 }
 
-/* ── Controles de accesibilidad ─────────────────────────────────────────── */
-.acc { display: flex; align-items: center; gap: var(--e-3); }
-.acc-grupo {
+
+/* En la barra GOV.CO el reloj va compacto. */
+.govco .reloj { background: var(--casco); }
+
+/* ── Barra de pantalla flotante (lámina 12) ─────────────────────────────── */
+.barra-pantalla {
+  position: fixed;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 40;
   display: flex;
-  align-items: center;
+  flex-direction: column;
   gap: 2px;
-  margin: 0;
-  padding: 2px;
-  border: 1px solid var(--linea-viva);
-  border-radius: var(--radio-pleno);
-  background: var(--casco-hundido);
+  padding: var(--e-1);
+  background: var(--cabecera);
+  border-radius: var(--radio-md) 0 0 var(--radio-md);
+  box-shadow: var(--sombra-media);
 }
-.acc-icono { display: grid; place-items: center; color: var(--bruma); padding: 0 var(--e-1); }
-.acc-opcion {
+:root[data-contraste='alto'] .barra-pantalla { border: 2px solid #fff; border-right: none; }
+.barra-pantalla-boton {
   display: grid;
   place-items: center;
-  min-width: 1.75rem;
-  min-height: 1.75rem;
-  padding: 0 var(--e-1);
-  border-radius: var(--radio-pleno);
-  font-family: var(--tipo-display);
-  font-size: var(--t-xs);
-  font-weight: 700;
-  color: var(--bruma);
-  cursor: pointer;
-  transition: background var(--rapido) var(--curva), color var(--rapido) var(--curva);
-}
-.acc-opcion:hover { color: var(--arena); background: var(--vidrio); }
-.acc-opcion.es-activa { background: var(--estela); color: #04121f; }
-:root[data-contraste='claro'] .acc-opcion.es-activa { color: #fff; }
-:root[data-contraste='alto'] .acc-opcion.es-activa { background: var(--sonda); color: #000; }
-/* El foco se dibuja en la etiqueta, porque el radio está oculto para lectores. */
-.acc-opcion:has(input:focus-visible) {
-  outline: 3px solid var(--estela);
-  outline-offset: 2px;
-}
-
-/* ── Riel y contenido ───────────────────────────────────────────────────── */
-.cuerpo { display: flex; flex: 1; align-items: stretch; }
-
-.riel {
-  width: var(--riel);
-  flex-shrink: 0;
-  padding: var(--e-5) var(--e-3);
-  border-right: 1px solid var(--linea);
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  gap: var(--e-5);
-}
-.riel-lista { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 2px; }
-
-.riel-enlace {
-  display: flex;
-  align-items: center;
-  gap: var(--e-3);
-  padding: var(--e-3);
-  border-radius: var(--radio-md);
-  color: var(--bruma);
-  text-decoration: none;
-  font-family: var(--tipo-display);
-  font-size: var(--t-md);
-  font-weight: 600;
-  /* La marca de la entrada activa: una banda a la izquierda, como el canto de
-     una carta. Se anima con transform para que no salte el layout. */
-  position: relative;
-  transition: color var(--rapido) var(--curva), background var(--rapido) var(--curva);
-}
-.riel-enlace::before {
-  content: '';
-  position: absolute;
-  left: 0;
-  top: 18%;
-  bottom: 18%;
-  width: 3px;
-  border-radius: var(--radio-pleno);
-  background: var(--estela);
-  transform: scaleY(0);
-  transform-origin: center;
-  transition: transform var(--medio) var(--curva);
-}
-.riel-enlace:hover { color: var(--arena); background: var(--vidrio); }
-.riel-enlace.es-activo { color: var(--arena); background: var(--vidrio); }
-.riel-enlace.es-activo::before { transform: scaleY(1); }
-.riel-icono { display: grid; place-items: center; flex-shrink: 0; }
-.riel-enlace.es-activo .riel-icono { color: var(--estela); }
-
-.riel-hijas {
-  list-style: none;
-  margin: 2px 0 var(--e-2);
-  padding-left: calc(var(--e-3) + 20px + var(--e-3));
-  display: flex;
-  flex-direction: column;
-  gap: 1px;
-}
-.riel-hija {
-  display: block;
-  padding: var(--e-2) var(--e-3);
+  width: 2.75rem;
+  height: 2.75rem;
+  border: none;
   border-radius: var(--radio-sm);
-  color: var(--bruma);
-  text-decoration: none;
-  font-size: var(--t-sm);
-  border-left: 1px solid var(--linea);
-  transition: color var(--rapido) var(--curva), border-color var(--rapido) var(--curva);
+  background: transparent;
+  color: #fff;
+  cursor: pointer;
 }
-.riel-hija:hover { color: var(--arena); }
-.riel-hija.es-activo { color: var(--estela); border-color: var(--estela); font-weight: 700; }
+.barra-pantalla-boton:hover:not(:disabled) { background: rgb(255 255 255 / 0.14); }
+.barra-pantalla-boton[aria-pressed='true'] { background: var(--realce); color: #000; }
+.barra-pantalla-boton:disabled { opacity: 0.4; cursor: not-allowed; }
+.barra-pantalla-boton:focus-visible { outline: 3px solid var(--realce); outline-offset: -3px; }
+.barra-pantalla-letra { font-family: var(--tipo-display); font-weight: 700; font-size: 1rem; }
+.barra-pantalla-letra sup { font-size: 0.7em; }
 
-.riel-pie {
-  font-size: var(--t-xs);
-  color: var(--bruma-honda);
-  line-height: 1.5;
-  padding: var(--e-3);
-  border-top: 1px solid var(--linea);
-}
-
+/* ── Contenido ──────────────────────────────────────────────────────────── */
 .contenido {
   flex: 1;
-  min-width: 0;
-  padding: var(--e-5) var(--e-5) var(--e-8);
-  max-width: 82rem;
+  width: 100%;
+  max-width: var(--ancho-contenido);
+  margin: 0 auto;
+  /* Margen derecho para que la barra de pantalla no tape el contenido. */
+  padding: var(--e-5) calc(var(--e-5) + 3rem) var(--e-7) var(--e-5);
 }
 .contenido:focus { outline: none; }
 
@@ -228,77 +279,147 @@
 .pagina-cabecera .rotulo { display: block; margin-bottom: var(--e-1); }
 .pagina-descripcion { color: var(--bruma); max-width: 62ch; margin-top: var(--e-2); }
 
+
+/* ── Pie azul (lámina 12) ───────────────────────────────────────────────── */
+.pie {
+  background: var(--pie);
+  color: #fff;
+  border-top: 5px solid var(--realce);
+  padding: var(--e-4) var(--e-5) var(--e-5);
+  font-size: var(--t-xs);
+  line-height: 1.6;
+}
+:root[data-contraste='alto'] .pie { border-top-color: #fff; }
+.pie-derechos { text-align: center; margin-bottom: var(--e-4); opacity: 0.95; }
+.pie-columnas {
+  display: grid;
+  grid-template-columns: auto 1fr 1fr;
+  gap: var(--e-5);
+  max-width: 64rem;
+  margin: 0 auto;
+}
+.pie-columnas > div + div { border-left: 1px solid rgb(255 255 255 / 0.6); padding-left: var(--e-5); }
+.pie-govco { display: flex; flex-direction: column; align-items: center; gap: var(--e-3); }
+.pie-govco .govco-logo { background: none; padding: 0; font-size: var(--t-xl); }
+.pie-co {
+  display: grid;
+  place-items: center;
+  width: 3rem;
+  height: 3rem;
+  border-radius: var(--radio-md);
+  background: #fff;
+  color: var(--govco-azul);
+  font-family: var(--tipo-display);
+  font-weight: 700;
+  font-size: var(--t-lg);
+}
+.pie-titulo { font-family: var(--tipo-display); font-weight: 700; font-size: var(--t-md); }
+.pie-lema { font-weight: 700; }
+.pie-redes { display: flex; gap: var(--e-4); flex-wrap: wrap; list-style: none; margin: var(--e-3) 0 0; padding: 0; }
+.pie-redes li::before { content: '● '; color: var(--realce); }
+.pie-contacto:focus-visible { outline: 3px solid var(--realce); outline-offset: 4px; }
+.pie-clasificacion { text-align: center; margin-top: var(--e-4); opacity: 0.9; letter-spacing: 0.04em; }
+
 /* ── Angosto ────────────────────────────────────────────────────────────── */
 @media (max-width: 62rem) {
-  .cuerpo { flex-direction: column; }
-  .riel {
-    width: 100%;
-    border-right: none;
-    border-bottom: 1px solid var(--linea);
-    flex-direction: row;
-    overflow-x: auto;
-    padding: var(--e-2);
-  }
-  .riel-lista { flex-direction: row; gap: var(--e-1); }
-  .riel-hijas { display: none; }
-  .riel-pie { display: none; }
-  .riel-enlace { white-space: nowrap; }
-  .contenido { padding: var(--e-4) var(--e-3) var(--e-7); }
+  .cabecera-fila { grid-template-columns: 1fr; justify-items: center; }
+  .cabecera-ministerio, .cabecera-armada { justify-self: center; }
+  .govco-texto { display: none; }
+  .contenido { padding: var(--e-4) calc(var(--e-3) + 3rem) var(--e-7) var(--e-3); }
+  .pie-columnas { grid-template-columns: 1fr; }
+  .pie-columnas > div + div { border-left: none; padding-left: 0; border-top: 1px solid rgb(255 255 255 / 0.6); padding-top: var(--e-3); }
 }
 @media (max-width: 48rem) {
-  .oculta-angosto { display: none; }
-  .barra-usuario { display: none; }
-  .acc-grupo:last-of-type { display: none; }
+  .cabecera-ministerio { display: none; }
+  .pildora-unidad { display: none; }
+  /* La sesión baja a su propia línea: el botón de salir nunca queda fuera. */
+  .govco { flex-wrap: wrap; padding: 0; }
+  .govco-sesion { flex: 1 1 100%; justify-content: flex-end; flex-wrap: wrap; padding: var(--e-1) var(--e-3); }
+  .pildora-usuario { min-width: 0; }
+  .pildora-nombre { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 }
 
-/* ── Pantalla de ingreso ────────────────────────────────────────────────── */
-.ingreso {
-  min-height: 100vh;
-  display: grid;
-  place-items: center;
-  padding: var(--e-5) var(--e-4);
-  position: relative;
-}
-.ingreso-acc { position: absolute; top: var(--e-4); right: var(--e-4); }
+/* ── Pantalla de ingreso (lámina 10) ────────────────────────────────────── */
+.ingreso { min-height: 100vh; display: flex; flex-direction: column; }
+.ingreso-cuerpo { flex: 1; display: grid; grid-template-columns: minmax(20rem, 26rem) 1fr; }
 .ingreso-panel {
-  width: 100%;
-  max-width: 27rem;
-  padding: var(--e-6);
   display: flex;
   flex-direction: column;
-  gap: var(--e-5);
+  gap: var(--e-4);
+  padding: var(--e-6) var(--e-5);
+  background: var(--cabecera);
+  color: #fff;
 }
-.ingreso-marca { display: flex; align-items: center; gap: var(--e-4); }
-.ingreso-ancla {
+.ingreso-marca { text-align: center; display: flex; flex-direction: column; align-items: center; gap: var(--e-3); }
+.ingreso-marca h1 { font-family: var(--tipo-titulo-paid); font-weight: 500; font-size: 2.4rem; letter-spacing: 0.04em; line-height: 1; }
+.ingreso-institucion { font-family: var(--tipo-display); font-weight: 600; font-size: var(--t-md); line-height: 1.3; }
+.ingreso-panel .campo > label { color: #fff; }
+.ingreso-panel .ayuda { color: #cfdaf0; }
+.ingreso-panel code { color: #fff; }
+/* Los campos con su botón-icono amarillo a la derecha, como en el manual. */
+.ingreso-campo { display: flex; }
+.ingreso-campo .entrada { border-radius: var(--radio-md) 0 0 var(--radio-md); border-color: #fff; }
+.ingreso-icono {
   display: grid;
   place-items: center;
-  width: 3.4rem;
-  height: 3.4rem;
+  width: 2.75rem;
   flex-shrink: 0;
-  border-radius: var(--radio-lg);
-  color: var(--estela);
-  background: color-mix(in oklch, var(--estela) 14%, transparent);
-  border: 1px solid color-mix(in oklch, var(--estela) 34%, transparent);
-  box-shadow: 0 0 34px -12px color-mix(in oklch, var(--estela) 70%, transparent);
+  background: var(--realce);
+  color: var(--arc-azul);
+  border-radius: 0 var(--radio-md) var(--radio-md) 0;
 }
-.ingreso-marca h1 { font-size: 1.9rem; letter-spacing: 0.16em; line-height: 1; }
-.ingreso-institucion {
+.ingreso-boton {
+  width: 100%;
   margin-top: var(--e-1);
-  font-size: var(--t-xs);
-  color: var(--bruma);
-  line-height: 1.45;
+  background: var(--arc-azul);
+  color: #fff;
+  border: 2px solid #9fc2ff;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
 }
-.ingreso-boton { width: 100%; margin-top: var(--e-1); }
-.ingreso-pie {
-  border-top: 1px solid var(--linea);
-  padding-top: var(--e-4);
-  font-size: var(--t-xs);
-  color: var(--bruma);
-  display: flex;
-  flex-direction: column;
-  gap: var(--e-2);
+.ingreso-boton:hover:not(:disabled) { background: #0d3480; }
+.ingreso-pie { display: flex; flex-direction: column; align-items: center; gap: var(--e-2); margin-top: auto; padding-top: var(--e-4); font-size: var(--t-xs); color: #cfdaf0; text-align: center; }
+.ingreso-lamina {
+  position: relative;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  background:
+    radial-gradient(60rem 40rem at 70% 40%, rgb(255 255 255 / 0.9), transparent 60%),
+    linear-gradient(135deg, #e8eef8 0%, #c9d8f0 100%);
 }
-.ingreso-clasificacion { letter-spacing: 0.06em; color: var(--bruma-honda); }
+/* Dos hexágonos anidados: el dorado de fuera hace de borde. Un borde CSS no
+   sigue un `clip-path`, y la sombra interior se recortaba en los lados. */
+.ingreso-hexagono {
+  display: grid;
+  place-items: center;
+  width: min(28rem, 70%);
+  aspect-ratio: 1.15;
+  clip-path: polygon(25% 0, 75% 0, 100% 50%, 75% 100%, 25% 100%, 0 50%);
+  background: var(--realce);
+}
+.ingreso-hexagono-interior {
+  display: grid;
+  place-items: center;
+  width: 94%;
+  height: 94%;
+  clip-path: polygon(25% 0, 75% 0, 100% 50%, 75% 100%, 25% 100%, 0 50%);
+  background: #fff;
+}
+.ingreso-lema {
+  position: absolute;
+  bottom: var(--e-5);
+  right: var(--e-6);
+  font-family: var(--tipo-titulo-paid);
+  font-size: 1.6rem;
+  color: var(--arc-azul);
+}
+:root[data-contraste='alto'] .ingreso-lamina { background: #000; }
+:root[data-contraste='alto'] .ingreso-lema { color: #fff; }
+@media (max-width: 52rem) {
+  .ingreso-cuerpo { grid-template-columns: 1fr; }
+  .ingreso-lamina { display: none; }
+}
 
 .captcha { display: flex; gap: var(--e-3); align-items: stretch; }
 .captcha-reto {
@@ -308,21 +429,21 @@
   min-height: 2.75rem;
   padding: 0 var(--e-3);
   border-radius: var(--radio-md);
-  background: var(--casco-hundido);
-  border: 1px dashed var(--linea-viva);
+  background: #13305f;
+  border: 1px dashed #9fc2ff;
 }
 .captcha-texto {
   font-size: 1.15rem;
   font-weight: 500;
   letter-spacing: 0.14em;
-  color: var(--arena);
+  color: #fff;
   /* Un leve sesgo: dificulta el reconocimiento automático sin estorbar a una
-     persona, y a diferencia de una imagen sigue siendo texto seleccionable y
-     legible por un lector de pantalla. */
+     persona, y a diferencia de una imagen sigue siendo texto legible por un
+     lector de pantalla. */
   transform: skewX(-6deg);
 }
 .captcha-esqueleto { width: 6.5rem; height: 1.3rem; }
-.captcha-error { font-size: var(--t-xs); color: var(--babor); text-align: center; }
+.captcha-error { font-size: var(--t-xs); color: #ffd1d6; text-align: center; }
 .captcha-entrada { width: 6rem; flex-shrink: 0; text-align: center; }
 
 /* ── Filtros y listados ─────────────────────────────────────────────────── */
@@ -448,9 +569,3 @@
   color: var(--sonda);
 }
 .mapa-real { height: 20rem; border-radius: var(--radio-md); overflow: hidden; border: 1px solid var(--linea-viva); }
-
-/* El escudo oficial, cuando esté en public/identidad/: sin la caja de color
-   del ancla, que es propia de la interfaz y no de la institución. */
-.barra-ancla.es-escudo,
-.ingreso-ancla.es-escudo { background: none; border: none; box-shadow: none; }
-.es-escudo img { display: block; width: 100%; height: 100%; object-fit: contain; }
