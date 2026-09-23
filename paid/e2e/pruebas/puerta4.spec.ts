@@ -76,6 +76,10 @@ test.describe('Puerta 4 — camino completo por la interfaz', () => {
     await expect(resumen).toContainText('Latitud: grados');
     await expect(resumen).toContainText('Tipo de jornada');
     await expect(resumen).toContainText('Población afecta a la tropa');
+    // Ni mensajes del validador en inglés ni nombres internos de campo: el
+    // hemisferio W viene elegido y no falta, aunque la coordenada entera sí.
+    await expect(resumen).not.toContainText('Invalid');
+    await expect(resumen).not.toContainText('longitudHemisferio');
     await expect(resumen).toBeFocused();
 
     await page.getByLabel('Tipo de jornada').selectOption({ label: 'Conjunta' });

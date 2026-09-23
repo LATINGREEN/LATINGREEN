@@ -66,6 +66,7 @@ const ROTULOS: Readonly<Record<string, string>> = {
   latitudMinutos: 'Latitud: minutos',
   latitudSegundos: 'Latitud: segundos',
   latitudHemisferio: 'Latitud: hemisferio',
+  longitudHemisferio: 'Longitud: hemisferio',
   longitudGrados: 'Longitud: grados',
   longitudMinutos: 'Longitud: minutos',
   longitudSegundos: 'Longitud: segundos',
@@ -194,6 +195,15 @@ export function DatosGenerales({
       if (!validado.success) {
         for (const problema of validado.error.issues) {
           const clave = String(problema.path[0] ?? '');
+          /*
+           * Con la coordenada incompleta no se envía NINGUNA de sus ocho
+           * partes, y el esquema reclama también las que sí están llenas —el
+           * hemisferio W, que viene elegido— con su mensaje en inglés y el
+           * nombre interno del campo. Lo que falta ya lo dice `completarGms`
+           * parte por parte; el resto sobra.
+           */
+          if ('faltan' in gms && clave.startsWith('latitud')) continue;
+          if ('faltan' in gms && clave.startsWith('longitud')) continue;
           if (porCampo[clave] === undefined) porCampo[clave] = problema.message;
         }
       }
