@@ -26,6 +26,22 @@ const clienteConsultas = new QueryClient({
   },
 });
 
+/*
+ * La paleta institucional, si está (ver public/identidad/LEEME.md).
+ *
+ * Se añade desde aquí y no desde index.html por el ORDEN: tiene que ir después
+ * de las hojas de la aplicación para poder redefinir sus variables, y Vite
+ * inyecta las suyas sin garantizar la posición respecto de un <link> escrito a
+ * mano. Aquí se ejecuta después del `import './estilos.css'` de arriba.
+ *
+ * Si el archivo no existe, el navegador registra un 404 y no pasa nada más: la
+ * paleta por omisión sigue en pie.
+ */
+const hojaMarca = document.createElement('link');
+hojaMarca.rel = 'stylesheet';
+hojaMarca.href = '/identidad/marca.css';
+document.head.appendChild(hojaMarca);
+
 const contenedor = document.getElementById('raiz');
 if (contenedor === null) {
   throw new Error('No se encontró el elemento #raiz en index.html');

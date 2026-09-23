@@ -5,7 +5,8 @@ import type { RetoCaptcha } from '@paid/schema';
 import { ErrorApi, api } from '../api/cliente';
 import { useSesion } from '../api/sesion';
 import { ControlesAccesibilidad } from '../componentes/ControlesAccesibilidad';
-import { Alerta, Ancla, Brujula } from '../componentes/Iconos';
+import { MarcaInstitucional } from '../componentes/MarcaInstitucional';
+import { Alerta, Brujula } from '../componentes/Iconos';
 
 /**
  * Pantalla de ingreso.
@@ -89,9 +90,7 @@ export function Ingreso(): JSX.Element {
 
       <div className="ingreso-panel tarjeta-vidrio emerge">
         <header className="ingreso-marca">
-          <span className="ingreso-ancla" aria-hidden="true">
-            <Ancla tamano={30} />
-          </span>
+          <MarcaInstitucional tamano={54} clase="ingreso-ancla" />
           <div>
             <h1>PAID</h1>
             <p className="ingreso-institucion">

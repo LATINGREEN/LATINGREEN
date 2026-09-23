@@ -448,3 +448,9 @@
   color: var(--sonda);
 }
 .mapa-real { height: 20rem; border-radius: var(--radio-md); overflow: hidden; border: 1px solid var(--linea-viva); }
+
+/* El escudo oficial, cuando esté en public/identidad/: sin la caja de color
+   del ancla, que es propia de la interfaz y no de la institución. */
+.barra-ancla.es-escudo,
+.ingreso-ancla.es-escudo { background: none; border: none; box-shadow: none; }
+.es-escudo img { display: block; width: 100%; height: 100%; object-fit: contain; }

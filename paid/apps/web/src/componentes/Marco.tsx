@@ -3,9 +3,9 @@ import { NavLink, Outlet, useLocation } from 'react-router-dom';
 import type { ReactNode } from 'react';
 import { useSesion } from '../api/sesion';
 import { ControlesAccesibilidad } from './ControlesAccesibilidad';
+import { MarcaInstitucional } from './MarcaInstitucional';
 import { RelojSesion } from './RelojSesion';
 import {
-  Ancla,
   Brujula,
   Edificio,
   Herramienta,
@@ -127,12 +127,11 @@ export function Marco(): JSX.Element {
 
       <header className="barra">
         <div className="barra-marca">
-          <span className="barra-ancla" aria-hidden="true">
-            <Ancla tamano={22} />
-          </span>
+          <MarcaInstitucional tamano={36} clase="barra-ancla" />
           <div>
             <p className="barra-titulo">PAID</p>
-            <p className="barra-sub">Acción Integral y Desarrollo</p>
+            {/* Ley 2345 de 2023: el logotipo va con el nombre de la entidad. */}
+            <p className="barra-sub">Armada de Colombia · Acción Integral y Desarrollo</p>
           </div>
         </div>
 
