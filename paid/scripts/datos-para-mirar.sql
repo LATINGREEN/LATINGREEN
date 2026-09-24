@@ -63,11 +63,8 @@ INSERT INTO ref.tipo_bien_donado (codigo, nombre, orden) VALUES
   ('MATERIAL_ESCOLAR',      'Material escolar',      3)
 ON CONFLICT DO NOTHING;
 
-INSERT INTO ref.tipo_herramienta_aid (codigo, nombre, orden) VALUES
-  ('AULA_MOVIL',        'Aula móvil',                 1),
-  ('UNIDAD_MEDICA',     'Unidad médica fluvial',      2),
-  ('PLANTA_POTABLE',    'Planta potabilizadora',      3)
-ON CONFLICT DO NOTHING;
+-- Los tipos de herramienta AID ya no se inventan aquí: el Manual del Usuario
+-- nombra los once (lámina 46) y los siembra packages/db/semillas/.
 
 -- Municipios: los del Pacífico y el Caribe donde estas unidades operan. El
 -- código DANE es el real; el catálogo completo lo entrega JACID.
@@ -153,9 +150,12 @@ FROM (VALUES
 ) AS v(nit, nombre, dane, contacto, telefono)
 ON CONFLICT DO NOTHING;
 
+-- La tercera fila es INACTIVA, con su motivo en las observaciones, para que
+-- se vea cómo la muestra el listado (lámina 46).
 INSERT INTO ai.herramienta_aid (
   id_tipo_herramienta_aid, codigo, nombre, descripcion, id_unidad, id_municipio,
   fecha_registro, id_estado_registro,
+  id_estado_herramienta, fecha_potenciacion, id_personal_responsable,
   latitud_grados, latitud_minutos, latitud_segundos, latitud_hemisferio,
   longitud_grados, longitud_minutos, longitud_segundos, longitud_hemisferio)
 SELECT (SELECT id FROM ref.tipo_herramienta_aid WHERE codigo = v.tipo),
@@ -164,14 +164,66 @@ SELECT (SELECT id FROM ref.tipo_herramienta_aid WHERE codigo = v.tipo),
        (SELECT id FROM ref.municipio WHERE codigo_dane = v.dane),
        v.fecha::date,
        (SELECT id FROM ref.estado_registro WHERE codigo = 'ACTIVO'),
+       (SELECT id FROM ref.estado_herramienta_aid WHERE codigo = v.estado),
+       v.potenciacion::date,
+       (SELECT id FROM ai.personal WHERE numero_documento = v.responsable),
        v.lat_g, v.lat_m, v.lat_s, v.lat_h, v.lon_g, v.lon_m, v.lon_s, v.lon_h
 FROM (VALUES
-  ('UNIDAD_MEDICA', 'HAID-BIM23-001', 'Unidad médica fluvial Bahía',
-   'Atención en salud sobre plataforma fluvial.', '52835', '2026-02-10',
+  ('EMISORA_INSTITUCIONAL', 'HAID-BIM23-001', 'Emisora Bahía de Tumaco',
+   'Inventario fiscal 4471. Serie TX-2210.', '52835', '2026-02-10',
+   'ACTIVA', '2025-11-20', '1030512345',
    1, 47, 30.0, 'N', 78, 48, 45.0, 'W'),
-  ('AULA_MOVIL', 'HAID-BIM23-002', 'Aula móvil Litoral',
-   'Aula de formación desplazable para veredas costeras.', '52835', '2026-03-05',
-   1, 48, 12.5, 'N', 78, 49, 10.0, 'W')
-) AS v(tipo, codigo, nombre, descripcion, dane, fecha,
+  ('EQUIPO_PERIFONEO', 'HAID-BIM23-002', 'Perifoneo Litoral',
+   'Inventario fiscal 4480.', '52835', '2026-03-05',
+   'ACTIVA', '2024-08-02', '1090223871',
+   1, 48, 12.5, 'N', 78, 49, 10.0, 'W'),
+  ('AUDIOVISUAL', 'HAID-BIM23-003', 'Proyector de campaña',
+   'Lámpara fundida. Se pidió el repuesto al almacén; si no llega, queda pendiente por baja.',
+   '52835', '2026-03-06',
+   'INACTIVA', '2023-05-15', '79542118',
+   1, 47, 55.0, 'N', 78, 47, 20.0, 'W')
+) AS v(tipo, codigo, nombre, descripcion, dane, fecha, estado, potenciacion, responsable,
        lat_g, lat_m, lat_s, lat_h, lon_g, lon_m, lon_s, lon_h)
 ON CONFLICT DO NOTHING;
+
+-- ── Una jornada de ejemplo ─────────────────────────────────────────────────
+--
+-- Sin ella, el listado de jornadas de una base recién preparada está vacío, y
+-- tres pruebas de accesibilidad que abren «la primera jornada» dependían de que
+-- la prueba de extremo a extremo hubiera creado una antes: pasaban o fallaban
+-- según el orden. Se crea incompleta (ninguna pestaña diligenciada) porque así
+-- es como llega una jornada recién registrada, y es la pantalla que más se ve.
+--
+-- Actividad y subtipo en el mismo bloque: la comprobación de que la actividad
+-- tiene su subtipo es diferida y se hace al confirmar (P1).
+DO $$
+DECLARE
+  id_act bigint;
+BEGIN
+  IF EXISTS (SELECT 1 FROM ai.actividad WHERE codigo_actividad = '2813304R22026DEMO1') THEN
+    RETURN;
+  END IF;
+  INSERT INTO ai.actividad (
+    id_tipo_actividad, codigo_actividad, id_unidad, descripcion, fecha_inicio,
+    participo_arc, id_municipio, id_estado_registro,
+    latitud_grados, latitud_minutos, latitud_segundos, latitud_hemisferio,
+    longitud_grados, longitud_minutos, longitud_segundos, longitud_hemisferio)
+  VALUES (
+    1, '2813304R22026DEMO1', (SELECT id FROM org.unidad WHERE codigo = '2813304'),
+    'JORNADA DE APOYO AL DESARROLLO EN LA VEREDA BAJITO VAQUERÍA (DEMOSTRACIÓN). '
+      || 'Se atendieron 85 personas en consulta médica general y odontología, con apoyo '
+      || 'del hospital municipal. Se entregaron 60 kits de aseo.',
+    '2026-02-20', TRUE, (SELECT id FROM ref.municipio WHERE codigo_dane = '52835'),
+    (SELECT id FROM ref.estado_registro WHERE codigo = 'ACTIVO'),
+    1, 48, 0.0, 'N', 78, 47, 30.0, 'W')
+  RETURNING id INTO id_act;
+
+  INSERT INTO ai.jornada_apoyo (
+    id_actividad, fecha_ejecucion, lugar, observaciones,
+    id_tipo_jornada, participo_ejc, participo_fac, poblacion_afecta_tropa)
+  VALUES (
+    id_act, '2026-02-21', 'Vereda Bajito Vaquería',
+    'Buena recepción de la comunidad. Sin novedades.',
+    (SELECT id FROM ref.tipo_jornada WHERE codigo = 'CONJUNTA'), FALSE, FALSE, TRUE);
+END
+$$;
