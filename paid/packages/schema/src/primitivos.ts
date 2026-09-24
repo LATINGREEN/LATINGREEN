@@ -17,6 +17,23 @@ export const ZONA_HORARIA_PRESENTACION = 'America/Bogota' as const;
  */
 export const SEPARADOR_DECIMAL = '.' as const;
 
+/**
+ * La fecha de HOY en Colombia, como `aaaa-mm-dd`.
+ *
+ * No `new Date().toISOString().slice(0, 10)`: eso es la fecha en UTC, que
+ * desde las 19:00 de Bogotá ya es «mañana», y una fecha de hoy digitada a las
+ * ocho de la noche se rechazaría como futura.
+ */
+export function hoyEnBogota(): string {
+  // `en-CA` da exactamente `aaaa-mm-dd`.
+  return new Intl.DateTimeFormat('en-CA', {
+    timeZone: ZONA_HORARIA_PRESENTACION,
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).format(new Date());
+}
+
 const RE_DECIMAL_CON_PUNTO = /^-?\d+(\.\d+)?$/;
 
 /** Numero digitado por el usuario: solo punto decimal, nunca coma. */

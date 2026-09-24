@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { coordenadaGms } from './coordenadas';
-import { fechaDdMmAaaa } from './primitivos';
+import { fechaDdMmAaaa, hoyEnBogota } from './primitivos';
 
 /**
  * Los TRES maestros de precedencia de R8: Personal, Entidades A.I. y
@@ -144,12 +144,39 @@ export const UMBRAL_BLOQUEO_ENTIDAD = 0.72;
  * eso `coordenadaGms` va aquí igual que en la jornada.
  */
 export const crearHerramienta = coordenadaGms.extend({
-  idTipoHerramientaAid: z.coerce.number().int().positive(),
+  idTipoHerramientaAid: z.coerce
+    .number({ message: 'Elija el tipo de herramienta.' })
+    .int()
+    .positive({ message: 'Elija el tipo de herramienta.' }),
   codigo: z.string().trim().min(1, { message: 'El código es obligatorio.' }).max(40),
   nombre: z.string().trim().min(1, { message: 'El nombre es obligatorio.' }).max(250),
+  /**
+   * Las «observaciones» del manual (lámina 46): código de inventario fiscal,
+   * fecha de adquisición, número de serie y, si está inactiva, por qué y qué
+   * gestión se hizo. Que sea obligatoria cuando está INACTIVA lo comprueban
+   * el servidor y la base: el esquema no sabe qué identificador tiene ese
+   * estado, que es de la base (el `codigo` es estable, el `id` no).
+   */
   descripcion: z.string().trim().max(20000).optional(),
   idMunicipio: z.coerce.number().int().positive().optional(),
-  fechaRegistro: fechaDdMmAaaa,
+
+  /*
+   * Lámina 46 (migración 0016). La fecha de registro dejó de pedirse: era
+   * una derivación propia, y la pone la base con la fecha del día.
+   */
+  idEstadoHerramienta: z.coerce
+    .number({ message: 'Elija el estado de la herramienta.' })
+    .int()
+    .positive({ message: 'Elija el estado de la herramienta.' }),
+  /** Fecha en que se potenció o, si nunca se repotenció, en que se adquirió. */
+  fechaPotenciacion: fechaDdMmAaaa.refine((fecha) => fecha <= hoyEnBogota(), {
+    message: 'La fecha de potenciación no puede ser posterior a hoy.',
+  }),
+  /** R8: tiene que estar inscrito en el maestro de personal. */
+  idPersonalResponsable: z.coerce
+    .number({ message: 'Elija el responsable de la herramienta.' })
+    .int()
+    .positive({ message: 'Elija el responsable de la herramienta.' }),
 });
 
 export type CrearHerramienta = z.infer<typeof crearHerramienta>;
@@ -164,6 +191,20 @@ export const herramientaEnListado = z.object({
   unidad: z.string(),
   latitudDecimal: z.number(),
   longitudDecimal: z.number(),
+  /*
+   * Columnas del listado del manual (lámina 45). NULL en las herramientas
+   * anteriores a la migración 0016.
+   */
+  estado: z.string().nullable(),
+  fechaPotenciacion: z.string().nullable(),
+  responsable: z
+    .object({
+      nombre: z.string(),
+      documento: z.string(),
+      correo: z.string().nullable(),
+      telefono: z.string().nullable(),
+    })
+    .nullable(),
 });
 
 export type HerramientaEnListado = z.infer<typeof herramientaEnListado>;
@@ -220,6 +261,7 @@ export const CATALOGOS_EXPUESTOS = [
   'tipo_operacion',
   'tipo_asistencia',
   'tipo_jornada',
+  'estado_herramienta_aid',
   'coami',
 ] as const;
 

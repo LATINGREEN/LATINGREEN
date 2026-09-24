@@ -89,7 +89,9 @@ describe('esquemas que cruzan la red', () => {
       idTipoHerramientaAid: 1,
       codigo: 'HAID-001',
       nombre: 'Unidad médica fluvial',
-      fechaRegistro: '10/02/2026',
+      idEstadoHerramienta: 1,
+      fechaPotenciacion: '10/02/2026',
+      idPersonalResponsable: '7',
     });
   });
 

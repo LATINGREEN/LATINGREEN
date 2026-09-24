@@ -267,33 +267,69 @@ describe('Fase 4 — sugerencia de duplicados por semejanza', () => {
 });
 
 describe('R13 — la herramienta AID captura georreferenciación', () => {
-  it('se registra con GMS y las decimales se derivan solas', async () => {
+  /*
+   * Lámina 46 (migración 0016): estado, fecha de potenciación y responsable.
+   * Los identificadores se leen de la base: el `id` cambia entre despliegues,
+   * el `codigo` no.
+   */
+  const ids: Record<string, number> = {};
+  const GMS = {
+    latitudGrados: 1,
+    latitudMinutos: 47,
+    latitudSegundos: 30,
+    latitudHemisferio: 'N',
+    longitudGrados: 78,
+    longitudMinutos: 48,
+    longitudSegundos: 45,
+    longitudHemisferio: 'W',
+  };
+  const herramienta = (codigo: string, extra: Record<string, unknown> = {}): Record<string, unknown> => ({
+    ...GMS,
+    idTipoHerramientaAid: ids['tipoEmisora'],
+    codigo,
+    nombre: 'Emisora de prueba',
+    idEstadoHerramienta: ids['estadoActiva'],
+    fechaPotenciacion: '10/02/2026',
+    idPersonalResponsable: ids['responsable'],
+    ...extra,
+  });
+
+  beforeAll(async () => {
     const cliente = await entorno.pool.connect();
-    let idTipo = 0;
     try {
-      const r = await cliente.query<{ id: number }>(
-        `INSERT INTO ref.tipo_herramienta_aid (codigo, nombre) VALUES ('AULA_MOVIL','Aula movil')
-         ON CONFLICT (codigo) DO UPDATE SET nombre = EXCLUDED.nombre RETURNING id`,
+      const uno = async (sql: string, valores: unknown[] = []): Promise<number> =>
+        Number((await cliente.query<{ id: string }>(sql, valores)).rows[0]?.id);
+      ids['tipoEmisora'] = await uno(
+        `SELECT id FROM ref.tipo_herramienta_aid WHERE codigo = 'EMISORA_INSTITUCIONAL'`,
       );
-      idTipo = Number(r.rows[0]?.id);
+      ids['estadoActiva'] = await uno(`SELECT id FROM ref.estado_herramienta_aid WHERE codigo = 'ACTIVA'`);
+      ids['estadoInactiva'] = await uno(
+        `SELECT id FROM ref.estado_herramienta_aid WHERE codigo = 'INACTIVA'`,
+      );
+      const persona = async (unidad: string, documento: string, nombres: string): Promise<number> =>
+        uno(
+          `INSERT INTO ai.personal (id_tipo_documento_identidad, numero_documento, nombres,
+             apellidos, correo, telefono, id_unidad, id_estado_registro)
+           VALUES ((SELECT id FROM ref.tipo_documento_identidad WHERE codigo = 'CC'), $1, $2,
+             'Responsable', 'responsable@armada.mil.co', '3001234567',
+             (SELECT id FROM org.unidad WHERE sigla = $3),
+             (SELECT id FROM ref.estado_registro WHERE codigo = 'ACTIVO'))
+           ON CONFLICT (id_tipo_documento_identidad, numero_documento)
+             DO UPDATE SET nombres = EXCLUDED.nombres
+           RETURNING id`,
+          [documento, nombres, unidad],
+        );
+      ids['responsable'] = await persona('BIM23', '1011223344', 'Carlos');
+      ids['responsableAjeno'] = await persona('BIM24', '1022334455', 'Ajeno');
     } finally {
       cliente.release();
     }
+  });
 
-    const creada = await autenticada('post', '/api/herramientas').send({
-      idTipoHerramientaAid: idTipo,
-      codigo: 'HAID-PUERTA4-001',
-      nombre: 'Aula móvil de prueba',
-      fechaRegistro: '10/02/2026',
-      latitudGrados: 1,
-      latitudMinutos: 47,
-      latitudSegundos: 30,
-      latitudHemisferio: 'N',
-      longitudGrados: 78,
-      longitudMinutos: 48,
-      longitudSegundos: 45,
-      longitudHemisferio: 'W',
-    });
+  it('se registra con GMS y las decimales se derivan solas', async () => {
+    const creada = await autenticada('post', '/api/herramientas').send(
+      herramienta('HAID-PUERTA4-001'),
+    );
     expect(creada.status).toBe(201);
 
     const listado = await autenticada('get', '/api/herramientas?texto=HAID-PUERTA4');
@@ -307,20 +343,92 @@ describe('R13 — la herramienta AID captura georreferenciación', () => {
   });
 
   it('unas GMS imposibles se rechazan', async () => {
-    const r = await autenticada('post', '/api/herramientas').send({
-      idTipoHerramientaAid: 1,
-      codigo: 'HAID-PUERTA4-002',
-      nombre: 'Imposible',
-      fechaRegistro: '10/02/2026',
-      latitudGrados: 1,
-      latitudMinutos: 60,
-      latitudSegundos: 0,
-      latitudHemisferio: 'N',
-      longitudGrados: 78,
-      longitudMinutos: 0,
-      longitudSegundos: 0,
-      longitudHemisferio: 'W',
-    });
+    const r = await autenticada('post', '/api/herramientas').send(
+      herramienta('HAID-PUERTA4-002', { latitudMinutos: 60 }),
+    );
     expect(r.status).toBe(400);
+  });
+
+  it('el listado trae las columnas del manual: estado, fecha y datos del responsable', async () => {
+    await autenticada('post', '/api/herramientas').send(herramienta('HAID-LISTA-001'));
+    const r = await autenticada('get', '/api/herramientas?texto=HAID-LISTA');
+    const fila = (
+      r.body as {
+        filas: {
+          tipo: string;
+          estado: string;
+          fechaPotenciacion: string;
+          responsable: { nombre: string; documento: string; correo: string; telefono: string };
+        }[];
+      }
+    ).filas[0];
+    expect(fila?.tipo).toBe('Emisoras institucionales');
+    expect(fila?.estado).toBe('Activa');
+    expect(fila?.fechaPotenciacion).toBe('2026-02-10');
+    expect(fila?.responsable.documento).toBe('CC 1011223344');
+    expect(fila?.responsable.correo).toBe('responsable@armada.mil.co');
+    expect(fila?.responsable.telefono).toBe('3001234567');
+  });
+
+  it('sin estado, fecha de potenciación ni responsable se rechaza campo por campo', async () => {
+    const {
+      idEstadoHerramienta: _e,
+      fechaPotenciacion: _f,
+      idPersonalResponsable: _p,
+      ...incompleta
+    } = herramienta('HAID-INCOMPLETA');
+    const r = await autenticada('post', '/api/herramientas').send(incompleta);
+    expect(r.status).toBe(400);
+    const campos = (r.body as { detalles: { campo: string }[] }).detalles.map((d) => d.campo);
+    expect(campos).toEqual(
+      expect.arrayContaining(['idEstadoHerramienta', 'fechaPotenciacion', 'idPersonalResponsable']),
+    );
+  });
+
+  it('INACTIVA sin observaciones se rechaza señalando las observaciones', async () => {
+    const r = await autenticada('post', '/api/herramientas').send(
+      herramienta('HAID-INACTIVA-1', { idEstadoHerramienta: ids['estadoInactiva'] }),
+    );
+    expect(r.status).toBe(400);
+    const detalles = (r.body as { detalles: { campo: string }[] }).detalles;
+    expect(detalles.map((d) => d.campo)).toEqual(['descripcion']);
+  });
+
+  it('INACTIVA con el motivo escrito se registra', async () => {
+    const r = await autenticada('post', '/api/herramientas').send(
+      herramienta('HAID-INACTIVA-2', {
+        idEstadoHerramienta: ids['estadoInactiva'],
+        descripcion: 'Transmisor averiado. Se solicitó repuesto al almacén; pendiente por baja si no llega.',
+      }),
+    );
+    expect(r.status).toBe(201);
+  });
+
+  it('R8 — un responsable que no está en Personal es MAESTRO_REQUERIDO, no un 500', async () => {
+    const r = await autenticada('post', '/api/herramientas').send(
+      herramienta('HAID-RESP-1', { idPersonalResponsable: 999999 }),
+    );
+    expect(r.status).toBe(400);
+    const cuerpo = r.body as { codigo: string; detalles: { campo: string }[] };
+    expect(cuerpo.codigo).toBe('MAE_REQUERIDO');
+    expect(cuerpo.detalles.map((d) => d.campo)).toEqual(['idPersonalResponsable']);
+  });
+
+  it('R6 — tampoco vale alguien de OTRA unidad, aunque exista', async () => {
+    // La clave foránea se comprueba sin RLS: sin la consulta del servicio,
+    // esto se habría guardado.
+    const r = await autenticada('post', '/api/herramientas').send(
+      herramienta('HAID-RESP-2', { idPersonalResponsable: ids['responsableAjeno'] }),
+    );
+    expect(r.status).toBe(400);
+  });
+
+  it('un tipo inexistente se rechaza señalando el campo, no con un 500', async () => {
+    const r = await autenticada('post', '/api/herramientas').send(
+      herramienta('HAID-TIPO-1', { idTipoHerramientaAid: 9999 }),
+    );
+    expect(r.status).toBe(400);
+    const detalles = (r.body as { detalles: { campo: string }[] }).detalles;
+    expect(detalles.map((d) => d.campo)).toEqual(['idTipoHerramientaAid']);
   });
 });
