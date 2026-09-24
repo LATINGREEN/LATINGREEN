@@ -164,6 +164,14 @@ se activan al elegirlo.
 vacío, con una nota de pendiente. Las herramientas se podrán registrar con sus
 datos comunes.
 
+**Avance (2026-09-24):** los once tipos ya no faltan: el Manual del Usuario
+(lámina 46) los nombra —COPAI, GEOS, VEMAI, emisoras institucionales, equipos
+de perifoneo, circos institucionales, impresos y publicaciones, máquinas
+duplicadoras o reprográficas, audiovisuales, simulador de vuelo y grupos
+musicales— y están sembrados. Lo que el manual no trae son los campos que cada
+uno activa; eso sigue abierto. Mientras tanto el formulario pide anotarlos en
+las observaciones.
+
 ---
 
 ## 🟡 Q6 — Los perfiles de usuario reales
@@ -421,7 +429,7 @@ nombraba Pantone 123 C, que es un amarillo; queda descartado.
 | Q2 | ¿Cuáles son las 17 campañas institucionales? | 🔴 |
 | Q4 | ¿Qué campos tienen 5 de las 11 pestañas, sobre todo Población Beneficiada? | 🔴 |
 | Q5 | ¿Cuáles son los rangos de IP de la Intranet ARC? | 🔴 |
-| Q3 | ¿Qué campos pide cada uno de los 11 tipos de herramienta AID? | 🟡 |
+| Q3 | ¿Qué campos pide cada uno de los 11 tipos de herramienta AID? (Los tipos ya están, por el manual.) | 🟡 |
 | Q6 | ¿Qué perfiles de usuario existen hoy? | 🟡 |
 | Q7 | ¿Cuánto se conservan soportes y auditoría? (Las fases documentales ya las define el manual.) | 🟡 |
 | Q8 | ¿Cómo debe consumir ArcGIS los datos? | 🟡 |

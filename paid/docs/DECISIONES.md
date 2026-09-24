@@ -849,3 +849,42 @@ poner SÍ en ARC»— y si la población es afecta o no a la tropa. El listado
   pendientes.** Antes reutilizaba la base tal cual, y tras esta migración la
   API habría arrancado contra columnas que no existían.
 
+## D-35 · Herramientas AID: tipos, estado, potenciación y responsable del manual · Aceptada · 2026-09-24
+
+**Lo que pide el manual** (láminas 45 y 46): el tipo entre once que nombra, el
+estado (activa o inactiva, y si está inactiva, el motivo en las
+observaciones), la fecha de potenciación o de adquisición, y un responsable
+«que a su vez debe estar inscrito en el módulo de personal».
+
+**Lo que se hizo.** Migración 0016: `ref.estado_herramienta_aid`, tres
+columnas en `ai.herramienta_aid` y un disparador para la regla del motivo;
+semilla de los once tipos y los dos estados. Esquema, API, formulario en el
+orden del manual y listado con las columnas de la lámina 45.
+
+**Decisiones que no son obvias.**
+
+- **Los once tipos se siembran.** PROMPT.md decía «son once» sin nombrarlos y
+  el catálogo quedó vacío a propósito. El manual sí los nombra, literalmente.
+  Las siglas (COPAI, GEOS, VEMAI) se dejan sin desplegar: desplegarlas sin la
+  fuente sería suponerlas.
+- **Estado como catálogo, no como booleano.** El manual ya menciona «pendiente
+  por baja» como gestión posible; un dominio que puede crecer no se congela.
+- **Inactiva sin motivo se impide en tres sitios.** El disparador (la base es
+  la última palabra), el servidor (para responder 400 con el campo y no un
+  500) y el formulario (para decirlo antes de enviar). El esquema compartido
+  no puede: no sabe qué `id` tiene INACTIVA, y el `id` es de la base.
+- **El responsable se comprueba con RLS.** La clave foránea se evalúa sin RLS:
+  sin la consulta del servicio, una unidad podía nombrar responsable a alguien
+  de otra unidad que no puede ver. Una prueba de API lo fija.
+- **La fecha de registro deja de digitarse.** Era una derivación propia que el
+  manual no pide; la pone la base con la fecha del día en Bogotá. La fecha que
+  el manual pide es la de potenciación, y no puede ser futura.
+  `hoyEnBogota()` existe porque `toISOString()` da la fecha en UTC, que desde
+  las 19:00 de Bogotá ya es «mañana».
+- **Código y nombre se conservan** aunque el manual no los pida.
+- **Una jornada de ejemplo en `datos-para-mirar.sql`.** Tres pruebas de
+  accesibilidad abrían «la primera jornada» y solo pasaban si la prueba de
+  extremo a extremo había creado una antes. Con una base recién preparada
+  fallaban. La dependencia del orden estaba oculta porque la base se
+  reutilizaba.
+

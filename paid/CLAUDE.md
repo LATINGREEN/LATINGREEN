@@ -51,9 +51,9 @@ La PAID vive en `paid/`, no en la raíz: el repositorio ya contenía otro proyec
 
 ## Estado
 **Fases 0 a 4 cerradas**, más una revisión de usabilidad y la interfaz rehecha
-sobre el Manual del Usuario PAID (D-33, D-34). 306 pruebas pasando: 124 de
-invariantes compartidos, 64 de la Puerta 1 contra Postgres real, 106 de las
-Puertas 2, 3 y 4 sobre la API real con Postgres y Redis, y 12 de navegador
+sobre el Manual del Usuario PAID (D-33 a D-35). 327 pruebas pasando: 132 de
+invariantes compartidos, 69 de la Puerta 1 contra Postgres real, 113 de las
+Puertas 2, 3 y 4 sobre la API real con Postgres y Redis, y 13 de navegador
 sobre la aplicación en pie. La siguiente es la **Fase 5** (verificación de la
 Parte A).
 
@@ -77,7 +77,7 @@ Base desechable migrada y sembrada, API en `:3000`, interfaz en `:5173`,
 credenciales impresas. `BIM23_PAID` tiene maestros; `BIM24_PAID` está vacía a
 propósito, para ver que RLS no le muestra nada de la otra unidad.
 
-Las 12 pruebas de navegador necesitan eso en pie:
+Las 13 pruebas de navegador necesitan eso en pie:
 `pnpm --filter @paid/e2e test`.
 
 ## ⚠️ El esquema está DERIVADO de PROMPT.md
@@ -90,10 +90,12 @@ Lo que eso significa para ti:
   reconciliar, y eso en una base con datos no es gratis.
 - Autorizar derivar el esquema **no** autorizó inventar el contenido de los
   catálogos. Los que dependen de JACID están vacíos y así se quedan hasta que
-  respondan. No los rellenes.
+  respondan. No los rellenes. La excepción es lo que el **Manual del
+  Usuario** enumera literalmente (tipos de jornada, tipos y estados de
+  herramienta AID): el manual es fuente de JACID.
 
 ## Migraciones: SQL a mano, y no se regeneran
-Las quince migraciones de `packages/db/migraciones/` son SQL escrito a mano.
+Las dieciséis migraciones de `packages/db/migraciones/` son SQL escrito a mano.
 `pnpm db:generate` está deshabilitado a propósito: `drizzle-kit` no conoce los
 disparadores ni las políticas RLS y propondría borrarlos. Ver D-15.
 

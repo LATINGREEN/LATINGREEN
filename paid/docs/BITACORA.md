@@ -7,6 +7,33 @@ pueda continuar (PROMPT.md · A.5).
 
 ---
 
+## FASE 4 — Herramientas AID del manual (2026-09-24)
+
+Segundo cierre de `docs/CONTRASTE-MANUAL.md`: láminas 45 y 46. D-35.
+
+- Migración **0016** (`ref.estado_herramienta_aid`, estado, fecha de
+  potenciación y responsable en `ai.herramienta_aid`, disparador «inactiva
+  exige motivo»), con su reversión. Semilla de los **once tipos** que el
+  manual nombra y de los dos estados.
+- API: el tipo, el estado y el responsable se comprueban antes de insertar;
+  el responsable tiene que ser visible para la unidad (RLS). Listado con las
+  columnas de la lámina 45.
+- Formulario en el orden del manual; observaciones obligatorias si está
+  inactiva; aviso de Q3; responsable elegido de Personal, con enlace si no
+  hay nadie.
+- Defecto de las pruebas encontrado por el camino: tres pruebas de
+  accesibilidad dependían del orden de ejecución. `datos-para-mirar.sql` trae
+  ahora una jornada de ejemplo, y la batería se verificó sobre una base
+  recién creada.
+
+Pruebas: **327** — 132 de invariantes (+8), 69 de la Puerta 1 (+5), 113 de API
+(+7) y 13 de navegador (+1).
+
+**Siguiente:** género del personal; sector, subsector y país de las
+entidades; recuadro de exportación en los maestros.
+
+---
+
 ## FASE 4 — Datos generales de la jornada del manual (2026-09-23)
 
 Primer cierre de lo que `docs/CONTRASTE-MANUAL.md` dejó pendiente: tipo de

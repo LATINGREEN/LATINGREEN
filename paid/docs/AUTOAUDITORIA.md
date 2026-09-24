@@ -115,9 +115,9 @@ patrón de jornadas.
 
 ## Resultado de la batería de pruebas
 
-Tras añadir los datos generales de la jornada del manual (migración 0015,
-2026-09-23): **306 pruebas, 306 pasan** —124 de invariantes, 64 de la Puerta 1,
-106 de API y 12 de navegador—. La revisión de accesibilidad cubre la jornada abierta con sus
+Tras llevar Herramientas AID al manual (migración 0016, 2026-09-24): **327
+pruebas, 327 pasan** —132 de invariantes, 69 de la Puerta 1, 113 de API y 13 de
+navegador, estas sobre una base recién creada—. La revisión de accesibilidad cubre la jornada abierta con sus
 pestañas en los dos contrastes (institucional y alto), y una prueba maneja el
 menú y las pestañas solo con teclado. Lint limpio.
 

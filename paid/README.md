@@ -25,9 +25,9 @@ Especificación completa en [`PROMPT.md`](PROMPT.md). Reglas permanentes en
 | 5 · Verificación de la Parte A | ⬜ siguiente |
 | 6–8 · Asistencia por IA (Parte B) | ⬜ no empieza hasta cerrar la Puerta 5 |
 
-**306 pruebas, todas pasando:** 124 de los invariantes compartidos, 64 de la
-Puerta 1 contra PostgreSQL 16 con PostGIS y pgvector, 106 de las Puertas 2, 3
-y 4 levantando la API completa contra Postgres y Redis reales, y 12 de
+**327 pruebas, todas pasando:** 132 de los invariantes compartidos, 69 de la
+Puerta 1 contra PostgreSQL 16 con PostGIS y pgvector, 113 de las Puertas 2, 3
+y 4 levantando la API completa contra Postgres y Redis reales, y 13 de
 navegador sobre la aplicación en pie.
 
 **La interfaz sigue al Manual del Usuario PAID** (septiembre de 2022) y a la

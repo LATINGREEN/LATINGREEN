@@ -86,15 +86,18 @@ abiertas sino trabajo pendiente.
 | **País de origen** | No existe |
 | Nombre completo con la sigla al final entre paréntesis | Nombre libre; la regla de la sigla no se valida |
 
-### 2.4 Herramientas AID (lámina 46)
+### 2.4 Herramientas AID (láminas 45–46)
 
 | El manual pide | Hoy |
 |---|---|
-| Tipo: COPAI, GEOS, VEMAI, emisoras, perifoneo, circos, impresos, reprográficas, audiovisuales, simulador de vuelo, grupos musicales | `ref.tipo_herramienta_aid` sigue vacío, pero el manual **sí** nombra los once: se pueden sembrar como se hizo con los tipos de jornada. Los campos propios de cada tipo siguen en Q3 |
-| **Fecha de potenciación** (o de adquisición) | No existe |
-| **Estado**: activa o inactiva | No existe |
-| **Responsable** (inscrito en Personal) | No existe |
+| Tipo: COPAI, GEOS, VEMAI, emisoras, perifoneo, circos, impresos, reprográficas, audiovisuales, simulador de vuelo, grupos musicales | ✅ Los once, sembrados (0016). Los campos propios de cada tipo siguen en Q3: el formulario lo dice y pide anotarlos en las observaciones |
+| **Fecha de potenciación** (o de adquisición) | ✅ (0016), no posterior a hoy |
+| **Estado**: activa o inactiva; si inactiva, el motivo en observaciones | ✅ `ref.estado_herramienta_aid` (0016); la regla del motivo, en la base, el servidor y el formulario |
+| **Responsable** (inscrito en Personal) | ✅ (0016), R8: tiene que existir en Personal y ser visible para la unidad |
+| Listado con estado, fecha P., documento, correo y contacto del responsable (lámina 45) | ✅ |
 | Municipio + coordenadas GMS | ✅ |
+| No pide código ni nombre | Se conservan: sin ellos dos emisoras del mismo municipio no se distinguen en el listado |
+| No pide fecha de registro | Ya no se digita: la pone la base con la fecha del día |
 
 ### 2.5 Pantallas
 
