@@ -1,8 +1,9 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { crearHerramienta, formatearFechaDdMmAaaa } from '@paid/schema';
 import type { HerramientaEnListado } from '@paid/schema';
 import { ErrorApi, api } from '../api/cliente';
+import { useCatalogo } from '../api/catalogos';
 import { useSesion } from '../api/sesion';
 import { useAnuncio } from '../api/accesibilidad';
 import { CampoSelector } from '../componentes/CampoSelector';
@@ -11,7 +12,8 @@ import { CoordenadasGms, GMS_VACIO, completarGms } from '../componentes/Coordena
 import type { BorradorGms } from '../componentes/CoordenadasGms';
 import { CampoFecha } from '../componentes/CampoFecha';
 import { Campo } from '../componentes/Campo';
-import { Alerta, Cruz, Lupa, Marca, Mas } from '../componentes/Iconos';
+import { CampoResponsable } from '../componentes/CampoResponsable';
+import { Alerta, Cruz, Info, Lupa, Marca, Mas } from '../componentes/Iconos';
 
 /**
  * Maestro 3 de 3 — Herramientas AID (`ai.herramienta_aid`).
@@ -21,6 +23,11 @@ import { Alerta, Cruz, Lupa, Marca, Mas } from '../componentes/Iconos';
  * Por eso lleva el mismo componente de GMS que la jornada, con su conversión
  * visible a decimales y su botón «Ver ubicación»: si aquí se capturara de otra
  * manera, las dos formas divergirían y una de las dos estaría mal.
+ *
+ * Los campos siguen la lámina 46 del manual: ubicación, tipo, estado con su
+ * fecha de potenciación, responsable y observaciones. Código y nombre no están
+ * en el manual pero se conservan: sin ellos dos emisoras del mismo municipio
+ * serían indistinguibles en el listado.
  */
 
 interface Listado {
@@ -35,7 +42,9 @@ const VACIO = {
   descripcion: '',
   idDepartamento: '',
   idMunicipio: '',
-  fechaRegistro: '',
+  idEstadoHerramienta: '',
+  fechaPotenciacion: '',
+  idPersonalResponsable: '',
 };
 
 export function Herramientas(): JSX.Element {
@@ -48,6 +57,15 @@ export function Herramientas(): JSX.Element {
   const [borrador, setBorrador] = useState(VACIO);
   const [gms, setGms] = useState<BorradorGms>(GMS_VACIO);
   const [errores, setErrores] = useState<Record<string, string>>({});
+
+  // Lámina 46: si está INACTIVA, las observaciones son obligatorias. El `id`
+  // de ese estado es de la base; se reconoce por su código, que es estable.
+  const estados = useCatalogo('estado_herramienta_aid');
+  const idInactiva = useMemo(
+    () => estados.data?.find((e) => e.codigo === 'INACTIVA')?.id,
+    [estados.data],
+  );
+  const esInactiva = idInactiva !== undefined && borrador.idEstadoHerramienta === String(idInactiva);
 
   const listado = useQuery({
     queryKey: ['herramientas', busqueda],
@@ -66,11 +84,20 @@ export function Herramientas(): JSX.Element {
         ...aPeticion(borrador),
         ...('coordenada' in coordenada ? coordenada.coordenada : {}),
       });
-      if (!datos.success || 'faltan' in coordenada) {
+      const sinMotivo = esInactiva && borrador.descripcion.trim() === '';
+      if (!datos.success || 'faltan' in coordenada || sinMotivo) {
         const porCampo: Record<string, string> = 'faltan' in coordenada ? { ...coordenada.faltan } : {};
+        if (sinMotivo) {
+          porCampo['descripcion'] =
+            'Está inactiva: diga por qué y qué gestión se hizo para ponerla en funcionamiento o darla de baja.';
+        }
         if (!datos.success) {
           for (const problema of datos.error.issues) {
-            porCampo[problema.path.join('.')] ??= problema.message;
+            const clave = problema.path.join('.');
+            // Con la coordenada incompleta no se envía ninguna de sus partes, y
+            // el esquema reclamaría también las llenas —el hemisferio W—.
+            if ('faltan' in coordenada && /^(latitud|longitud)/u.test(clave)) continue;
+            porCampo[clave] ??= problema.message;
           }
         }
         setErrores(porCampo);
@@ -78,6 +105,15 @@ export function Herramientas(): JSX.Element {
       }
       setErrores({});
       return api.crear<{ id: number }>('/herramientas', datos.data);
+    },
+    onError: (error: unknown) => {
+      // Lo que solo el servidor puede comprobar (R8: el responsable visible
+      // para la unidad; un tipo retirado) vuelve señalando su campo.
+      if (error instanceof ErrorApi && error.porCampo.length > 0) {
+        const porCampo: Record<string, string> = {};
+        for (const d of error.porCampo) porCampo[d.campo] = d.mensaje;
+        setErrores(porCampo);
+      }
     },
     onSuccess: () => {
       void clienteConsultas.invalidateQueries({ queryKey: ['herramientas'] });
@@ -140,16 +176,6 @@ export function Herramientas(): JSX.Element {
               error={errores['codigo']}
               onCambio={(v) => setBorrador({ ...borrador, codigo: v })}
             />
-            <CampoSelector
-              id="tipo-herramienta"
-              rotulo="Tipo de herramienta"
-              catalogo="tipo_herramienta_aid"
-              valor={borrador.idTipoHerramientaAid}
-              obligatorio
-              ayuda="TODO(JACID) Q3: cada tipo activa campos propios, todavía por definir."
-              onCambio={(v) => setBorrador({ ...borrador, idTipoHerramientaAid: v })}
-              error={errores['idTipoHerramientaAid']}
-            />
             <Campo
               id="nombre-herramienta"
               rotulo="Nombre"
@@ -157,13 +183,6 @@ export function Herramientas(): JSX.Element {
               obligatorio
               error={errores['nombre']}
               onCambio={(v) => setBorrador({ ...borrador, nombre: v })}
-            />
-            <CampoFecha
-              id="fecha-herramienta"
-              rotulo="Fecha de registro"
-              valor={borrador.fechaRegistro}
-              error={errores['fechaRegistro']}
-              onCambio={(v) => setBorrador({ ...borrador, fechaRegistro: v })}
             />
             <CampoSelector
               id="departamento-herramienta"
@@ -188,21 +207,74 @@ export function Herramientas(): JSX.Element {
             />
           </div>
 
-          <div className="campo">
-            <label htmlFor="descripcion-herramienta">Descripción</label>
-            <textarea
-              id="descripcion-herramienta"
-              className="entrada"
-              value={borrador.descripcion}
-              onChange={(e) => setBorrador({ ...borrador, descripcion: e.target.value })}
-            />
-          </div>
-
           <CoordenadasGms
             valor={gms}
             onCambio={setGms}
             errores={errores}
             lugar={borrador.nombre}
+          />
+
+          {/* ── Lámina 46: tipo, estado, potenciación y responsable ────── */}
+          <div className="aviso aviso-info">
+            <span className="aviso-icono">
+              <Info tamano={17} />
+            </span>
+            <p>
+              El manual dice que al elegir el tipo se activan campos propios de cada
+              herramienta. Esos campos todavía no los ha definido JACID (Q3): por ahora
+              regístrelos en las observaciones.
+            </p>
+          </div>
+
+          <div className="rejilla-2">
+            <CampoSelector
+              id="tipo-herramienta"
+              rotulo="Tipo de herramienta"
+              catalogo="tipo_herramienta_aid"
+              valor={borrador.idTipoHerramientaAid}
+              obligatorio
+              onCambio={(v) => setBorrador({ ...borrador, idTipoHerramientaAid: v })}
+              error={errores['idTipoHerramientaAid']}
+            />
+            <CampoSelector
+              id="estado-herramienta"
+              rotulo="Estado de la herramienta"
+              catalogo="estado_herramienta_aid"
+              valor={borrador.idEstadoHerramienta}
+              obligatorio
+              ayuda="Si está inactiva, las observaciones deben decir por qué."
+              onCambio={(v) => setBorrador({ ...borrador, idEstadoHerramienta: v })}
+              error={errores['idEstadoHerramienta']}
+            />
+            <CampoFecha
+              id="fecha-potenciacion"
+              rotulo="Fecha de potenciación"
+              valor={borrador.fechaPotenciacion}
+              ayuda="Cuando se potenció la herramienta; si nunca se repotenció, cuando se adquirió."
+              error={errores['fechaPotenciacion']}
+              onCambio={(v) => setBorrador({ ...borrador, fechaPotenciacion: v })}
+            />
+            <CampoResponsable
+              id="responsable-herramienta"
+              valor={borrador.idPersonalResponsable}
+              onCambio={(v) => setBorrador({ ...borrador, idPersonalResponsable: v })}
+              error={errores['idPersonalResponsable']}
+            />
+          </div>
+
+          <Campo
+            id="descripcion-herramienta"
+            rotulo="Observaciones"
+            valor={borrador.descripcion}
+            obligatorio={esInactiva}
+            multilinea
+            ayuda={
+              esInactiva
+                ? 'Obligatorias: por qué está inactiva y qué gestión se hizo para ponerla en funcionamiento o darla de baja.'
+                : 'Código de inventario fiscal, fecha de adquisición, número de serie.'
+            }
+            error={errores['descripcion']}
+            onCambio={(v) => setBorrador({ ...borrador, descripcion: v })}
           />
 
           <div className="fila-sep seccion-pie">
@@ -278,8 +350,10 @@ export function Herramientas(): JSX.Element {
                   <th scope="col">Código</th>
                   <th scope="col">Herramienta</th>
                   <th scope="col">Tipo</th>
+                  <th scope="col">Estado</th>
+                  <th scope="col">Fecha P.</th>
+                  <th scope="col">Responsable</th>
                   <th scope="col">Municipio</th>
-                  <th scope="col">Registro</th>
                   <th scope="col">Coordenadas</th>
                 </tr>
               </thead>
@@ -292,8 +366,43 @@ export function Herramientas(): JSX.Element {
                       <p className="celda-sub">{fila.unidad}</p>
                     </td>
                     <td>{fila.tipo}</td>
+                    {/* Lámina 45. NULL en las herramientas anteriores a 0016. */}
+                    <td>
+                      {fila.estado === null ? (
+                        <span className="sin-dato">Sin registrar</span>
+                      ) : (
+                        <span
+                          className={`distintivo ${fila.estado === 'Activa' ? 'distintivo-completo' : 'distintivo-incompleto'}`}
+                        >
+                          {fila.estado}
+                        </span>
+                      )}
+                    </td>
+                    <td className="datos">
+                      {fila.fechaPotenciacion === null ? (
+                        <span className="sin-dato">—</span>
+                      ) : (
+                        formatearFechaDdMmAaaa(fila.fechaPotenciacion)
+                      )}
+                    </td>
+                    <td>
+                      {fila.responsable === null ? (
+                        <span className="sin-dato">Sin registrar</span>
+                      ) : (
+                        <>
+                          {fila.responsable.nombre}
+                          <p className="celda-sub datos">{fila.responsable.documento}</p>
+                          {(fila.responsable.correo !== null || fila.responsable.telefono !== null) && (
+                            <p className="celda-sub">
+                              {[fila.responsable.correo, fila.responsable.telefono]
+                                .filter((x) => x !== null)
+                                .join(' · ')}
+                            </p>
+                          )}
+                        </>
+                      )}
+                    </td>
                     <td>{fila.municipio ?? <span className="celda-sub">—</span>}</td>
-                    <td className="datos">{formatearFechaDdMmAaaa(fila.fechaRegistro)}</td>
                     <td className="datos celda-coord">
                       {fila.latitudDecimal.toFixed(4)}
                       <br />
@@ -316,11 +425,13 @@ function aPeticion(borrador: typeof VACIO): Record<string, unknown> {
     idTipoHerramientaAid: limpio(borrador.idTipoHerramientaAid),
     codigo: borrador.codigo.trim(),
     nombre: borrador.nombre.trim(),
-    fechaRegistro: borrador.fechaRegistro.trim(),
+    fechaPotenciacion: borrador.fechaPotenciacion.trim(),
   };
   for (const [clave, valor] of [
     ['descripcion', borrador.descripcion],
     ['idMunicipio', borrador.idMunicipio],
+    ['idEstadoHerramienta', borrador.idEstadoHerramienta],
+    ['idPersonalResponsable', borrador.idPersonalResponsable],
   ] as const) {
     const depurado = limpio(valor);
     if (depurado !== undefined) peticion[clave] = depurado;

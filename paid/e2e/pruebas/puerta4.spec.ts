@@ -212,6 +212,56 @@ test.describe('Puerta 4 — camino completo por la interfaz', () => {
    * datos sin contexto de sesión. BIM24 no tiene ningún maestro sembrado, así
    * que si viera algo, sería de BIM23.
    */
+  /*
+   * Lámina 46: la herramienta AID con estado, fecha de potenciación y
+   * responsable inscrito en Personal. Y la regla del manual que más fácil se
+   * olvida: si está inactiva, las observaciones dicen por qué.
+   */
+  test('registra una herramienta inactiva, y sin motivo no la deja guardar', async ({ page }) => {
+    await ingresar(page, 'BIM23_PAID');
+    await irA(page, '/herramientas');
+    await page.getByRole('button', { name: /Registrar herramienta/ }).click();
+
+    const codigo = `HAID-E2E-${String(Date.now()).slice(-6)}`;
+    await page.locator('#codigo-herramienta').fill(codigo);
+    await page.locator('#nombre-herramienta').fill('Proyector de prueba');
+    await page.locator('#gms-latitudHemisferio').selectOption('N');
+    await page.locator('#gms-latitudGrados').fill('1');
+    await page.locator('#gms-latitudMinutos').fill('47');
+    await page.locator('#gms-latitudSegundos').fill('30');
+    await page.locator('#gms-longitudGrados').fill('78');
+    await page.locator('#gms-longitudMinutos').fill('48');
+    await page.locator('#gms-longitudSegundos').fill('45');
+
+    // Los once tipos del manual, sembrados.
+    const tipo = page.locator('#tipo-herramienta');
+    await expect(tipo.locator('option')).toHaveCount(12); // «Seleccione…» + 11
+    await tipo.selectOption({ label: 'Audiovisuales' });
+    await page.locator('#estado-herramienta').selectOption({ label: 'Inactiva' });
+    await page.locator('#fecha-potenciacion').fill('15/05/2023');
+    await page.locator('#responsable-herramienta').selectOption({ index: 1 });
+
+    // Inactiva: las observaciones pasan a ser obligatorias, y sin ellas no guarda.
+    await page.getByRole('button', { name: /Guardar herramienta/ }).click();
+    // `.error` y no solo el id: la ayuda de un campo obligatorio también dice
+    // «por qué», y la prueba pasaría sin que hubiera error.
+    await expect(page.locator('p.error#descripcion-herramienta-ayuda')).toContainText('por qué');
+    // Por el código, que es único en cada ejecución: el nombre se repite entre
+    // ejecuciones sobre la misma base.
+    await expect(page.locator('tr', { hasText: codigo })).toHaveCount(0);
+
+    await page
+      .locator('#descripcion-herramienta')
+      .fill('Lámpara fundida. Repuesto solicitado al almacén; si no llega, pendiente por baja.');
+    await page.getByRole('button', { name: /Guardar herramienta/ }).click();
+
+    // Queda en el listado con su estado y su responsable.
+    const fila = page.locator('tr', { hasText: codigo });
+    await expect(fila).toBeVisible();
+    await expect(fila).toContainText('Inactiva');
+    await expect(fila).toContainText('15/05/2023');
+  });
+
   test('BIM24 no ve los maestros de BIM23', async ({ page }) => {
     await ingresar(page, 'BIM24_PAID');
 
