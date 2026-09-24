@@ -251,6 +251,31 @@ INSERT INTO ref.tipo_jornada (codigo, nombre, orden) VALUES
   ('ESTRATEGICA', 'Estratégica', 3)
 ON CONFLICT (codigo) DO NOTHING;
 
+-- ── Tipos y estados de herramienta AID (migracion 0016) ────────────────────
+-- PROMPT.md dice que son once y no los nombra; el Manual del Usuario PAID,
+-- lamina 46, SI los nombra, literalmente. Las siglas se dejan como estan en el
+-- manual, sin desplegarlas: desplegar una sigla sin la fuente seria
+-- suponerla. Los campos propios de cada tipo siguen pendientes (Q3).
+INSERT INTO ref.tipo_herramienta_aid (codigo, nombre, orden) VALUES
+  ('COPAI',                   'COPAI',                                 1),
+  ('GEOS',                    'GEOS',                                  2),
+  ('VEMAI',                   'VEMAI',                                 3),
+  ('EMISORA_INSTITUCIONAL',   'Emisoras institucionales',              4),
+  ('EQUIPO_PERIFONEO',        'Equipos de perifoneo',                  5),
+  ('CIRCO_INSTITUCIONAL',     'Circos institucionales',                6),
+  ('IMPRESOS_PUBLICACIONES',  'Impresos y publicaciones',              7),
+  ('MAQUINA_REPROGRAFICA',    'Máquinas duplicadoras o reprográficas', 8),
+  ('AUDIOVISUAL',             'Audiovisuales',                         9),
+  ('SIMULADOR_VUELO',         'Simulador de vuelo',                   10),
+  ('GRUPO_MUSICAL',           'Grupos musicales',                     11)
+ON CONFLICT (codigo) DO NOTHING;
+
+-- Lamina 46: «activa o inactiva».
+INSERT INTO ref.estado_herramienta_aid (codigo, nombre, descripcion, orden) VALUES
+  ('ACTIVA',   'Activa',   NULL, 1),
+  ('INACTIVA', 'Inactiva', 'Exige observaciones: por que esta inactiva y que gestion se hizo.', 2)
+ON CONFLICT (codigo) DO NOTHING;
+
 -- TODO(JACID): confirmar la tipologia documental.
 INSERT INTO ref.tipo_normatividad (codigo, nombre, descripcion, orden) VALUES
   ('DIRECTIVA',   'Directiva',   'TODO(JACID): confirmar.', 1),
@@ -268,8 +293,6 @@ ON CONFLICT (codigo) DO NOTHING;
 --
 --   ref.municipio                 Cargar DIVIPOLA del DANE (mas de 1100 filas).
 --   ref.campana_institucional     Q2 — las 17 campanas derivadas de COGFM.
---   ref.tipo_herramienta_aid      Los 11 tipos: PROMPT.md dice que son once,
---                                 pero no los nombra.
 --   ref.atributo_herramienta_aid  Q3 — campos que activa cada tipo.
 --   ref.tipo_operacion            Q4 — formulario real desconocido.
 --   ref.servicio_prestado         Q4 — formulario real desconocido.

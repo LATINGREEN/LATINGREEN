@@ -1164,6 +1164,105 @@ describe('Manual, láminas 20–21 — tipo de jornada, EJC, FAC y población af
 });
 
 // ═════════════════════════════════════════════════════════════════════════════
+describe('Manual, lámina 46 — estado, potenciación y responsable de la herramienta', () => {
+  async function crearHerramienta(
+    cliente: PoolClient,
+    codigo: string,
+    extra: { estado?: string; descripcion?: string | null; idResponsable?: number } = {},
+  ): Promise<void> {
+    await cliente.query(
+      `INSERT INTO ai.herramienta_aid (
+         id_tipo_herramienta_aid, codigo, nombre, descripcion, id_unidad, id_estado_registro,
+         id_estado_herramienta, id_personal_responsable, fecha_potenciacion,
+         latitud_grados, latitud_minutos, latitud_segundos, latitud_hemisferio,
+         longitud_grados, longitud_minutos, longitud_segundos, longitud_hemisferio)
+       VALUES ((SELECT id FROM ref.tipo_herramienta_aid WHERE codigo = 'COPAI'),
+               $1, 'Herramienta de prueba', $2, $3, $4,
+               (SELECT id FROM ref.estado_herramienta_aid WHERE codigo = $5), $6, '2025-06-01',
+               1, 47, 30, 'N', 78, 48, 45, 'W')`,
+      [
+        codigo,
+        extra.descripcion ?? null,
+        unidades.bim23,
+        datos.idEstadoActivo,
+        extra.estado ?? 'ACTIVA',
+        extra.idResponsable ?? null,
+      ],
+    );
+  }
+
+  it('los once tipos y los dos estados del manual están sembrados', async () => {
+    const tipos = await entorno.poolAdmin.query<{ codigo: string }>(
+      `SELECT codigo FROM ref.tipo_herramienta_aid WHERE codigo <> 'PRUEBA' ORDER BY orden`,
+    );
+    expect(tipos.rows).toHaveLength(11);
+    expect(tipos.rows[0]?.codigo).toBe('COPAI');
+    const estados = await entorno.poolAdmin.query<{ codigo: string }>(
+      'SELECT codigo FROM ref.estado_herramienta_aid ORDER BY orden',
+    );
+    expect(estados.rows.map((e) => e.codigo)).toEqual(['ACTIVA', 'INACTIVA']);
+  });
+
+  it('una herramienta INACTIVA sin observaciones es RECHAZADA', async () => {
+    const c = await entorno.poolAdmin.connect();
+    try {
+      await c.query('BEGIN');
+      await expect(
+        crearHerramienta(c, 'HAID-INAC-1', { estado: 'INACTIVA', descripcion: '   ' }),
+      ).rejects.toThrow(/inactiva/i);
+    } finally {
+      await c.query('ROLLBACK').catch(() => undefined);
+      c.release();
+    }
+  });
+
+  it('INACTIVA con el motivo escrito se admite', async () => {
+    const c = await entorno.poolAdmin.connect();
+    try {
+      await c.query('BEGIN');
+      await crearHerramienta(c, 'HAID-INAC-2', {
+        estado: 'INACTIVA',
+        descripcion: 'Motor averiado; solicitud de repuesto en trámite.',
+      });
+    } finally {
+      await c.query('ROLLBACK').catch(() => undefined);
+      c.release();
+    }
+  });
+
+  it('pasar a INACTIVA borrando el motivo también se rechaza (UPDATE)', async () => {
+    const c = await entorno.poolAdmin.connect();
+    try {
+      await c.query('BEGIN');
+      await crearHerramienta(c, 'HAID-INAC-3');
+      await expect(
+        c.query(
+          `UPDATE ai.herramienta_aid
+              SET id_estado_herramienta = (SELECT id FROM ref.estado_herramienta_aid WHERE codigo = 'INACTIVA')
+            WHERE codigo = 'HAID-INAC-3'`,
+        ),
+      ).rejects.toThrow(/inactiva/i);
+    } finally {
+      await c.query('ROLLBACK').catch(() => undefined);
+      c.release();
+    }
+  });
+
+  it('R8 — el responsable tiene que existir en el maestro de personal', async () => {
+    const c = await entorno.poolAdmin.connect();
+    try {
+      await c.query('BEGIN');
+      await expect(crearHerramienta(c, 'HAID-RESP-1', { idResponsable: 999999 })).rejects.toThrow(
+        /foreign key|llave foránea|clave foránea/i,
+      );
+    } finally {
+      await c.query('ROLLBACK').catch(() => undefined);
+      c.release();
+    }
+  });
+});
+
+// ═════════════════════════════════════════════════════════════════════════════
 describe('R17 — asistencia DIRECTA exige plan operacional', () => {
   async function crearAsistencia(
     cliente: PoolClient,

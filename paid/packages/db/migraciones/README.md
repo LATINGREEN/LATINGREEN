@@ -1,6 +1,6 @@
 # Migraciones
 
-**SQL escrito a mano, no generado.** Quince migraciones, cada una con su
+**SQL escrito a mano, no generado.** Dieciséis migraciones, cada una con su
 reversión en `bajada/` con el mismo nombre de archivo.
 
 ## Por qué SQL a mano y no el DSL de Drizzle
@@ -39,7 +39,7 @@ El aplicador está en `src/migraciones.ts` y **se niega a arrancar si una
 migración no tiene su `down`**: A.1 exige migraciones reversibles, y sin la
 reversión la migración no está terminada.
 
-## Las quince
+## Las dieciséis
 
 | # | Archivo | Qué trae |
 |---|---|---|
@@ -58,6 +58,7 @@ reversión la migración no está terminada.
 | 0013 | `unidad_para_ingreso` | La unidad legible antes de tener sesión, para el ingreso |
 | 0014 | `privilegios_pestanas` | `DELETE` sobre las filas de las once pestañas (Q14) |
 | 0015 | `jornada_campos_manual` | Manual, láminas 20–21: `ref.tipo_jornada`, participación de EJC y FAC, población afecta a la tropa |
+| 0016 | `herramienta_campos_manual` | Manual, lámina 46: `ref.estado_herramienta_aid`, fecha de potenciación, responsable (R8) e inactiva con motivo |
 
 ## Lo que todavía no hay
 

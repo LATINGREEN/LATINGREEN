@@ -7,7 +7,9 @@
 Se siembra **lo que PROMPT.md enumera de forma literal**: los 7 COAMI, las 4
 categorías de adjunto con sus 16 extensiones, las 8 causas de intento de
 autenticación, los 8 tramos de avance, los 3 niveles de jerarquía, los 33
-departamentos DANE, los grados y escalafones.
+departamentos DANE, los grados y escalafones. Y lo que el **Manual del
+Usuario PAID** enumera literalmente: los 3 tipos de jornada (lámina 20), los
+11 tipos de herramienta AID y sus 2 estados (lámina 46).
 
 **No se siembra nada más.** La regla de PROMPT.md es explícita: «Los catálogos
 que dependen de JACID se siembran vacíos con un TODO, no inventados.»
@@ -18,7 +20,6 @@ Quedan vacíos, cada uno con su pregunta en `docs/PREGUNTAS-JACID.md`:
 |---|---|
 | `ref.municipio` | DIVIPOLA son 1100+ filas; se cargan del archivo del DANE |
 | `ref.campana_institucional` | Q2: las 17 campañas no constan |
-| `ref.tipo_herramienta_aid` | PROMPT.md dice que son 11, pero no los nombra |
 | `ref.atributo_herramienta_aid` | Q3 |
 | `ref.tipo_operacion` | Q4 |
 | `ref.servicio_prestado` | Q4 |
