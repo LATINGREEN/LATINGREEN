@@ -888,3 +888,27 @@ orden del manual y listado con las columnas de la lámina 45.
   fallaban. La dependencia del orden estaba oculta porque la base se
   reutilizaba.
 
+## D-36 · La auditoría de la Fase 5 se genera y se comprueba · Aceptada · 2026-09-24
+
+**El problema.** PROMPT.md pide, para cada regla, «el archivo y la línea donde
+se impone». Una línea escrita a mano caduca con la siguiente edición, y una
+auditoría con líneas equivocadas es peor que una sin líneas: parece
+verificada.
+
+**Lo que se hizo.** `scripts/autoauditoria.mjs` declara cada ubicación por un
+**ancla** —el nombre de la restricción, la función o el disparador que impone
+la regla— y calcula la línea. Escribe la tabla en `docs/AUTOAUDITORIA.md`
+entre dos marcadores, y con `--comprobar` falla si un ancla desaparece o si la
+tabla no está al día. `pnpm test` lo ejecuta al final.
+
+La consecuencia buscada: renombrar `actividad_participo_arc_siempre_verdadero`
+sin actualizar la auditoría rompe la batería, y alguien tiene que mirar si R9
+se sigue imponiendo.
+
+**La Puerta 5 también es una prueba, no una afirmación.**
+`apps/api/src/pruebas/puerta5.test.ts` recorre la Parte A con la IA
+*habilitada* y apuntando a un puerto sin nada escuchando, y comprueba que
+ningún código de la Parte A nombra el servicio de IA y que en
+`docker-compose.yml` nadie depende de él. Cuando la Parte B añada una llamada
+desde la Parte A, esa prueba falla hasta que se declare cómo degrada.
+

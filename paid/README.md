@@ -22,12 +22,12 @@ Especificación completa en [`PROMPT.md`](PROMPT.md). Reglas permanentes en
 | 2 · Autenticación y autorización | ✅ cerrada · **Puerta 2 superada: 38 pruebas sobre la API real** |
 | 3 · Jornadas de Apoyo | ✅ cerrada · **Puerta 3 superada: 42 pruebas de API** |
 | 4 · Interfaz | ✅ cerrada · **Puerta 4 superada: camino completo por la interfaz + accesibilidad sin violaciones** |
-| 5 · Verificación de la Parte A | ⬜ siguiente |
-| 6–8 · Asistencia por IA (Parte B) | ⬜ no empieza hasta cerrar la Puerta 5 |
+| 5 · Verificación de la Parte A | ✅ cerrada · **Puerta 5 superada: la Parte A completa con la IA habilitada y caída** · ver `docs/AUTOAUDITORIA.md` |
+| 6–8 · Asistencia por IA (Parte B) | ⬜ siguiente |
 
-**327 pruebas, todas pasando:** 132 de los invariantes compartidos, 69 de la
-Puerta 1 contra PostgreSQL 16 con PostGIS y pgvector, 113 de las Puertas 2, 3
-y 4 levantando la API completa contra Postgres y Redis reales, y 13 de
+**338 pruebas, todas pasando:** 132 de los invariantes compartidos, 69 de la
+Puerta 1 contra PostgreSQL 16 con PostGIS y pgvector, 124 de las Puertas 2 a 5
+levantando la API completa contra Postgres y Redis reales, y 13 de
 navegador sobre la aplicación en pie.
 
 **La interfaz sigue al Manual del Usuario PAID** (septiembre de 2022) y a la

@@ -7,6 +7,36 @@ pueda continuar (PROMPT.md · A.5).
 
 ---
 
+## FASE 5 — Verificación de la Parte A (2026-09-24)
+
+### Lo hecho
+
+1. **R1–R19 con archivo y línea.** `docs/AUTOAUDITORIA.md` tiene ahora una
+   tabla con la ubicación exacta de cada regla y de lo que descarta cada
+   anti-patrón P1–P11. La genera `scripts/autoauditoria.mjs` desde anclas, y
+   `pnpm test` falla si una línea se mueve o un ancla desaparece (D-36). Se
+   revisó que cada línea apunta a código y no a un comentario (R3 apuntaba a
+   uno y se corrigió).
+2. **P1–P11:** la tabla existente se mantiene, con su ubicación exacta.
+3. **Batería completa:** 338 pruebas, 338 pasan (132 + 69 + 124 + 13), lint
+   limpio, sin el servicio de IA.
+4. **Lo pendiente**, reescrito y comprobado contra el código: 22 puntos,
+   incluidos cuatro desvíos del stack de A.1 que no estaban anotados (Drizzle
+   y React Hook Form declarados y sin uso, OpenTelemetry sin enviar nada,
+   Testcontainers sustituido).
+
+### 🚪 Puerta 5 — superada
+
+`apps/api/src/pruebas/puerta5.test.ts` (11 pruebas): la Parte A recorrida con
+la IA habilitada y caída; ningún código de la Parte A la nombra (comprobado
+que la prueba falla si se planta una referencia); `ia` es opcional en el
+despliegue y está apagada por omisión.
+
+**La Parte B (Fases 6–8) puede empezar.** La Puerta 0 sigue parcial: `docker
+compose up` no se ha podido ejecutar (D-07).
+
+---
+
 ## FASE 4 — Herramientas AID del manual (2026-09-24)
 
 Segundo cierre de `docs/CONTRASTE-MANUAL.md`: láminas 45 y 46. D-35.

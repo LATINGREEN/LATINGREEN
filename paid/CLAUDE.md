@@ -50,12 +50,20 @@ La PAID vive en `paid/`, no en la raíz: el repositorio ya contenía otro proyec
 (el juego Eco-Arcade Latin Green). Ver `docs/DECISIONES.md`, D-01.
 
 ## Estado
-**Fases 0 a 4 cerradas**, más una revisión de usabilidad y la interfaz rehecha
-sobre el Manual del Usuario PAID (D-33 a D-35). 327 pruebas pasando: 132 de
-invariantes compartidos, 69 de la Puerta 1 contra Postgres real, 113 de las
-Puertas 2, 3 y 4 sobre la API real con Postgres y Redis, y 13 de navegador
-sobre la aplicación en pie. La siguiente es la **Fase 5** (verificación de la
-Parte A).
+**Fases 0 a 5 cerradas; Puerta 5 superada** (D-36). La interfaz sigue al
+Manual del Usuario PAID (D-33 a D-35). 338 pruebas pasando: 132 de invariantes
+compartidos, 69 de la Puerta 1 contra Postgres real, 124 de las Puertas 2 a 5
+sobre la API real con Postgres y Redis, y 13 de navegador sobre la aplicación
+en pie. Lo que falta de la Parte A está en `docs/AUTOAUDITORIA.md`, «Lo
+pendiente». La siguiente es la **Fase 6** (Parte B).
+
+**`pnpm test` comprueba también la autoauditoría.** Si mueves o renombras lo
+que impone una regla, falla `scripts/autoauditoria.mjs --comprobar`:
+ejecuta `pnpm auditoria` y revisa que la regla se siga imponiendo.
+
+**La Puerta 5 es una prueba** (`apps/api/src/pruebas/puerta5.test.ts`). Si la
+Parte B añade una llamada a la IA desde la Parte A, falla hasta que declares
+dónde y cómo degrada. No la relajes.
 
 **La interfaz sigue al manual.** Paleta ARC en `apps/web/src/estilos/tokens.css`
 (el dorado `#d4af37` nunca es texto sobre blanco: 2,10 : 1), emblemas en
@@ -64,10 +72,9 @@ en `docs/CONTRASTE-MANUAL.md`. Falta del material oficial: Escudo de la
 República y logos GOV.CO/CO (Q17). No los tomes de copias de terceros ni los
 dibujes de memoria.
 
-⛔ **La Parte B (Fases 6–8, la IA) no empieza hasta cerrar la Puerta 5.**
-PROMPT.md lo ordena literalmente, y el motivo es verificable: la Puerta 5 exige
-que la Parte A funcione con el servicio de IA apagado, y eso solo se puede
-comprobar antes de que exista algo que lo apague por costumbre.
+✅ **La Puerta 5 está cerrada: la Parte B (Fases 6–8, la IA) puede empezar.**
+Sigue valiendo la regla que la protegía: la Parte A funciona con el servicio
+de IA apagado, y la prueba de la Puerta 5 lo comprueba en cada ejecución.
 
 ### Para verlo funcionando
 
