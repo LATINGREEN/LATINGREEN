@@ -16,7 +16,7 @@ import react from '@vitejs/plugin-react';
  * - `build.rollupOptions.external` vacio: todo se empaqueta, nada se resuelve
  *   en tiempo de ejecucion contra un origen remoto.
  */
-export default defineConfig({
+export default defineConfig(({ mode }) => ({
   plugins: [react()],
   resolve: {
     alias: {
@@ -31,20 +31,34 @@ export default defineConfig({
        * apunta al mismo archivo del que `tsc` saca los tipos, asi que no hay
        * forma de que la version compilada y la usada por la interfaz difieran.
        */
-      '@paid/schema': fileURLToPath(
-        new URL('../../packages/schema/src/index.ts', import.meta.url),
-      ),
+      '@paid/schema': fileURLToPath(new URL('../../packages/schema/src/index.ts', import.meta.url)),
     },
   },
-  build: {
-    outDir: 'dist',
-    sourcemap: true,
-    // Sin `assetsInlineLimit` agresivo: los binarios grandes (teselas) se
-    // sirven como archivo, no incrustados en el bundle.
-    rollupOptions: {
-      external: [],
-    },
-  },
+  /*
+   * `--mode demo`: la demostración sin servidor (ver `src/demo/servidor.ts`).
+   * Un solo archivo JavaScript —sin trozos cargados después— y rutas
+   * relativas, para que `scripts/empaquetar-demo.mjs` lo meta todo en un único
+   * HTML que se abre desde cualquier sitio.
+   */
+  base: mode === 'demo' ? './' : '/',
+  build:
+    mode === 'demo'
+      ? {
+          outDir: 'dist-demo',
+          sourcemap: false,
+          assetsInlineLimit: 100_000_000,
+          chunkSizeWarningLimit: 10_000,
+          rollupOptions: { external: [], output: { inlineDynamicImports: true } },
+        }
+      : {
+          outDir: 'dist',
+          sourcemap: true,
+          // Sin `assetsInlineLimit` agresivo: los binarios grandes (teselas) se
+          // sirven como archivo, no incrustados en el bundle.
+          rollupOptions: {
+            external: [],
+          },
+        },
   server: {
     port: Number(process.env['WEB_PUERTO'] ?? 5173),
     host: '0.0.0.0',
@@ -55,4 +69,4 @@ export default defineConfig({
       },
     },
   },
-});
+}));

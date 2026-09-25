@@ -5,6 +5,7 @@ export default tseslint.config(
   {
     ignores: [
       '**/dist/**',
+      '**/dist-demo/**',
       '**/node_modules/**',
       '**/coverage/**',
       'apps/ia/**', // Python: lo cubre ruff, no eslint.
