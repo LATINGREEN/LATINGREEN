@@ -1,0 +1,1181 @@
+{
+ "tomadaEn": "2026-09-25T16:47:52.184Z",
+ "sesion": {
+  "credencial": "BIM23_PAID",
+  "unidad": {
+   "id": 3,
+   "sigla": "BIM23",
+   "nombre": "Batallon de Infanteria de Marina No. 23"
+  },
+  "roles": [
+   "OPERADOR_UNIDAD"
+  ],
+  "permisos": [
+   "ADJUNTO.CARGAR",
+   "ADJUNTO.CONSULTAR",
+   "ALIANZA.CONSULTAR",
+   "ALIANZA.CREAR",
+   "ASISTENCIA.CONSULTAR",
+   "ASISTENCIA.CREAR",
+   "ASISTENCIA.EDITAR",
+   "CAMPANA.CONSULTAR",
+   "ELIMINACION.SOLICITAR",
+   "ENTIDAD.CONSULTAR",
+   "ENTIDAD.CREAR",
+   "ENTIDAD.EDITAR",
+   "EXPORTACION.GENERAR",
+   "HERRAMIENTA.CONSULTAR",
+   "HERRAMIENTA.CREAR",
+   "HERRAMIENTA.EDITAR",
+   "JORNADA.CONSULTAR",
+   "JORNADA.CREAR",
+   "JORNADA.EDITAR",
+   "NORMATIVIDAD.CONSULTAR",
+   "PERSONAL.CONSULTAR",
+   "PERSONAL.CREAR",
+   "PERSONAL.EDITAR",
+   "PROYECTO.AVANCE.REGISTRAR",
+   "PROYECTO.CONSULTAR",
+   "PROYECTO.CREAR",
+   "PROYECTO.EDITAR",
+   "RUEDA.CONSULTAR",
+   "RUEDA.CREAR",
+   "RUEDA.EDITAR",
+   "UNIDAD.CONSULTAR"
+  ],
+  "expiraEnUtc": "2026-09-25T16:57:51.732Z",
+  "avisoEnSegundos": 480
+ },
+ "catalogos": {
+  "tipo_documento_identidad": [
+   {
+    "id": 1,
+    "codigo": "CC",
+    "nombre": "Cédula de ciudadanía"
+   },
+   {
+    "id": 2,
+    "codigo": "CE",
+    "nombre": "Cédula de extranjería"
+   },
+   {
+    "id": 3,
+    "codigo": "TI",
+    "nombre": "Tarjeta de identidad"
+   },
+   {
+    "id": 4,
+    "codigo": "PA",
+    "nombre": "Pasaporte"
+   },
+   {
+    "id": 5,
+    "codigo": "PEP",
+    "nombre": "Permiso Especial de Permanencia"
+   },
+   {
+    "id": 6,
+    "codigo": "NIT",
+    "nombre": "NIT"
+   }
+  ],
+  "grado": [
+   {
+    "id": 1,
+    "codigo": "ALMIRANTE",
+    "nombre": "Almirante"
+   },
+   {
+    "id": 2,
+    "codigo": "VICEALMIRANTE",
+    "nombre": "Vicealmirante"
+   },
+   {
+    "id": 3,
+    "codigo": "CONTRALMIRANTE",
+    "nombre": "Contralmirante"
+   },
+   {
+    "id": 4,
+    "codigo": "CAPITAN_DE_NAVIO",
+    "nombre": "Capitán de Navío"
+   },
+   {
+    "id": 5,
+    "codigo": "CAPITAN_DE_FRAGATA",
+    "nombre": "Capitán de Fragata"
+   },
+   {
+    "id": 6,
+    "codigo": "CAPITAN_DE_CORBETA",
+    "nombre": "Capitán de Corbeta"
+   },
+   {
+    "id": 7,
+    "codigo": "TENIENTE_DE_NAVIO",
+    "nombre": "Teniente de Navío"
+   },
+   {
+    "id": 8,
+    "codigo": "TENIENTE_DE_FRAGATA",
+    "nombre": "Teniente de Fragata"
+   },
+   {
+    "id": 9,
+    "codigo": "TENIENTE_DE_CORBETA",
+    "nombre": "Teniente de Corbeta"
+   },
+   {
+    "id": 10,
+    "codigo": "SUBOFICIAL_JEFE_TECNICO",
+    "nombre": "Suboficial Jefe Técnico"
+   },
+   {
+    "id": 11,
+    "codigo": "SUBOFICIAL_JEFE",
+    "nombre": "Suboficial Jefe"
+   },
+   {
+    "id": 12,
+    "codigo": "SUBOFICIAL_PRIMERO",
+    "nombre": "Suboficial Primero"
+   },
+   {
+    "id": 13,
+    "codigo": "SUBOFICIAL_SEGUNDO",
+    "nombre": "Suboficial Segundo"
+   },
+   {
+    "id": 14,
+    "codigo": "SUBOFICIAL_TERCERO",
+    "nombre": "Suboficial Tercero"
+   },
+   {
+    "id": 15,
+    "codigo": "MARINERO_PRIMERO",
+    "nombre": "Marinero Primero"
+   },
+   {
+    "id": 16,
+    "codigo": "MARINERO_SEGUNDO",
+    "nombre": "Marinero Segundo"
+   },
+   {
+    "id": 17,
+    "codigo": "CIVIL",
+    "nombre": "Personal civil"
+   }
+  ],
+  "escalafon": [
+   {
+    "id": 1,
+    "codigo": "OFICIAL",
+    "nombre": "Oficial"
+   },
+   {
+    "id": 2,
+    "codigo": "SUBOFICIAL",
+    "nombre": "Suboficial"
+   },
+   {
+    "id": 3,
+    "codigo": "INFANTE",
+    "nombre": "Infantería de Marina"
+   },
+   {
+    "id": 4,
+    "codigo": "MARINERO",
+    "nombre": "Marinería"
+   },
+   {
+    "id": 5,
+    "codigo": "PERSONAL_CIVIL",
+    "nombre": "Personal civil"
+   },
+   {
+    "id": 6,
+    "codigo": "RESERVA_NAVAL",
+    "nombre": "Reserva Naval"
+   }
+  ],
+  "tipo_entidad": [
+   {
+    "id": 1,
+    "codigo": "PUBLICA",
+    "nombre": "Entidad pública"
+   },
+   {
+    "id": 2,
+    "codigo": "PRIVADA",
+    "nombre": "Entidad privada"
+   },
+   {
+    "id": 3,
+    "codigo": "ONG",
+    "nombre": "Organización no gubernamental"
+   },
+   {
+    "id": 4,
+    "codigo": "COOPERACION_INTERNACIONAL",
+    "nombre": "Cooperación internacional"
+   },
+   {
+    "id": 5,
+    "codigo": "ORGANIZACION_COMUNITARIA",
+    "nombre": "Organización comunitaria"
+   },
+   {
+    "id": 6,
+    "codigo": "ACADEMICA",
+    "nombre": "Institución académica"
+   },
+   {
+    "id": 7,
+    "codigo": "RELIGIOSA",
+    "nombre": "Organización religiosa"
+   }
+  ],
+  "tipo_herramienta_aid": [
+   {
+    "id": 1,
+    "codigo": "COPAI",
+    "nombre": "COPAI"
+   },
+   {
+    "id": 2,
+    "codigo": "GEOS",
+    "nombre": "GEOS"
+   },
+   {
+    "id": 3,
+    "codigo": "VEMAI",
+    "nombre": "VEMAI"
+   },
+   {
+    "id": 4,
+    "codigo": "EMISORA_INSTITUCIONAL",
+    "nombre": "Emisoras institucionales"
+   },
+   {
+    "id": 5,
+    "codigo": "EQUIPO_PERIFONEO",
+    "nombre": "Equipos de perifoneo"
+   },
+   {
+    "id": 6,
+    "codigo": "CIRCO_INSTITUCIONAL",
+    "nombre": "Circos institucionales"
+   },
+   {
+    "id": 7,
+    "codigo": "IMPRESOS_PUBLICACIONES",
+    "nombre": "Impresos y publicaciones"
+   },
+   {
+    "id": 8,
+    "codigo": "MAQUINA_REPROGRAFICA",
+    "nombre": "Máquinas duplicadoras o reprográficas"
+   },
+   {
+    "id": 9,
+    "codigo": "AUDIOVISUAL",
+    "nombre": "Audiovisuales"
+   },
+   {
+    "id": 10,
+    "codigo": "SIMULADOR_VUELO",
+    "nombre": "Simulador de vuelo"
+   },
+   {
+    "id": 11,
+    "codigo": "GRUPO_MUSICAL",
+    "nombre": "Grupos musicales"
+   }
+  ],
+  "tipo_normatividad": [
+   {
+    "id": 1,
+    "codigo": "DIRECTIVA",
+    "nombre": "Directiva"
+   },
+   {
+    "id": 2,
+    "codigo": "MANUAL",
+    "nombre": "Manual"
+   },
+   {
+    "id": 3,
+    "codigo": "RESOLUCION",
+    "nombre": "Resolución"
+   },
+   {
+    "id": 4,
+    "codigo": "INSTRUCTIVO",
+    "nombre": "Instructivo"
+   },
+   {
+    "id": 5,
+    "codigo": "CLAVEGRAMA_MODELO",
+    "nombre": "Clavegrama modelo"
+   }
+  ],
+  "departamento": [
+   {
+    "id": 29,
+    "codigo": "91",
+    "nombre": "Amazonas"
+   },
+   {
+    "id": 1,
+    "codigo": "05",
+    "nombre": "Antioquia"
+   },
+   {
+    "id": 25,
+    "codigo": "81",
+    "nombre": "Arauca"
+   },
+   {
+    "id": 28,
+    "codigo": "88",
+    "nombre": "Archipiélago de San Andrés, Providencia y Santa Catalina"
+   },
+   {
+    "id": 2,
+    "codigo": "08",
+    "nombre": "Atlántico"
+   },
+   {
+    "id": 3,
+    "codigo": "11",
+    "nombre": "Bogotá D.C."
+   },
+   {
+    "id": 4,
+    "codigo": "13",
+    "nombre": "Bolívar"
+   },
+   {
+    "id": 5,
+    "codigo": "15",
+    "nombre": "Boyacá"
+   },
+   {
+    "id": 6,
+    "codigo": "17",
+    "nombre": "Caldas"
+   },
+   {
+    "id": 7,
+    "codigo": "18",
+    "nombre": "Caquetá"
+   },
+   {
+    "id": 26,
+    "codigo": "85",
+    "nombre": "Casanare"
+   },
+   {
+    "id": 8,
+    "codigo": "19",
+    "nombre": "Cauca"
+   },
+   {
+    "id": 9,
+    "codigo": "20",
+    "nombre": "Cesar"
+   },
+   {
+    "id": 12,
+    "codigo": "27",
+    "nombre": "Chocó"
+   },
+   {
+    "id": 11,
+    "codigo": "25",
+    "nombre": "Cundinamarca"
+   },
+   {
+    "id": 10,
+    "codigo": "23",
+    "nombre": "Córdoba"
+   },
+   {
+    "id": 30,
+    "codigo": "94",
+    "nombre": "Guainía"
+   },
+   {
+    "id": 31,
+    "codigo": "95",
+    "nombre": "Guaviare"
+   },
+   {
+    "id": 13,
+    "codigo": "41",
+    "nombre": "Huila"
+   },
+   {
+    "id": 14,
+    "codigo": "44",
+    "nombre": "La Guajira"
+   },
+   {
+    "id": 15,
+    "codigo": "47",
+    "nombre": "Magdalena"
+   },
+   {
+    "id": 16,
+    "codigo": "50",
+    "nombre": "Meta"
+   },
+   {
+    "id": 17,
+    "codigo": "52",
+    "nombre": "Nariño"
+   },
+   {
+    "id": 18,
+    "codigo": "54",
+    "nombre": "Norte de Santander"
+   },
+   {
+    "id": 27,
+    "codigo": "86",
+    "nombre": "Putumayo"
+   },
+   {
+    "id": 19,
+    "codigo": "63",
+    "nombre": "Quindío"
+   },
+   {
+    "id": 20,
+    "codigo": "66",
+    "nombre": "Risaralda"
+   },
+   {
+    "id": 21,
+    "codigo": "68",
+    "nombre": "Santander"
+   },
+   {
+    "id": 22,
+    "codigo": "70",
+    "nombre": "Sucre"
+   },
+   {
+    "id": 23,
+    "codigo": "73",
+    "nombre": "Tolima"
+   },
+   {
+    "id": 24,
+    "codigo": "76",
+    "nombre": "Valle del Cauca"
+   },
+   {
+    "id": 32,
+    "codigo": "97",
+    "nombre": "Vaupés"
+   },
+   {
+    "id": 33,
+    "codigo": "99",
+    "nombre": "Vichada"
+   }
+  ],
+  "medio_utilizado": [
+   {
+    "id": 1,
+    "codigo": "LANCHA",
+    "nombre": "Lancha de apoyo"
+   },
+   {
+    "id": 2,
+    "codigo": "BUQUE",
+    "nombre": "Buque de superficie"
+   },
+   {
+    "id": 3,
+    "codigo": "VEHICULO",
+    "nombre": "Vehículo terrestre"
+   }
+  ],
+  "medio_difusion": [
+   {
+    "id": 1,
+    "codigo": "EMISORA",
+    "nombre": "Emisora comunitaria"
+   },
+   {
+    "id": 2,
+    "codigo": "PERIFONEO",
+    "nombre": "Perifoneo"
+   },
+   {
+    "id": 3,
+    "codigo": "REDES_SOCIALES",
+    "nombre": "Redes sociales institucionales"
+   }
+  ],
+  "servicio_prestado": [
+   {
+    "id": 1,
+    "codigo": "CONSULTA_MEDICA",
+    "nombre": "Consulta médica general"
+   },
+   {
+    "id": 2,
+    "codigo": "CONSULTA_ODONTOLOGIA",
+    "nombre": "Consulta odontológica"
+   },
+   {
+    "id": 3,
+    "codigo": "CORTE_CABELLO",
+    "nombre": "Corte de cabello"
+   },
+   {
+    "id": 4,
+    "codigo": "JORNADA_VACUNACION",
+    "nombre": "Jornada de vacunación"
+   }
+  ],
+  "grupo_poblacional": [
+   {
+    "id": 1,
+    "codigo": "COMUNIDAD",
+    "nombre": "Comunidad en general"
+   },
+   {
+    "id": 2,
+    "codigo": "NINEZ",
+    "nombre": "Niñas, niños y adolescentes"
+   },
+   {
+    "id": 3,
+    "codigo": "ADULTO_MAYOR",
+    "nombre": "Adulto mayor"
+   },
+   {
+    "id": 4,
+    "codigo": "PESCADORES",
+    "nombre": "Pescadores artesanales"
+   }
+  ],
+  "tipo_bien_donado": [
+   {
+    "id": 1,
+    "codigo": "RACIONES_ALIMENTARIAS",
+    "nombre": "Raciones alimentarias"
+   },
+   {
+    "id": 2,
+    "codigo": "KIT_ASEO",
+    "nombre": "Kit de aseo"
+   },
+   {
+    "id": 3,
+    "codigo": "MATERIAL_ESCOLAR",
+    "nombre": "Material escolar"
+   }
+  ],
+  "tipo_recurso": [
+   {
+    "id": 1,
+    "codigo": "COMBUSTIBLE",
+    "nombre": "Combustible"
+   },
+   {
+    "id": 2,
+    "codigo": "RACIONES",
+    "nombre": "Raciones de campaña"
+   },
+   {
+    "id": 3,
+    "codigo": "MEDICAMENTOS",
+    "nombre": "Medicamentos"
+   }
+  ],
+  "tipo_operacion": [
+   {
+    "id": 1,
+    "codigo": "APOYO_DESARROLLO",
+    "nombre": "Apoyo al desarrollo"
+   },
+   {
+    "id": 2,
+    "codigo": "ACCION_INTEGRAL",
+    "nombre": "Acción integral"
+   }
+  ],
+  "tipo_asistencia": [
+   {
+    "id": 1,
+    "codigo": "DIRECTA",
+    "nombre": "Directa"
+   },
+   {
+    "id": 2,
+    "codigo": "INDIRECTA",
+    "nombre": "Indirecta"
+   }
+  ],
+  "tipo_jornada": [
+   {
+    "id": 1,
+    "codigo": "BINACIONAL",
+    "nombre": "Binacional"
+   },
+   {
+    "id": 2,
+    "codigo": "CONJUNTA",
+    "nombre": "Conjunta"
+   },
+   {
+    "id": 3,
+    "codigo": "ESTRATEGICA",
+    "nombre": "Estratégica"
+   }
+  ],
+  "estado_herramienta_aid": [
+   {
+    "id": 1,
+    "codigo": "ACTIVA",
+    "nombre": "Activa"
+   },
+   {
+    "id": 2,
+    "codigo": "INACTIVA",
+    "nombre": "Inactiva"
+   }
+  ],
+  "coami": [
+   {
+    "id": 1,
+    "codigo": "ANTIOQUIA",
+    "nombre": "COAMI Antioquia"
+   },
+   {
+    "id": 2,
+    "codigo": "BARRANQUILLA",
+    "nombre": "COAMI Barranquilla"
+   },
+   {
+    "id": 3,
+    "codigo": "BOGOTA",
+    "nombre": "COAMI Bogotá"
+   },
+   {
+    "id": 4,
+    "codigo": "CALI",
+    "nombre": "COAMI Cali"
+   },
+   {
+    "id": 5,
+    "codigo": "CARTAGENA",
+    "nombre": "COAMI Cartagena"
+   },
+   {
+    "id": 6,
+    "codigo": "SAN_ANDRES",
+    "nombre": "COAMI San Andrés"
+   },
+   {
+    "id": 7,
+    "codigo": "SUCRE",
+    "nombre": "COAMI Sucre"
+   }
+  ]
+ },
+ "municipios": [
+  {
+   "id": 1,
+   "codigo": "13001",
+   "nombre": "Cartagena de Indias",
+   "idDepartamento": 4
+  },
+  {
+   "id": 3,
+   "codigo": "27001",
+   "nombre": "Quibdó",
+   "idDepartamento": 12
+  },
+  {
+   "id": 2,
+   "codigo": "23001",
+   "nombre": "Montería",
+   "idDepartamento": 10
+  },
+  {
+   "id": 4,
+   "codigo": "47001",
+   "nombre": "Santa Marta",
+   "idDepartamento": 15
+  },
+  {
+   "id": 5,
+   "codigo": "52835",
+   "nombre": "San Andrés de Tumaco",
+   "idDepartamento": 17
+  },
+  {
+   "id": 6,
+   "codigo": "76109",
+   "nombre": "Buenaventura",
+   "idDepartamento": 24
+  }
+ ],
+ "personal": [
+  {
+   "id": 2,
+   "numeroDocumento": "1090223871",
+   "tipoDocumento": "CC",
+   "nombres": "Laura Cristina",
+   "apellidos": "Barrios Peñaloza",
+   "grado": "Almirante",
+   "escalafon": null,
+   "unidad": "BIM23",
+   "correo": null,
+   "telefono": null
+  },
+  {
+   "id": 1,
+   "numeroDocumento": "1030512345",
+   "tipoDocumento": "CC",
+   "nombres": "Andrés Felipe",
+   "apellidos": "Mosquera Rentería",
+   "grado": "Almirante",
+   "escalafon": null,
+   "unidad": "BIM23",
+   "correo": null,
+   "telefono": null
+  },
+  {
+   "id": 3,
+   "numeroDocumento": "79542118",
+   "tipoDocumento": "CC",
+   "nombres": "Jaime Eduardo",
+   "apellidos": "Ospina Carvajal",
+   "grado": "Almirante",
+   "escalafon": null,
+   "unidad": "BIM23",
+   "correo": null,
+   "telefono": null
+  }
+ ],
+ "entidades": [
+  {
+   "id": 5,
+   "nombre": "Alcaldía Distrital de Buenaventura",
+   "tipo": "Entidad pública",
+   "nit": "890332211",
+   "municipio": "Buenaventura",
+   "contacto": "Secretaría de Gobierno",
+   "telefono": "6022410000",
+   "unidad": "BIM23"
+  },
+  {
+   "id": 1,
+   "nombre": "Alcaldía Municipal de San Andrés de Tumaco",
+   "tipo": "Entidad pública",
+   "nit": "800112233",
+   "municipio": "San Andrés de Tumaco",
+   "contacto": "Secretaría de Gobierno",
+   "telefono": "6027271000",
+   "unidad": "BIM23"
+  },
+  {
+   "id": 3,
+   "nombre": "Hospital San Andrés de Tumaco",
+   "tipo": "Entidad pública",
+   "nit": "900778899",
+   "municipio": "San Andrés de Tumaco",
+   "contacto": "Dirección médica",
+   "telefono": "6027272020",
+   "unidad": "BIM23"
+  },
+  {
+   "id": 4,
+   "nombre": "Institución Educativa Ciudadela Mixta",
+   "tipo": "Entidad pública",
+   "nit": null,
+   "municipio": "San Andrés de Tumaco",
+   "contacto": "Rectoría",
+   "telefono": "3204458899",
+   "unidad": "BIM23"
+  },
+  {
+   "id": 2,
+   "nombre": "Junta de Acción Comunal Vereda La Playa",
+   "tipo": "Entidad pública",
+   "nit": "800445566",
+   "municipio": "San Andrés de Tumaco",
+   "contacto": "María Torres",
+   "telefono": "3155512233",
+   "unidad": "BIM23"
+  }
+ ],
+ "herramientas": [
+  {
+   "id": 3,
+   "codigo": "HAID-BIM23-003",
+   "nombre": "Proyector de campaña",
+   "tipo": "Audiovisuales",
+   "municipio": "San Andrés de Tumaco",
+   "fechaRegistro": "2026-03-06",
+   "unidad": "BIM23",
+   "latitudDecimal": 1.798611,
+   "longitudDecimal": -78.788889,
+   "estado": "Inactiva",
+   "fechaPotenciacion": "2023-05-15",
+   "responsable": {
+    "nombre": "Almirante Jaime Eduardo Ospina Carvajal",
+    "documento": "CC 79542118",
+    "correo": null,
+    "telefono": null
+   }
+  },
+  {
+   "id": 2,
+   "codigo": "HAID-BIM23-002",
+   "nombre": "Perifoneo Litoral",
+   "tipo": "Equipos de perifoneo",
+   "municipio": "San Andrés de Tumaco",
+   "fechaRegistro": "2026-03-05",
+   "unidad": "BIM23",
+   "latitudDecimal": 1.803472,
+   "longitudDecimal": -78.819444,
+   "estado": "Activa",
+   "fechaPotenciacion": "2024-08-02",
+   "responsable": {
+    "nombre": "Almirante Laura Cristina Barrios Peñaloza",
+    "documento": "CC 1090223871",
+    "correo": null,
+    "telefono": null
+   }
+  },
+  {
+   "id": 1,
+   "codigo": "HAID-BIM23-001",
+   "nombre": "Emisora Bahía de Tumaco",
+   "tipo": "Emisoras institucionales",
+   "municipio": "San Andrés de Tumaco",
+   "fechaRegistro": "2026-02-10",
+   "unidad": "BIM23",
+   "latitudDecimal": 1.791667,
+   "longitudDecimal": -78.8125,
+   "estado": "Activa",
+   "fechaPotenciacion": "2025-11-20",
+   "responsable": {
+    "nombre": "Almirante Andrés Felipe Mosquera Rentería",
+    "documento": "CC 1030512345",
+    "correo": null,
+    "telefono": null
+   }
+  }
+ ],
+ "normatividad": [
+  {
+   "id": 1,
+   "tipo": "Directiva",
+   "numero": "DIR-0234-2024",
+   "anio": 2024,
+   "titulo": "Lineamientos para el desarrollo de jornadas de apoyo al desarrollo",
+   "expedidaPor": "Jefatura de Acción Integral y Desarrollo",
+   "fechaExpedicion": "2024-03-14",
+   "tieneArchivo": false
+  },
+  {
+   "id": 2,
+   "tipo": "Manual",
+   "numero": "MAN-AID-2023",
+   "anio": 2023,
+   "titulo": "Manual de Acción Integral y Desarrollo de la Armada Nacional",
+   "expedidaPor": "Comando de la Armada Nacional",
+   "fechaExpedicion": "2023-11-02",
+   "tieneArchivo": false
+  },
+  {
+   "id": 3,
+   "tipo": "Resolución",
+   "numero": "RES-1519-2020",
+   "anio": 2020,
+   "titulo": "Lineamientos de accesibilidad web para entidades públicas",
+   "expedidaPor": "Ministerio de Tecnologías de la Información y las Comunicaciones",
+   "fechaExpedicion": "2020-08-24",
+   "tieneArchivo": false
+  }
+ ],
+ "jornadas": [
+  {
+   "listado": {
+    "id": 2,
+    "codigoActividad": "2813304R32026GR2PY",
+    "unidad": "BIM23",
+    "descripcion": "JORNADA DE APOYO AL DESARROLLO EN LA VEREDA LA PLAYA. Se atendieron 120 personas en consulta médica general, con apoyo de la alcaldía municipal. Se entregaron raciones alimentarias. Prueba de extremo a extremo.",
+    "fechaInicio": "2026-03-02",
+    "fechaEjecucion": "2026-03-05",
+    "lugar": "Vereda La Playa",
+    "municipio": null,
+    "tipoJornada": "Conjunta",
+    "participoEjc": false,
+    "participoFac": true,
+    "poblacionAfectaTropa": true,
+    "registroCompleto": true,
+    "pestanasFaltantes": [],
+    "latitudDecimal": 1.791667,
+    "longitudDecimal": -78.8125
+   },
+   "detalle": {
+    "id": 2,
+    "codigoActividad": "2813304R32026GR2PY",
+    "unidad": "BIM23",
+    "descripcion": "JORNADA DE APOYO AL DESARROLLO EN LA VEREDA LA PLAYA. Se atendieron 120 personas en consulta médica general, con apoyo de la alcaldía municipal. Se entregaron raciones alimentarias. Prueba de extremo a extremo.",
+    "fechaInicio": "2026-03-02",
+    "fechaFin": null,
+    "fechaEjecucion": "2026-03-05",
+    "lugar": "Vereda La Playa",
+    "observaciones": null,
+    "idMunicipio": null,
+    "idDepartamento": null,
+    "municipio": null,
+    "idTipoJornada": 2,
+    "tipoJornada": "Conjunta",
+    "participoEjc": false,
+    "participoFac": true,
+    "poblacionAfectaTropa": true,
+    "latitudGrados": 1,
+    "latitudMinutos": 47,
+    "latitudSegundos": 30,
+    "latitudHemisferio": "N",
+    "longitudGrados": 78,
+    "longitudMinutos": 48,
+    "longitudSegundos": 45,
+    "longitudHemisferio": "W",
+    "latitudDecimal": 1.791667,
+    "longitudDecimal": -78.8125,
+    "coami": [],
+    "registroCompleto": true
+   },
+   "pestanas": {
+    "TIPO_OPERACION": [
+     {
+      "id": 1,
+      "campos": {
+       "idTipoOperacion": 1,
+       "observacion": "Dato de la prueba de extremo a extremo"
+      },
+      "nombres": {
+       "idTipoOperacion": "Apoyo al desarrollo"
+      }
+     }
+    ],
+    "ENTIDADES_SERVICIOS": [
+     {
+      "id": 1,
+      "campos": {
+       "idEntidad": "5",
+       "observacion": "Dato de la prueba de extremo a extremo"
+      },
+      "nombres": {
+       "idEntidad": "Alcaldía Distrital de Buenaventura"
+      }
+     }
+    ],
+    "SERVICIOS_PRESTADOS": [
+     {
+      "id": 1,
+      "campos": {
+       "idServicioPrestado": 1,
+       "cantidad": 120,
+       "observacion": "Dato de la prueba de extremo a extremo"
+      },
+      "nombres": {
+       "idServicioPrestado": "Consulta médica general"
+      }
+     }
+    ],
+    "POBLACION_BENEFICIADA": [
+     {
+      "id": 1,
+      "campos": {
+       "idGrupoPoblacional": 1,
+       "cantidadPersonas": 120,
+       "observacion": "Dato de la prueba de extremo a extremo"
+      },
+      "nombres": {
+       "idGrupoPoblacional": "Comunidad en general"
+      }
+     }
+    ],
+    "ENTIDADES_APOYADAS": [
+     {
+      "id": 1,
+      "campos": {
+       "idEntidad": "5",
+       "observacion": "Dato de la prueba de extremo a extremo"
+      },
+      "nombres": {
+       "idEntidad": "Alcaldía Distrital de Buenaventura"
+      }
+     }
+    ],
+    "MEDIOS_DIFUSION": [
+     {
+      "id": 1,
+      "campos": {
+       "idMedioDifusion": 1,
+       "detalle": "Dato de la prueba de extremo a extremo"
+      },
+      "nombres": {
+       "idMedioDifusion": "Emisora comunitaria"
+      }
+     }
+    ],
+    "MEDIOS_UTILIZADOS": [
+     {
+      "id": 1,
+      "campos": {
+       "idMedioUtilizado": 1,
+       "cantidad": 120,
+       "detalle": "Dato de la prueba de extremo a extremo"
+      },
+      "nombres": {
+       "idMedioUtilizado": "Lancha de apoyo"
+      }
+     }
+    ],
+    "RECURSOS_UTILIZADOS": [
+     {
+      "id": 1,
+      "campos": {
+       "idTipoRecurso": 1,
+       "cantidad": "12.50",
+       "unidadMedida": "Dato de la prueba de extremo a extremo",
+       "valor": "12.50",
+       "detalle": "Dato de la prueba de extremo a extremo"
+      },
+      "nombres": {
+       "idTipoRecurso": "Combustible"
+      }
+     }
+    ],
+    "BIENES_DONADOS": [
+     {
+      "id": 1,
+      "campos": {
+       "idTipoBienDonado": 1,
+       "descripcion": "Dato de la prueba de extremo a extremo",
+       "cantidad": "12.50",
+       "unidadMedida": "Dato de la prueba de extremo a extremo",
+       "valorEstimado": "12.50",
+       "idEntidadDonante": "5"
+      },
+      "nombres": {
+       "idTipoBienDonado": "Raciones alimentarias",
+       "idEntidadDonante": "Alcaldía Distrital de Buenaventura"
+      }
+     }
+    ],
+    "RESUMEN": [
+     {
+      "id": 2,
+      "campos": {
+       "texto": "Dato de la prueba de extremo a extremo"
+      },
+      "nombres": {}
+     }
+    ]
+   },
+   "adjuntos": [
+    {
+     "id": 1,
+     "nombreArchivo": "soporte-jornada.pdf",
+     "categoria": "Documento",
+     "pesoBytes": 193,
+     "faseDocumental": 1,
+     "cargadoEn": "2026-09-25 16:47:50.805528+00",
+     "base64": "JVBERi0xLjQKMSAwIG9iajw8L1R5cGUvQ2F0YWxvZy9QYWdlcyAyIDAgUj4+ZW5kb2JqCjIgMCBvYmo8PC9UeXBlL1BhZ2VzL0tpZHNbMyAwIFJdL0NvdW50IDE+PmVuZG9iagozIDAgb2JqPDwvVHlwZS9QYWdlL01lZGlhQm94WzAgMCAyMDAgMjAwXS9QYXJlbnQgMiAwIFI+PmVuZG9iagp0cmFpbGVyPDwvUm9vdCAxIDAgUj4+CiUlRU9GCg=="
+    }
+   ]
+  },
+  {
+   "listado": {
+    "id": 1,
+    "codigoActividad": "2813304R22026DEMO1",
+    "unidad": "BIM23",
+    "descripcion": "JORNADA DE APOYO AL DESARROLLO EN LA VEREDA BAJITO VAQUERÍA (DEMOSTRACIÓN). Se atendieron 85 personas en consulta médica general y odontología, con apoyo del hospital municipal. Se entregaron 60 kits de aseo.",
+    "fechaInicio": "2026-02-20",
+    "fechaEjecucion": "2026-02-21",
+    "lugar": "Vereda Bajito Vaquería",
+    "municipio": "San Andrés de Tumaco",
+    "tipoJornada": "Conjunta",
+    "participoEjc": false,
+    "participoFac": false,
+    "poblacionAfectaTropa": true,
+    "registroCompleto": false,
+    "pestanasFaltantes": [
+     "TIPO_OPERACION",
+     "ARCHIVOS_ADJUNTOS",
+     "ENTIDADES_SERVICIOS",
+     "SERVICIOS_PRESTADOS",
+     "POBLACION_BENEFICIADA",
+     "ENTIDADES_APOYADAS",
+     "MEDIOS_DIFUSION",
+     "MEDIOS_UTILIZADOS",
+     "RECURSOS_UTILIZADOS",
+     "BIENES_DONADOS",
+     "RESUMEN"
+    ],
+    "latitudDecimal": 1.8,
+    "longitudDecimal": -78.791667
+   },
+   "detalle": {
+    "id": 1,
+    "codigoActividad": "2813304R22026DEMO1",
+    "unidad": "BIM23",
+    "descripcion": "JORNADA DE APOYO AL DESARROLLO EN LA VEREDA BAJITO VAQUERÍA (DEMOSTRACIÓN). Se atendieron 85 personas en consulta médica general y odontología, con apoyo del hospital municipal. Se entregaron 60 kits de aseo.",
+    "fechaInicio": "2026-02-20",
+    "fechaFin": null,
+    "fechaEjecucion": "2026-02-21",
+    "lugar": "Vereda Bajito Vaquería",
+    "observaciones": "Buena recepción de la comunidad. Sin novedades.",
+    "idMunicipio": 5,
+    "idDepartamento": 17,
+    "municipio": "San Andrés de Tumaco",
+    "idTipoJornada": 2,
+    "tipoJornada": "Conjunta",
+    "participoEjc": false,
+    "participoFac": false,
+    "poblacionAfectaTropa": true,
+    "latitudGrados": 1,
+    "latitudMinutos": 48,
+    "latitudSegundos": 0,
+    "latitudHemisferio": "N",
+    "longitudGrados": 78,
+    "longitudMinutos": 47,
+    "longitudSegundos": 30,
+    "longitudHemisferio": "W",
+    "latitudDecimal": 1.8,
+    "longitudDecimal": -78.791667,
+    "coami": [],
+    "registroCompleto": false
+   },
+   "pestanas": {
+    "TIPO_OPERACION": [],
+    "ENTIDADES_SERVICIOS": [],
+    "SERVICIOS_PRESTADOS": [],
+    "POBLACION_BENEFICIADA": [],
+    "ENTIDADES_APOYADAS": [],
+    "MEDIOS_DIFUSION": [],
+    "MEDIOS_UTILIZADOS": [],
+    "RECURSOS_UTILIZADOS": [],
+    "BIENES_DONADOS": [],
+    "RESUMEN": []
+   },
+   "adjuntos": []
+  }
+ ]
+}
