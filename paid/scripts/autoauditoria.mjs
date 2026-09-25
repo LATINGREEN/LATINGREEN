@@ -35,7 +35,7 @@ const REGLAS = [
     ['apps/api/src/seguridad/sesion.service.ts', "configuracion.get<number>('SESION_TTL_SEGUNDOS')"],
     ['apps/api/src/tareas/tareas.service.ts', '@Cron(CronExpression.EVERY_MINUTE)'],
   ]],
-  ['R2', 'Red cerrada; rangos en tabla', [
+  ['R2', 'Red autorizada; rangos en tabla', [
     [`${M}0004_seg_seguridad.sql`, 'CREATE TABLE seg.red_autorizada'],
     ['apps/api/src/seguridad/red.service.ts', 'AND rango >>= $1::inet'],
   ]],

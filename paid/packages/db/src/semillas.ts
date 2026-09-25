@@ -9,9 +9,8 @@ import { readdirSync } from 'node:fs';
  * quede atras. Ya paso: el arranque de la Puerta 1 empezo a sembrar los datos
  * de desarrollo y choco con sus propias unidades de prueba.
  *
- * Los archivos de desarrollo contienen un rango de red `0.0.0.0/0` y
- * credenciales con clave conocida. R2 pide ese rango para desarrollo, pero es
- * lo peor que puede llegar a un despliegue real.
+ * Los archivos de desarrollo contienen credenciales con clave conocida: en
+ * un despliegue expuesto a internet, eso es una puerta abierta.
  */
 export function archivosDeSemillas(
   directorio: string,

@@ -122,7 +122,7 @@ export const MENSAJE_CREDENCIALES_INVALIDAS = 'Credenciales inválidas' as const
 export const NIVELES_JERARQUIA = ['FUERZA', 'COMPONENTE', 'UNIDAD_TACTICA'] as const;
 export type NivelJerarquia = (typeof NIVELES_JERARQUIA)[number];
 
-/** R2 — Tipos de red autorizada. En desarrollo se siembra 0.0.0.0/0 como ADMINISTRACION. */
+/** R2 — Tipos de red autorizada. La red abierta (0.0.0.0/0, ::/0) se siembra como ADMINISTRACION. */
 export const TIPOS_RED = ['ADMINISTRACION', 'OPERACION', 'CONSULTA'] as const;
 export type TipoRed = (typeof TIPOS_RED)[number];
 

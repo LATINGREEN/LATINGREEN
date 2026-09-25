@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import type { PoolClient } from 'pg';
 
 /**
- * R2 — Red cerrada.
+ * R2 — Red autorizada.
  *
  * «La autenticacion solo procede desde rangos autorizados, que viven en
  * `seg.red_autorizada` (tipo `CIDR`), **no en variables de entorno ni en el
@@ -34,22 +34,5 @@ export class RedService {
       // provocar un 500 mandando basura en una cabecera.
       return false;
     }
-  }
-
-  /**
-   * ¿Hay algun rango que abra la red entera?
-   *
-   * R2 manda sembrar `0.0.0.0/0` en desarrollo «y un aviso llamativo en el
-   * arranque». Esto es lo que alimenta ese aviso. Es lo peor que puede llegar
-   * a un despliegue real, y llega en silencio si nadie lo comprueba.
-   */
-  async hayRangoAbierto(cliente: PoolClient): Promise<boolean> {
-    const resultado = await cliente.query<{ abierto: boolean }>(
-      `SELECT EXISTS (
-         SELECT 1 FROM seg.red_autorizada
-          WHERE activo AND (rango = '0.0.0.0/0'::cidr OR rango = '::/0'::cidr)
-       ) AS abierto`,
-    );
-    return resultado.rows[0]?.abierto ?? false;
   }
 }

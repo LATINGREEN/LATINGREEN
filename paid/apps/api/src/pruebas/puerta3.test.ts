@@ -112,7 +112,7 @@ beforeAll(async () => {
   entorno = await prepararApi();
   servidor = entorno.app.getHttpServer() as Server;
 
-  // La red de las semillas de desarrollo es 0.0.0.0/0, así que 10.10.1.5 pasa.
+  // Las semillas dejan la red abierta (0004_red_abierta.sql), así que 10.10.1.5 pasa.
   // Catálogos que las pestañas necesitan: se siembran vacíos a propósito
   // (Q2/Q4), así que la prueba crea los suyos. No son semillas.
   const cliente = await entorno.pool.connect();

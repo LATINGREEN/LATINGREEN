@@ -89,9 +89,8 @@ if ! curl -fsS "$API/salud" >/dev/null 2>&1; then
   mal "la API no arrancó. Log:"; tail -20 /tmp/paid-demo-api.log; exit 1
 fi
 ok "API sana: $(curl -fsS "$API/salud")"
-dato "(en el log del arranque está el aviso llamativo de R2: la red está abierta)"
-grep -q 'LA RED NO ESTÁ CERRADA' /tmp/paid-demo-api.log && \
-  ok "R2 — avisó de que seg.red_autorizada tiene un rango abierto (0.0.0.0/0)"
+grep -q 'R2 — Red abierta' /tmp/paid-demo-api.log && \
+  ok "R2 — el arranque dijo que la red está abierta (0.0.0.0/0 y ::/0, D-38)"
 
 # ── 1 y 2. Captcha e ingreso ─────────────────────────────────────────────────
 ingresar() {

@@ -29,7 +29,7 @@ falla si la regla se rompe, no que el código parezca correcto.
 | # | Regla | Dónde se impone | Prueba | Estado |
 |---|---|---|---|---|
 | R1 | Sesión de 10 min, deslizante, en servidor | `0004_seg_seguridad.sql` (disparador `sesion_fijar_expiracion`) · `apps/api/src/seguridad/sesion.service.ts` (TTL deslizante en Redis) · `sesion.guard.ts` · `tareas/tareas.service.ts` | 7 pruebas: 9 min 30 s renueva, 10 min + 1 s rechaza, la tabla queda con su motivo | ✅ **Verificada de punta a punta** |
-| R2 | Red cerrada; rangos en tabla, no en entorno | `0004` (`seg.red_autorizada`, tipo `cidr`) · `apps/api/src/seguridad/red.service.ts` (compara con `>>=` de `inet`) · `comun/aviso-arranque.ts` | 5 pruebas: dentro pasa, fuera no, queda `RED_NO_AUTORIZADA`, y responde lo mismo que credenciales inválidas | ✅ **Verificada.** En `production` un rango abierto **impide arrancar** |
+| R2 | Red autorizada; rangos en tabla, no en entorno (abierta por omisión, D-38) | `0004` (`seg.red_autorizada`, tipo `cidr`) · `apps/api/src/seguridad/red.service.ts` (compara con `>>=` de `inet`) · `seguridad/ip-origen.ts` · `comun/aviso-arranque.ts` | 7 pruebas: dentro pasa, fuera no, una `X-Forwarded-For` falsificada por el cliente no pasa, queda `RED_NO_AUTORIZADA`, y responde lo mismo que credenciales inválidas | ✅ **Verificada.** El arranque dice qué rangos están en vigor |
 | R3 | Captcha de un solo uso, se guarda el resumen | `0004` (`seg.captcha`) · `apps/api/src/seguridad/captcha.service.ts` (`UPDATE ... RETURNING` que resuelve la carrera) | 3 pruebas: no se reutiliza, se consume aunque falle, un id inventado no rompe | ✅ **Verificada** |
 | R4 | Ocho causas en base, un mensaje en pantalla | semilla de `ref.resultado_intento_autenticacion` · `0004` (`seg.intento_autenticacion`) · `seguridad/autenticacion.service.ts` · `seguridad/clave.service.ts` (`RESUMEN_FICTICIO`) · `comun/filtro-excepciones.ts` | 4 pruebas: mismo cuerpo y código, **ambos caminos verifican la clave** (espía, no tiempos), la base sí distingue, el mensaje no nombra ninguna causa | ✅ **Verificada** |
 | R5 | Credencial de unidad `<SIGLA>_PAID` | `0004` (`CHECK usuario_credencial_formato`) · `packages/schema/src/dominios.ts` | 4 pruebas en base + «responde 401 y no 400», para no revelar el formato | ✅ **Verificada** |
@@ -55,7 +55,8 @@ pruebas de API que lo comprueban.
 Tres reglas se implementaron **más allá** de lo que su casilla pedía, porque el
 defecto que evitan es silencioso:
 
-- **R2** no solo avisa: *impide arrancar* en producción con la red abierta.
+- **R2** toma la IP que escribió el proxy de confianza, no la que manda el
+  cliente: una `X-Forwarded-For` falsificada no abre la red.
 - **R6** se comprueba también sobre el **rol de conexión** de la API, no solo
   sobre las políticas — un superusuario las ignora y ninguna prueba de negocio
   lo notaría.
@@ -106,7 +107,7 @@ se mueve, falla.
 | R1 | Sesión de 10 min, deslizante, evaluada en servidor | `packages/db/migraciones/0004_seg_seguridad.sql:279` | `CREATE TRIGGER sesion_fijar_expiracion` |
 |  |  | `apps/api/src/seguridad/sesion.service.ts:53` | `configuracion.get<number>('SESION_TTL_SEGUNDOS')` |
 |  |  | `apps/api/src/tareas/tareas.service.ts:26` | `@Cron(CronExpression.EVERY_MINUTE)` |
-| R2 | Red cerrada; rangos en tabla | `packages/db/migraciones/0004_seg_seguridad.sql:24` | `CREATE TABLE seg.red_autorizada` |
+| R2 | Red autorizada; rangos en tabla | `packages/db/migraciones/0004_seg_seguridad.sql:24` | `CREATE TABLE seg.red_autorizada` |
 |  |  | `apps/api/src/seguridad/red.service.ts:24` | `AND rango >>= $1::inet` |
 | R3 | Captcha de un solo uso | `packages/db/migraciones/0004_seg_seguridad.sql:157` | `CREATE TABLE seg.captcha` |
 |  |  | `apps/api/src/seguridad/captcha.service.ts:98` | `WHERE id = $1 AND consumido_en IS NULL` |
@@ -358,7 +359,8 @@ Comprobaciones manuales:
 - `docker compose config` → los seis servicios válidos
 - `pnpm db:migrate` sobre base vacía → 14 migraciones aplicadas
 - reversión completa → **0 tablas**; reaplicación → 72 tablas
-- arranque con `NODE_ENV=production` y red `0.0.0.0/0` → **el proceso no levanta**
+- arranque con red `0.0.0.0/0` → una línea en el registro: «R2 — Red abierta» (hasta el
+  2026-09-25 el proceso no levantaba en producción; D-38)
 
 ## Lo pendiente, sin adornarlo
 

@@ -56,8 +56,13 @@ ON CONFLICT (codigo_dane) DO NOTHING;
 
 ## Datos de desarrollo
 
-`0002_desarrollo.sql` siembra unidades, usuarios y una red autorizada abierta
-**solo** cuando `PAID_SEMILLA_DESARROLLO=1`. Nunca en producción: incluye
-`0.0.0.0/0` como red autorizada, que es lo que R2 exige para desarrollo y lo
-peor que puede llegar a un despliegue real. El arranque de la API avisa de
-forma llamativa si detecta ese rango.
+`0003_desarrollo.sql` siembra unidades y usuarios de ejemplo **solo** cuando
+`PAID_SEMILLA_DESARROLLO=1`. Nunca en producción: las claves son conocidas.
+
+## Red autorizada
+
+`0004_red_abierta.sql` siembra `0.0.0.0/0` y `::/0` en todo entorno: el
+ingreso procede desde cualquier dirección, que es lo que pide un despliegue en
+internet (D-38). Para cerrar la red, registre los rangos propios en
+`seg.red_autorizada` y desactive esos dos. El arranque de la API dice en una
+línea cuál de las dos situaciones está en vigor.

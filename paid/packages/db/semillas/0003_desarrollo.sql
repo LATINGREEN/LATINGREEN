@@ -3,24 +3,13 @@
 --
 -- ⚠️ ESTE ARCHIVO NO DEBE EJECUTARSE EN PRODUCCION.
 --
--- `sembrar.ts` lo omite salvo que `PAID_SEMILLA_DESARROLLO=1`. Contiene:
+-- `sembrar.ts` lo omite salvo que `PAID_SEMILLA_DESARROLLO=1`. Contiene
+-- credenciales con clave conocida: en un despliegue expuesto a internet, eso
+-- es una puerta abierta. El fichero no corre por omision.
 --
---   - un rango de red `0.0.0.0/0`, que abre la autenticacion a cualquier
---     origen. R2 lo pide expresamente para desarrollo, «y un aviso llamativo
---     en el arranque»: ese aviso lo emite `apps/api` al detectar este rango.
---   - credenciales con clave conocida.
---
--- Es lo peor que puede llegar a un despliegue real, y llega en silencio si
--- nadie lo comprueba. De ahi las dos salvaguardas: el fichero no corre por
--- omision, y la API grita si encuentra el rango.
+-- La red abierta ya no esta aqui: la siembra `0004_red_abierta.sql` en todo
+-- entorno (D-38).
 -- ═══════════════════════════════════════════════════════════════════════════
-
--- ── R2: rango abierto SOLO para desarrollo ─────────────────────────────────
-INSERT INTO seg.red_autorizada (rango, id_tipo_red, descripcion)
-VALUES ('0.0.0.0/0',
-        (SELECT id FROM ref.tipo_red WHERE codigo = 'ADMINISTRACION'),
-        'DESARROLLO — rango abierto. NO debe existir en produccion (R2).')
-ON CONFLICT (rango) DO NOTHING;
 
 -- ── Arbol de unidades de ejemplo ───────────────────────────────────────────
 --

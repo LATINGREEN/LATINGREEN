@@ -52,8 +52,8 @@ else
   psql "$URL_ADMIN/postgres" -qc "DROP DATABASE IF EXISTS $BASE" >/dev/null
   psql "$URL_ADMIN/postgres" -qc "CREATE DATABASE $BASE" >/dev/null
   DATABASE_URL_ADMIN="$URL_ADMIN/$BASE" node packages/db/dist/migrar.js | sed 's/^/    /'
-  # PAID_SEMILLA_DESARROLLO=1 es la peticion expresa: siembra el rango de red
-  # 0.0.0.0/0 y credenciales con clave conocida. Es para mirar, no para servir.
+  # PAID_SEMILLA_DESARROLLO=1 es la peticion expresa: siembra credenciales con
+  # clave conocida. Es para mirar, no para servir.
   PAID_SEMILLA_DESARROLLO=1 DATABASE_URL_ADMIN="$URL_ADMIN/$BASE" \
     node packages/db/dist/sembrar.js | sed 's/^/    /'
 
@@ -120,9 +120,9 @@ cat <<FIN
                      convenio y cargar normatividad.
     ADMIN_PAID       Administrador.
 
-  ${amar}Lo que va a ver está sembrado para desarrollo${fin}: el rango de red
-  autorizada es 0.0.0.0/0 y las claves son conocidas. La API lo avisa a gritos
-  en su arranque (${gris}/tmp/paid-mirar-api.log${fin}), y así debe ser.
+  ${amar}Lo que va a ver está sembrado para desarrollo${fin}: las claves son
+  conocidas. La red está abierta (0.0.0.0/0 y ::/0, D-38); el arranque de la
+  API lo dice en ${gris}/tmp/paid-mirar-api.log${fin}.
 
   Ctrl-C para cerrar las dos cosas.
 
