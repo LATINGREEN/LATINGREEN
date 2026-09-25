@@ -569,3 +569,17 @@
   color: var(--sonda);
 }
 .mapa-real { height: 20rem; border-radius: var(--radio-md); overflow: hidden; border: 1px solid var(--linea-viva); }
+
+/* ── Franja de la demostración (solo en `--mode demo`) ─────────────────── */
+.aviso-demo {
+  position: relative;
+  z-index: 60;
+  padding: var(--e-2) var(--e-4);
+  background: #fbefc7;
+  color: #3d2c00;
+  border-bottom: 2px solid #8a5f00;
+  font-size: var(--t-sm);
+  text-align: center;
+}
+.aviso-demo code { font-family: var(--tipo-datos); font-weight: 600; }
+:root[data-contraste='alto'] .aviso-demo { background: #000; color: #ffd75f; border-color: #ffd75f; }

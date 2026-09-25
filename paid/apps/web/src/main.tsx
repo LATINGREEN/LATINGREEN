@@ -1,10 +1,11 @@
 import React from 'react';
 import { createRoot } from 'react-dom/client';
-import { BrowserRouter } from 'react-router-dom';
+import { BrowserRouter, MemoryRouter } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { App } from './App';
 import { ProveedorAccesibilidad } from './api/accesibilidad';
 import { ProveedorSesion } from './api/sesion';
+import { AvisoDemo } from './demo/AvisoDemo';
 import './estilos.css';
 
 /**
@@ -25,6 +26,14 @@ const clienteConsultas = new QueryClient({
     },
   },
 });
+
+/*
+ * La demostración se abre desde un archivo o desde una página alojada en
+ * cualquier ruta: el enrutador lleva la ruta en memoria y no en la barra de
+ * direcciones. La aplicación real usa la barra de direcciones.
+ */
+const esDemo = import.meta.env.MODE === 'demo';
+const Enrutador = esDemo ? MemoryRouter : BrowserRouter;
 
 const contenedor = document.getElementById('raiz');
 if (contenedor === null) {
@@ -47,9 +56,10 @@ createRoot(contenedor).render(
     <ProveedorAccesibilidad>
       <QueryClientProvider client={clienteConsultas}>
         <ProveedorSesion>
-          <BrowserRouter>
+          <Enrutador>
+            {esDemo && <AvisoDemo />}
             <App />
-          </BrowserRouter>
+          </Enrutador>
         </ProveedorSesion>
       </QueryClientProvider>
     </ProveedorAccesibilidad>

@@ -63,6 +63,18 @@ interface OpcionesPeticion {
   readonly comoArchivo?: boolean;
 }
 
+/**
+ * El transporte. En la compilación de demostración (`vite build --mode demo`)
+ * las peticiones las atiende un servidor simulado que corre en el navegador
+ * (`demo/servidor.ts`); en cualquier otro modo, la red. La condición la
+ * resuelve Vite al compilar, así que el servidor simulado no llega nunca al
+ * paquete de producción.
+ */
+const enviar = (url: string, init: RequestInit): Promise<Response> =>
+  import.meta.env.MODE === 'demo'
+    ? import('../demo/servidor').then((m) => m.fetchDemo(url, init))
+    : fetch(url, init);
+
 async function peticion<T>(ruta: string, opciones: OpcionesPeticion = {}): Promise<T> {
   const cabeceras: Record<string, string> = {};
   if (testigoActual !== null) cabeceras[CABECERA_TESTIGO] = testigoActual;
@@ -70,7 +82,7 @@ async function peticion<T>(ruta: string, opciones: OpcionesPeticion = {}): Promi
 
   let respuesta: Response;
   try {
-    respuesta = await fetch(`/api${ruta}`, {
+    respuesta = await enviar(`/api${ruta}`, {
       method: opciones.metodo ?? 'GET',
       headers: cabeceras,
       ...(opciones.cuerpo !== undefined ? { body: JSON.stringify(opciones.cuerpo) } : {}),

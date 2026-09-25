@@ -18,6 +18,7 @@ function Emblema({
   alternativo,
   clase,
 }: {
+  /** Ruta completa y literal: el empaquetado de la demostración la busca así. */
   readonly archivo: string;
   readonly alto: number;
   readonly alternativo: string;
@@ -33,7 +34,7 @@ function Emblema({
   }
   return (
     <img
-      src={`/identidad/${archivo}`}
+      src={archivo}
       alt={alternativo}
       height={alto}
       className={`emblema ${clase ?? ''}`}
@@ -52,7 +53,7 @@ export function EscudoArmada({
   readonly alternativo?: string;
   readonly clase?: string;
 }): JSX.Element {
-  return <Emblema archivo="escudo-armada.webp" alto={alto} alternativo={alternativo} clase={clase} />;
+  return <Emblema archivo="/identidad/escudo-armada.webp" alto={alto} alternativo={alternativo} clase={clase} />;
 }
 
 export function EmblemaJacid({
@@ -64,7 +65,7 @@ export function EmblemaJacid({
   readonly alternativo?: string;
   readonly clase?: string;
 }): JSX.Element {
-  return <Emblema archivo="emblema-jacid.webp" alto={alto} alternativo={alternativo} clase={clase} />;
+  return <Emblema archivo="/identidad/emblema-jacid.webp" alto={alto} alternativo={alternativo} clase={clase} />;
 }
 
 /** «ARMADA / DE COLOMBIA» como en el logotipo, en texto. */

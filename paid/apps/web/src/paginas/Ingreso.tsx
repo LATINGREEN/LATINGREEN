@@ -28,8 +28,9 @@ import { Alerta, Llave, Usuario } from '../componentes/Iconos';
 export function Ingreso(): JSX.Element {
   const { ingresar, cargando } = useSesion();
   const clienteConsultas = useQueryClient();
-  const [credencial, setCredencial] = useState('');
-  const [clave, setClave] = useState('');
+  // En la demostración la credencial de ejemplo viene escrita: no hay otra.
+  const [credencial, setCredencial] = useState(import.meta.env.MODE === 'demo' ? 'BIM23_PAID' : '');
+  const [clave, setClave] = useState(import.meta.env.MODE === 'demo' ? 'Desarrollo2026*' : '');
   const [respuestaCaptcha, setRespuestaCaptcha] = useState('');
   const [mensajeError, setMensajeError] = useState<string | null>(null);
 
