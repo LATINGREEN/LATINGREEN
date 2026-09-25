@@ -216,7 +216,7 @@ export function Ingreso(): JSX.Element {
             <p>
               La sesión se cierra tras <strong>10 minutos</strong> de inactividad.
             </p>
-            <p>Intranet ARC · Información Público Clasificado</p>
+            <p>Información Público Clasificado</p>
           </footer>
         </section>
 

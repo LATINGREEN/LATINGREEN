@@ -89,7 +89,7 @@ export function Entidades(): JSX.Element {
 
   /*
    * Espera antes de consultar. Sin ella se dispara una petición por tecla: en
-   * la Intranet ARC eso es carga innecesaria, y en la pantalla es una lista de
+   * el servidor eso es carga innecesaria, y en la pantalla es una lista de
    * candidatas que parpadea y no se puede leer.
    */
   useEffect(() => {

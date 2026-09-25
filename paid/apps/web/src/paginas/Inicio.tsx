@@ -238,9 +238,8 @@ export function Inicio(): JSX.Element {
           <Alerta tamano={18} />
         </span>
         <p>
-          <strong>Información Público Clasificado.</strong> La plataforma opera solo en
-          la Intranet ARC. No exporte ni reenvíe estos datos por fuera de la red
-          institucional.
+          <strong>Información Público Clasificado.</strong> No exporte ni reenvíe estos
+          datos a personas o canales no autorizados.
         </p>
       </div>
     </>

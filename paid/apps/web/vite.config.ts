@@ -3,8 +3,9 @@ import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 
 /**
- * A.2.1 — La aplicacion corre unicamente en la Intranet ARC. No hay internet
- * en tiempo de ejecucion.
+ * A.2.1 — La aplicacion se sirve a si misma: no pide nada a otro sitio en
+ * tiempo de ejecucion. Asi funciona igual en internet que en una red sin
+ * salida, como la Intranet ARC (D-38).
  *
  * Consecuencias que se ven aqui:
  *

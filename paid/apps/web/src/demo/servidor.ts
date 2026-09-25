@@ -1,7 +1,7 @@
 /**
  * Servidor SIMULADO para la demostración sin servidor (`vite build --mode demo`).
  *
- * Existe para poder mostrar la PAID funcionando fuera de la Intranet: la
+ * Existe para mostrar la PAID funcionando a quien no puede instalarla: la
  * interfaz es la misma, pixel por pixel, y en lugar de hablar con la API por
  * la red le habla a este módulo, que corre en el navegador.
  *

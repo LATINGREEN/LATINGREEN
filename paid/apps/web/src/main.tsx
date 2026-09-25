@@ -9,8 +9,8 @@ import { AvisoDemo } from './demo/AvisoDemo';
 import './estilos.css';
 
 /**
- * A.2.1 — Intranet ARC, sin internet. `retry` bajo y sin reintentos infinitos:
- * si la API no responde, se avisa; no se martillea una red cerrada.
+ * `retry` bajo y sin reintentos infinitos: si la API no responde, se avisa; no
+ * se martillea el servidor.
  *
  * `refetchOnWindowFocus` desactivado a propósito: con la expiración deslizante
  * de R1, una recarga al volver a la pestaña alargaría la sesión sin que nadie

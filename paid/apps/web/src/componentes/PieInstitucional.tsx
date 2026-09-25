@@ -1,12 +1,11 @@
 /**
  * El pie de la PAID, transcrito de la lámina 12 del Manual del Usuario.
  *
- * Dos diferencias con el original, las dos por A.2.1 (sin internet en tiempo
- * de ejecución):
+ * Dos diferencias con el original:
  *
- * - Las redes sociales van como texto y NO como enlaces. La plataforma opera
- *   en la Intranet ARC; un enlace a Twitter o a YouTube desde ahí no abre, y
- *   ofrecerlo es ofrecer algo que falla.
+ * - Las redes sociales van como texto y NO como enlaces. El manual no da las
+ *   direcciones, y la plataforma también puede correr en una red sin salida a
+ *   internet (A.2.1), donde un enlace a Twitter o a YouTube no abre.
  * - Los logotipos GOV.CO y «CO Colombia» van en texto: no se entregaron los
  *   archivos (ver public/identidad/LEEME.md).
  *
@@ -50,7 +49,7 @@ export function PieInstitucional(): JSX.Element {
         </div>
       </div>
       <p className="pie-clasificacion">
-        Información Público Clasificado · Intranet ARC
+        Información Público Clasificado
       </p>
     </footer>
   );

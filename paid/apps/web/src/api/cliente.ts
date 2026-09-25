@@ -90,15 +90,12 @@ async function peticion<T>(ruta: string, opciones: OpcionesPeticion = {}): Promi
     });
   } catch {
     /*
-     * La red cayó, o el servidor no está. En la Intranet ARC esto es un caso
-     * real, no teórico: el mensaje tiene que decir qué hacer, no «Failed to
-     * fetch».
+     * La red cayó, o el servidor no está. Es un caso real, no teórico: el
+     * mensaje tiene que decir qué hacer, no «Failed to fetch».
      */
     throw new ErrorApi(0, {
       codigo: 'RED_SIN_RESPUESTA',
-      mensaje:
-        'No se pudo contactar el servidor. Verifique la conexión a la Intranet ' +
-        'y vuelva a intentar.',
+      mensaje: 'No se pudo contactar el servidor. Verifique su conexión y vuelva a intentar.',
     });
   }
 
