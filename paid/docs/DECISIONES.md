@@ -912,3 +912,38 @@ ningún código de la Parte A nombra el servicio de IA y que en
 `docker-compose.yml` nadie depende de él. Cuando la Parte B añada una llamada
 desde la Parte A, esa prueba falla hasta que se declare cómo degrada.
 
+
+## D-37 · Una demostración sin servidor, separada del producto · Aceptada · 2026-09-25
+
+**El problema.** Ver la PAID funcionando exige PostgreSQL con PostGIS, Redis,
+Node y `./scripts/mirar.sh`. Quien solo quiere recorrerla —desde un teléfono,
+sin terminal— no puede. Las capturas de pantalla no bastan: no se puede hacer
+clic en ellas.
+
+**Lo que se hizo.** `pnpm --filter @paid/web build:demo` compila la interfaz
+**real** con `--mode demo` y la empaqueta en un único
+`apps/web/dist-demo/paid-demo.html` (≈1,6 MB, fuentes y emblemas dentro). En
+ese modo, `api/cliente.ts` no llama a `fetch`: llama a
+`apps/web/src/demo/servidor.ts`, que responde a las mismas rutas en el
+navegador con los mismos esquemas Zod compartidos, los mismos códigos de error
+y el mismo formato `{codigo, mensaje, detalles, idCorrelacion}`. Arranca de
+`src/demo/instantanea.json`, que `scripts/instantanea-demo.mjs` toma de la API
+real para que la demostración no invente formas.
+
+**Lo que la separa del producto.**
+
+- `import.meta.env.MODE === 'demo'` protege la importación dinámica, y Vite
+  elimina esa rama en la compilación normal: se comprobó que ningún `.js` de
+  `apps/web/dist` contiene el servidor simulado ni el aviso.
+- La demostración muestra siempre un aviso que no se cierra: «No es la
+  plataforma oficial», los datos son de ejemplo y se pierden al recargar.
+  Lleva `noindex, nofollow`.
+- Usa `MemoryRouter` para abrirse desde el disco (`file://`) o desde cualquier
+  carpeta de un alojamiento estático sin reescritura de rutas.
+
+**Lo que NO demuestra, y no debe presentarse como si lo hiciera:** el
+aislamiento por unidad (RLS), la red autorizada (R2), la bitácora, el bloqueo
+por intentos contra Redis y la cuota impuesta por la base. El servidor
+simulado imita las respuestas, no las garantías: esas solo las da la base de
+datos. La plataforma real sigue siendo solo de Intranet (A.2.1); la
+demostración no cambia eso ni sustituye a ninguna prueba.

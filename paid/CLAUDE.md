@@ -201,6 +201,10 @@ es el punto» a una casilla de texto libre. Ver D-26.
   Puerta 5 exige que la Parte A funcione sin ningún componente de IA, y la única
   forma honesta de comprobarlo es que la IA no arranque por omisión. Para
   levantarla: `docker compose --profile ia up`.
+- **`apps/web/src/demo/` no es parte del producto.** Solo entra con
+  `vite build --mode demo` (D-37). Si cambia una ruta o una respuesta de la
+  API, la demostración no falla sola: renueve `instantanea.json` con
+  `node scripts/instantanea-demo.mjs` y ajuste `servidor.ts`.
 
 ## Dos trampas de `apps/api` que cuestan una tarde
 NestJS inyecta leyendo la metadata `design:paramtypes`, que es una **referencia

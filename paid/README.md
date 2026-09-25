@@ -61,6 +61,18 @@ Requiere PostgreSQL 16 con PostGIS y pgvector, y Redis. La API avisa **a
 gritos** en su arranque de que la red autorizada sembrada es `0.0.0.0/0`, y así
 debe ser (R2).
 
+### Para recorrerla sin instalar nada
+
+```bash
+pnpm --filter @paid/web build:demo     # → apps/web/dist-demo/paid-demo.html
+```
+
+Un solo archivo HTML con la interfaz real y un servidor simulado en el
+navegador: se abre con doble clic. Los datos son de ejemplo, se pierden al
+recargar, y no demuestra ni el aislamiento por unidad ni la bitácora (D-37).
+Para renovar los datos de partida, con `./scripts/mirar.sh` en pie:
+`node scripts/instantanea-demo.mjs`.
+
 ### ⚠️ El esquema está derivado, no traducido
 
 `PROMPT.md` fija `anexo_A_ddl_paid.sql` como punto de partida y ordena

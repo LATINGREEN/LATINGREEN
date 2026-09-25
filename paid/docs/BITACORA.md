@@ -7,6 +7,27 @@ pueda continuar (PROMPT.md · A.5).
 
 ---
 
+## Demostración sin servidor (2026-09-25)
+
+Pedido: «quiero ver el prototipo funcionando», sin terminal. D-37.
+
+- `pnpm --filter @paid/web build:demo` → `apps/web/dist-demo/paid-demo.html`,
+  un solo archivo que se abre con doble clic o se sube a un alojamiento
+  estático. Es la interfaz real con un servidor simulado en el navegador
+  (`apps/web/src/demo/servidor.ts`); los datos de partida los toma
+  `scripts/instantanea-demo.mjs` de la API real (con `./scripts/mirar.sh` en
+  pie).
+- Recorrido comprobado en Chromium desde `file://`, sin red: ingreso con
+  captcha, listado, fila de RESUMEN, adjunto PDF, exportación CSV, herramienta
+  INACTIVA sin motivo rechazada y luego guardada, aviso de entidad semejante.
+  Cero errores de consola y ninguna petición fuera de `file:`/`data:`/`blob:`.
+- La compilación normal no contiene nada de la demostración.
+- Batería: 338 de 338, lint limpio.
+- **Pendiente honesto:** la XLSX responde 501 en la demostración (solo CSV);
+  RLS, R2, bitácora y bloqueo por Redis no se demuestran ahí.
+
+---
+
 ## FASE 5 — Verificación de la Parte A (2026-09-24)
 
 ### Lo hecho
