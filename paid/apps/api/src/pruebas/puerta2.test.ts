@@ -162,9 +162,11 @@ describe('R1 — sesion de 10 minutos, deslizante, evaluada en el servidor', () 
 // ═════════════════════════════════════════════════════════════════════════════
 describe('R2 — peticion desde IP fuera de seg.red_autorizada', () => {
   beforeAll(async () => {
-    // Las semillas de desarrollo dejan 0.0.0.0/0. Para esta casilla hay que
-    // cerrar la red de verdad: se sustituye por un rango concreto.
-    await entorno.pool.query(`DELETE FROM seg.red_autorizada WHERE rango = '0.0.0.0/0'::cidr`);
+    // Las semillas dejan la red abierta (0.0.0.0/0 y ::/0, D-38). Para esta
+    // casilla hay que cerrarla de verdad: se sustituye por un rango concreto.
+    await entorno.pool.query(
+      `DELETE FROM seg.red_autorizada WHERE rango IN ('0.0.0.0/0'::cidr, '::/0'::cidr)`,
+    );
     await entorno.pool.query(
       `INSERT INTO seg.red_autorizada (rango, id_tipo_red, descripcion)
        VALUES ('10.10.0.0/16',
@@ -188,6 +190,24 @@ describe('R2 — peticion desde IP fuera de seg.red_autorizada', () => {
       .set('X-Forwarded-For', '192.168.44.7')
       .send({});
     expect(r.status).toBe(401);
+  });
+
+  it('una X-Forwarded-For escrita por el cliente no abre la red', async () => {
+    // Desde internet cualquiera manda la cabecera con una IP de dentro. El
+    // proxy AÑADE la real al final, y esa es la que cuenta (ip-origen.ts).
+    const r = await request(servidor)
+      .post('/api/autenticacion/reto')
+      .set('X-Forwarded-For', '10.10.9.9, 192.168.44.7')
+      .send({});
+    expect(r.status).toBe(401);
+  });
+
+  it('la IP que añade el proxy cuenta aunque el cliente mande otra delante', async () => {
+    const r = await request(servidor)
+      .post('/api/autenticacion/reto')
+      .set('X-Forwarded-For', '192.168.44.7, 10.10.9.9')
+      .send({});
+    expect(r.status).toBe(200);
   });
 
   it('queda RED_NO_AUTORIZADA en seg.intento_autenticacion', async () => {

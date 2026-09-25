@@ -4,6 +4,7 @@ import {
   Get,
   HttpCode,
   HttpStatus,
+  Inject,
   Post,
   Req,
   UnauthorizedException,
@@ -15,17 +16,24 @@ import {
   solicitudIngreso,
 } from '@paid/schema';
 import type { RespuestaIngreso, RetoCaptcha } from '@paid/schema';
+import { ConfigService } from '@nestjs/config';
 import { AutenticacionService } from './autenticacion.service';
+import { ipDeOrigen } from './ip-origen';
 import { SesionService } from './sesion.service';
 import { RutaPublica } from './requiere-permiso.decorator';
 import type { PeticionConSesion } from './sesion.guard';
 
 @Controller('autenticacion')
 export class AutenticacionController {
+  private readonly proxiesDeConfianza: number;
+
   constructor(
     private readonly autenticacion: AutenticacionService,
     private readonly sesiones: SesionService,
-  ) {}
+    @Inject(ConfigService) configuracion: ConfigService,
+  ) {
+    this.proxiesDeConfianza = configuracion.get<number>('PROXIES_DE_CONFIANZA') ?? 1;
+  }
 
   /**
    * Paso 1: el reto de captcha (R3). Cada ingreso lo exige.
@@ -137,29 +145,22 @@ export class AutenticacionController {
   /**
    * R2 — La IP de origen real.
    *
-   * Detras de nginx, `peticion.ip` es la del proxy. La validacion de red
-   * autorizada tiene que mirar `X-Forwarded-For`, que nginx rellena (ver
-   * `docker/web/nginx.conf`).
+   * Detras de nginx, `peticion.ip` es la del proxy; la real viaja en
+   * `X-Forwarded-For` (ver `docker/web/nginx.conf`). De esa cabecera solo se
+   * cree la entrada que escribio un proxy de confianza, no la que manda el
+   * cliente: ver `ip-origen.ts`.
    *
-   * ⚠️ Esa cabecera la puede falsificar quien llegue DIRECTAMENTE a la API sin
-   * pasar por el proxy. Por eso el despliegue debe exponer unicamente nginx, y
-   * `docker-compose.yml` no publica el puerto de la API hacia fuera de la red
-   * interna. Queda anotado aqui porque es el punto donde se confia en ella.
+   * ⚠️ Quien llegue DIRECTAMENTE a la API, sin pasar por el proxy, puede
+   * escribir la cabecera entera. Por eso el despliegue expone unicamente
+   * nginx, y `docker-compose.yml` no publica el puerto de la API.
    */
   private ipDe(peticion: PeticionConSesion): string {
-    const reenviada = peticion.headers['x-forwarded-for'];
-    if (typeof reenviada === 'string' && reenviada !== '') {
-      const primera = reenviada.split(',')[0]?.trim();
-      if (primera !== undefined && primera !== '') {
-        peticion.direccionIpReal = primera;
-        return primera;
-      }
-    }
-    const ip = peticion.ip ?? '0.0.0.0';
-    // Express entrega IPv4 mapeadas como ::ffff:10.0.0.1, que `inet` de
-    // PostgreSQL no compara contra un CIDR IPv4.
-    const limpia = ip.startsWith('::ffff:') ? ip.slice(7) : ip;
-    peticion.direccionIpReal = limpia;
-    return limpia;
+    const ip = ipDeOrigen(
+      peticion.headers['x-forwarded-for'],
+      peticion.ip,
+      this.proxiesDeConfianza,
+    );
+    peticion.direccionIpReal = ip;
+    return ip;
   }
 }

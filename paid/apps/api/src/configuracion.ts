@@ -18,6 +18,14 @@ export const configuracion = z.object({
   DATABASE_URL: z.string().min(1),
   DATABASE_POOL_MAX: z.coerce.number().int().positive().default(10),
 
+  /**
+   * Cuantos proxies de confianza hay delante de la API. El nginx del
+   * despliegue es uno; si el alojamiento pone otro delante (un VPS con su
+   * propio proxy inverso), son dos. Decide que entrada de `X-Forwarded-For`
+   * es la IP real del cliente: ver `seguridad/ip-origen.ts`.
+   */
+  PROXIES_DE_CONFIANZA: z.coerce.number().int().min(0).default(1),
+
   REDIS_HOST: z.string().default('localhost'),
   REDIS_PORT: z.coerce.number().int().positive().default(6379),
 
