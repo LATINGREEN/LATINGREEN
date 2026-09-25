@@ -10,7 +10,7 @@ export interface RespuestaSalud {
 }
 
 /**
- * Sonda de salud para `docker compose` y para el balanceador de la Intranet.
+ * Sonda de salud para `docker compose` y para el balanceador o proxy de delante.
  * No toca la base a proposito: una sonda que depende de la base convierte una
  * lentitud de consulta en un contenedor reiniciado.
  */

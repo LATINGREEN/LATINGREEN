@@ -945,5 +945,55 @@ real para que la demostración no invente formas.
 aislamiento por unidad (RLS), la red autorizada (R2), la bitácora, el bloqueo
 por intentos contra Redis y la cuota impuesta por la base. El servidor
 simulado imita las respuestas, no las garantías: esas solo las da la base de
-datos. La plataforma real sigue siendo solo de Intranet (A.2.1); la
-demostración no cambia eso ni sustituye a ninguna prueba.
+datos. La demostración no sustituye a ninguna prueba.
+
+## D-38 · La PAID ya no está atada a la Intranet ARC · Aceptada · 2026-09-25
+
+**El pedido.** El propietario del proyecto pidió eliminar la restricción de la
+Intranet: poder desplegar la PAID en internet (un VPS, por ejemplo).
+PROMPT.md A.2.1 decía «corre únicamente en la Intranet ARC». Se modificó ahí
+mismo, con la fecha y esta referencia, y en el anexo de `CLAUDE.md`.
+
+**Lo que cambió.**
+
+- **R2 deja de ser «red cerrada» y pasa a ser «red autorizada».** La tabla
+  `seg.red_autorizada` y la comprobación con `>>=` siguen iguales. Lo que
+  cambia es el valor por omisión: `semillas/0004_red_abierta.sql` siembra
+  `0.0.0.0/0` y `::/0` en todo entorno, no solo en desarrollo. Para cerrar la
+  red se registran rangos y se desactivan esos dos, sin desplegar.
+- **La API ya no se niega a arrancar en producción con la red abierta.** En
+  internet esa es la configuración normal. El arranque dice en una línea
+  cuál está en vigor, y avisa si no hay ningún rango (nadie podría entrar).
+- **Textos de pantalla.** Fuera «Intranet ARC» del ingreso, del pie y del
+  aviso de Inicio; el mensaje de «sin conexión» ya no nombra la Intranet. La
+  clasificación «Información Público Clasificado» se queda: es de los
+  datos, no de la red.
+
+**Lo que se endureció, porque en internet deja de ser teórico.**
+
+- **La IP de origen.** Se tomaba la PRIMERA entrada de `X-Forwarded-For`, que
+  escribe el cliente. Con un rango cerrado, cualquiera desde internet lo
+  saltaba mandando `X-Forwarded-For: 10.0.0.1`, y la bitácora guardaba esa IP
+  falsa. Ahora `seguridad/ip-origen.ts` toma la entrada que añadió el proxy
+  de confianza más externo; `PROXIES_DE_CONFIANZA` (1 por omisión: el nginx
+  de `web`) dice cuántos hay. Dos pruebas nuevas en la Puerta 2.
+- **Puertos.** `docker-compose.yml` publicaba PostgreSQL, Redis (sin clave),
+  MinIO y la API en todas las interfaces. Ahora solo en `127.0.0.1`; la única
+  puerta pública es `web`. Docker salta el cortafuegos del anfitrión, así que
+  esto no se puede dejar al cortafuegos.
+
+**Lo que NO cambió, a propósito.**
+
+- **La aplicación se sirve a sí misma** (fuentes, emblemas, teselas) y la CSP
+  sigue en `default-src 'self'`. No estorba en internet —al contrario, es la
+  primera defensa contra un script inyectado— y es lo que permite seguir
+  desplegándola en la Intranet.
+- **Ningún dato sale hacia un tercero**: ni telemetría a un servicio externo
+  ni, en la Parte B, un modelo de IA en la nube (IA7). Eso responde a la
+  clasificación de los datos, no a dónde corre la plataforma. Si se quiere
+  cambiar, es otra decisión y hay que tomarla expresamente.
+
+**Pendiente.** `PROXIES_DE_CONFIANZA` no se añadió a `docker-compose.yml` ni a
+`.env.example`: la sesión no tuvo permiso para ese cambio. Con el despliegue
+por omisión (nginx delante) no hace falta; con un segundo proxy delante para
+el TLS hay que pasarlo a la API con valor 2.

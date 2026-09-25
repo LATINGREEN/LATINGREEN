@@ -7,6 +7,24 @@ pueda continuar (PROMPT.md · A.5).
 
 ---
 
+## Sin restricción de Intranet (2026-09-25)
+
+Pedido: «elimina en el proyecto la restricción de la intranet». D-38.
+
+- PROMPT.md A.2.1, R2, B.3 y Q5, y el anexo de `CLAUDE.md`, reescritos con la
+  fecha y la referencia a D-38.
+- R2: red abierta por omisión (`semillas/0004_red_abierta.sql`); la API ya no
+  se niega a arrancar con ella en producción; el arranque dice cuál rige.
+- IP de origen: la que añade el proxy, no la que manda el cliente
+  (`seguridad/ip-origen.ts`, `PROXIES_DE_CONFIANZA`). Dos pruebas nuevas.
+- `docker-compose.yml`: PostgreSQL, Redis, MinIO y API solo en `127.0.0.1`.
+- Textos de pantalla sin «Intranet ARC». README: «Desplegar en internet».
+- **Pendiente:** `PROXIES_DE_CONFIANZA` en `docker-compose.yml` y
+  `.env.example` (sin permiso en esta sesión); `docker compose up` sigue sin
+  ejecutarse (D-07); no hay pantalla para crear usuarios reales.
+
+---
+
 ## Demostración sin servidor (2026-09-25)
 
 Pedido: «quiero ver el prototipo funcionando», sin terminal. D-37.

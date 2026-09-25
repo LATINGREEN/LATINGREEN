@@ -5,8 +5,9 @@ Desarrollo (JACID) y las unidades tácticas registran las actividades de acción
 integral, y de donde salen los consolidados que alimentan el RAO y los tableros
 del Mando Naval.
 
-Opera **únicamente en la Intranet ARC**: no hay internet en tiempo de ejecución.
-Ninguna dependencia puede llamar a un servicio externo.
+Se despliega en la Intranet ARC o en internet (D-38). Se sirve a sí misma:
+ninguna dependencia llama a un servicio externo en tiempo de ejecución, así que
+funciona igual en una red sin salida.
 
 Especificación completa en [`PROMPT.md`](PROMPT.md). Reglas permanentes en
 [`CLAUDE.md`](CLAUDE.md).
@@ -57,9 +58,9 @@ y la interfaz en `:5173`, e imprime las credenciales. Entre con `BIM23_PAID`
 (clave `Desarrollo2026*`), y luego con `BIM24_PAID` para comprobar que no ve
 nada de la otra unidad: eso lo aplica la base de datos, no la pantalla.
 
-Requiere PostgreSQL 16 con PostGIS y pgvector, y Redis. La API avisa **a
-gritos** en su arranque de que la red autorizada sembrada es `0.0.0.0/0`, y así
-debe ser (R2).
+Requiere PostgreSQL 16 con PostGIS y pgvector, y Redis. El arranque de la API
+dice en una línea desde dónde se acepta el ingreso: por omisión, desde
+cualquier dirección (R2, D-38).
 
 ### Para recorrerla sin instalar nada
 
@@ -264,6 +265,35 @@ configuración de red.
 
 ---
 
+## Desplegar en internet
+
+Posible desde D-38. Necesita un servidor donde corran contenedores —un VPS, no
+un alojamiento compartido: PostgreSQL, Redis y Node tienen que estar en
+ejecución—.
+
+1. **Solo la web queda expuesta.** `docker-compose.yml` publica PostgreSQL,
+   Redis, MinIO y la API únicamente en `127.0.0.1`. No lo cambie: Redis no
+   tiene clave, y Docker salta el cortafuegos del servidor.
+2. **TLS delante.** Un proxy inverso en el servidor (Caddy o nginx con Let's
+   Encrypt) recibe el 443 y reenvía a la web. Con ese proxy:
+   - `WEB_PUERTO=127.0.0.1:8080`, para que la web solo se alcance por él;
+   - `PROXIES_DE_CONFIANZA=2` en el entorno de la API, porque delante de ella
+     hay dos proxies. Si no, todos los ingresos parecen venir del proxy.
+3. **Claves propias** en `.env` para PostgreSQL y MinIO: las de
+   `.env.example` son de ejemplo.
+4. **Migrar y sembrar** sin `PAID_SEMILLA_DESARROLLO`: las semillas de
+   desarrollo traen claves conocidas.
+5. **La red queda abierta** (`0.0.0.0/0` y `::/0` en `seg.red_autorizada`).
+   Protegen el ingreso la credencial, la clave, el captcha de un solo uso y el
+   bloqueo tras cinco intentos. Para restringirlo a unos rangos, regístrelos y
+   desactive esos dos: no hace falta desplegar.
+
+⚠️ Pendiente antes de producción: `docker compose up` todavía no se ha
+ejecutado (siguiente apartado), y la PAID no tiene aún pantalla para crear
+usuarios reales.
+
+---
+
 ## Verificación pendiente
 
 `docker compose config` valida los seis servicios, pero **`docker compose up`
@@ -280,9 +310,9 @@ docker compose up -d
 docker compose ps        # se esperan seis servicios en healthy
 ```
 
-Para el despliegue real en la Intranet ARC hace falta resolver de dónde salen
-las imágenes: registro espejado interno, o transporte con
-`docker save` / `docker load`.
+Para un despliegue en la Intranet ARC hace falta resolver de dónde salen las
+imágenes: registro espejado interno, o transporte con `docker save` /
+`docker load`.
 
 ---
 

@@ -4,7 +4,7 @@ import { Client } from 'minio';
 import type { AlmacenObjetos, ObjetoGuardado } from './almacen';
 
 /**
- * Almacen en MinIO, compatible con S3, desplegado DENTRO de la intranet (A.1).
+ * Almacen en MinIO, compatible con S3, desplegado DENTRO del propio despliegue (A.1).
  *
  * ⚠️ ESTA IMPLEMENTACION NO ESTA VERIFICADA.
  *

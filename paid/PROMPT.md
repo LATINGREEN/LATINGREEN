@@ -61,9 +61,12 @@ un registro npm espejado o un `node_modules` transportado: un rango abierto romp
 
 ## A.2 Restricciones de entorno que condicionan el diseño
 
-1. **La aplicación corre únicamente en la Intranet ARC.** No hay internet en tiempo de ejecución.
-   Ninguna dependencia puede llamar a un servicio externo: ni fuentes de Google, ni CDN, ni
-   telemetría, ni mapas remotos. Todo se sirve desde el propio despliegue.
+1. **La aplicación puede desplegarse en la Intranet ARC o en internet.** *(Modificado el
+   2026-09-25 a pedido del propietario del proyecto; antes decía «corre únicamente en la Intranet
+   ARC». Ver `docs/DECISIONES.md`, D-38.)* La aplicación se sirve a sí misma: ninguna dependencia
+   llama a un servicio externo en tiempo de ejecución —ni fuentes de Google, ni CDN, ni telemetría,
+   ni mapas remotos—, de modo que funciona igual en una red sin salida a internet. En internet, solo
+   el servidor web queda expuesto, detrás de TLS.
 
 2. **Navegador objetivo:** Google Chrome, que es el que el manual recomienda.
 
@@ -95,11 +98,13 @@ Diez minutos de inactividad cierran la sesión. Expiración **deslizante**: cada
 la desplaza. Se evalúa **en el servidor**. Redis lleva el TTL; `seg.sesion` conserva el registro
 durable con el motivo de cierre.
 
-### R2 — Red cerrada
-La autenticación solo procede desde rangos autorizados, que viven en `seg.red_autorizada` (tipo
-`CIDR`), **no en variables de entorno ni en el código**: el manual advierte que el direccionamiento
-IP está «pendiente» y JACID debe poder cambiarlo sin desplegar. En desarrollo se siembra `0.0.0.0/0`
-con `tipo_red = 'ADMINISTRACION'` y un aviso llamativo en el arranque.
+### R2 — Red autorizada
+*(Modificado el 2026-09-25, D-38.)* La autenticación solo procede desde los rangos que viven en
+`seg.red_autorizada` (tipo `CIDR`), **no en variables de entorno ni en el código**, para que JACID
+pueda cambiarlos sin desplegar. Por omisión se siembran `0.0.0.0/0` y `::/0` (red abierta, lo que
+pide un despliegue en internet); para cerrarla se registran los rangos propios y se desactivan esos
+dos. El arranque de la API dice cuál está en vigor. La IP de origen se toma de la entrada de
+`X-Forwarded-For` que escribió el proxy de confianza, nunca de la que manda el cliente.
 
 ### R3 — Captcha de un solo uso
 Cada ingreso lo exige. Se guarda el **resumen** del reto, no el texto. Caduca a los 5 minutos y se
@@ -436,7 +441,7 @@ responderla. No los rellenes con supuestos verosímiles y sigas adelante.
 | Q2 | Listado vigente de las **17 campañas institucionales** derivadas de COGFM. |
 | Q3 | Campos adicionales que se activan por cada uno de los 11 tipos de herramienta AID. |
 | Q4 | Formularios reales de las pestañas Tipo Operación, Entidades Servicios, Servicios Prestados, Población Beneficiada y Entidades Apoyadas. |
-| Q5 | Rangos CIDR definitivos de la Intranet ARC. |
+| Q5 | Rangos CIDR, si se decide cerrar la red (D-38: por omisión está abierta). |
 | Q6 | Perfiles de usuario configurados y su correspondencia con los cinco roles propuestos. |
 | Q7 | Política institucional de retención de soportes y de bitácora. |
 | Q8 | Integración con ArcGIS: ¿vista de base, servicio REST o exportación programada? |
@@ -483,8 +488,9 @@ Implementa en ese orden. **U1 y U3 solos ya justifican el subsistema.**
 
 ## B.3 Stack de IA
 
-Todo se ejecuta **dentro de la Intranet ARC**. Ningún dato sale de la red. Esto no es una preferencia:
-la plataforma está clasificada como «Información Público Clasificado» y no existe salida a internet.
+Todo se ejecuta **dentro del propio despliegue**. Ningún dato sale hacia un servicio de un tercero.
+Esto no es una preferencia: la plataforma está clasificada como «Información Público Clasificado»,
+esté en la Intranet ARC o en internet (D-38).
 
 ```
 Servicio        /apps/ia — FastAPI (Python 3.12), aislado del resto del monorepo
@@ -673,8 +679,9 @@ prompt ya no esté en el contexto.
 # PAID — Reglas permanentes del repositorio
 
 ## Contexto
-Plataforma de Acción Integral y Desarrollo de la Armada de Colombia. Opera solo en la Intranet ARC,
-sin internet. Especificación completa en PROMPT.md; DDL de referencia en anexo_A_ddl_paid.sql.
+Plataforma de Acción Integral y Desarrollo de la Armada de Colombia. Se despliega en la Intranet ARC
+o en internet (D-38) y se sirve a sí misma, sin llamar a servicios externos. Especificación completa
+en PROMPT.md; DDL de referencia en anexo_A_ddl_paid.sql.
 
 ## Invariantes que nunca se tocan
 - Escala de avance de proyectos: 10,20,30,40,50,60,70,100. NO existen 80 ni 90.

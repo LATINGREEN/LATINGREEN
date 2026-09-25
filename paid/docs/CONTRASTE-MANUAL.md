@@ -26,7 +26,7 @@ lista de lo que **no** coincide todavía, con lo que costaría cerrarlo.
 | Pestañas | Fila horizontal de pestañas; cada una marcada como diligenciada o pendiente (lámina 22) | Pestañas WAI-ARIA con marca verde (con datos) o anillo rojo (pendiente) |
 | Datos generales de la jornada | Tipo de jornada; EJC · ARC · FAC con «Seleccione…»; población afecta; en ese orden (láminas 20–21) | Igual (migración 0015, D-34). ARC fijada en «Sí» (R9). Las jornadas anteriores muestran «Sin registrar» y un aviso para completarlos |
 | Adjuntos | Soportes agrupados en Imágenes · Documentos · Audios · Videos, cada grupo con «No hay archivos cargados previamente» cuando está vacío; máximo 10 MB por jornada (lámina 22) | Igual. La fase documental muestra lo que va en cada una (Q7, resuelta) |
-| Pie | Azul GOV.CO: copyright de la División de Informática, datos de la Jefatura, horario, redes, contacto (lámina 11) | Transcrito. Las redes van como texto: la aplicación corre en la Intranet sin salida a Internet (A.2.1) |
+| Pie | Azul GOV.CO: copyright de la División de Informática, datos de la Jefatura, horario, redes, contacto (lámina 11) | Transcrito. Las redes van como texto: el manual no da las direcciones, y en una red sin salida a internet no abrirían (A.2.1) |
 
 ### Colores
 
@@ -122,5 +122,6 @@ abiertas sino trabajo pendiente.
   paleta institucional y alto contraste (negro, blanco y amarillo).
 - **Se retiró el modo oscuro** de la primera versión: no está en el manual y
   obligaba a sostener una tercera paleta.
-- **Enlaces a redes sociales como texto**, no como vínculos: la Intranet no
-  tiene salida a Internet (A.2.1).
+- **Enlaces a redes sociales como texto**, no como vínculos: el manual no da
+  las direcciones, y la PAID también puede correr en una red sin salida a
+  internet (A.2.1).

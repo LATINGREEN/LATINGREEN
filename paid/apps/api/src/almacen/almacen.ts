@@ -3,7 +3,7 @@
  *
  * ⚠️ Es una INTERFAZ con dos implementaciones, y el motivo importa:
  *
- *   1. En despliegue, MinIO dentro de la intranet (A.1).
+ *   1. En despliegue, MinIO dentro del propio despliegue (A.1).
  *   2. En desarrollo y pruebas, el sistema de archivos local.
  *
  * Que exista la segunda NO relaja ninguna regla. Las reglas de los adjuntos

@@ -1,8 +1,9 @@
 # PAID — Reglas permanentes del repositorio
 
 ## Contexto
-Plataforma de Acción Integral y Desarrollo de la Armada de Colombia. Opera solo en la Intranet ARC,
-sin internet. Especificación completa en PROMPT.md; DDL de referencia en anexo_A_ddl_paid.sql.
+Plataforma de Acción Integral y Desarrollo de la Armada de Colombia. Se despliega en la Intranet ARC
+o en internet (D-38) y se sirve a sí misma, sin llamar a servicios externos. Especificación completa
+en PROMPT.md; DDL de referencia en anexo_A_ddl_paid.sql.
 
 ## Invariantes que nunca se tocan
 - Escala de avance de proyectos: 10,20,30,40,50,60,70,100. NO existen 80 ni 90.

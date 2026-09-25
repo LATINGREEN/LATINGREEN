@@ -130,10 +130,12 @@ incapaz de producir el desglose que la rendición de cuentas exija.
 
 ---
 
-## 🔴 Q5 — Los rangos de direcciones de la Intranet ARC
+## 🟡 Q5 — ¿Se restringe el ingreso a unos rangos de red?
 
-El sistema solo debe permitir el ingreso desde direcciones de red autorizadas.
-El manual advierte que el direccionamiento IP está «pendiente».
+*(Reformulada el 2026-09-25, D-38.)* La PAID ya no está atada a la Intranet ARC:
+puede desplegarse en internet, y por omisión acepta el ingreso desde cualquier
+dirección. La pregunta ahora es si se quiere restringir, y a qué rangos. El
+manual advierte que el direccionamiento IP está «pendiente».
 
 **Lo que se necesita:** los rangos de direcciones IP desde los que se debe poder
 entrar a la PAID (por ejemplo: la red de JACID, las redes de las unidades
@@ -142,12 +144,12 @@ tácticas, la red de administración).
 **Lo que se hizo mientras tanto:** los rangos **no** están escritos en el
 código ni en la configuración del servidor: viven en una tabla de la base de
 datos, precisamente para que JACID pueda cambiarlos sin necesidad de un
-despliegue nuevo. En el entorno de desarrollo se sembró un rango que permite
-todo (`0.0.0.0/0`), acompañado de un aviso muy visible en el arranque para que
-nadie lo lleve a producción por descuido.
+despliegue nuevo. Por omisión se siembran `0.0.0.0/0` y `::/0` (red abierta),
+y el arranque de la API dice en una línea cuál es la situación.
 
-**Por qué importa:** si ese rango abierto llega a producción, cualquiera con
-acceso a la red podría intentar entrar.
+**Por qué importa:** con la red abierta, cualquiera en internet puede intentar
+entrar. Lo detienen la credencial, la clave, el captcha y el bloqueo por
+intentos; restringir la red añadiría una barrera más.
 
 ---
 
@@ -428,7 +430,7 @@ nombraba Pantone 123 C, que es un amarillo; queda descartado.
 | Q1 | ¿Cómo se construye el código de actividad? ¿Significan algo los 5 caracteres finales? | 🔴 |
 | Q2 | ¿Cuáles son las 17 campañas institucionales? | 🔴 |
 | Q4 | ¿Qué campos tienen 5 de las 11 pestañas, sobre todo Población Beneficiada? | 🔴 |
-| Q5 | ¿Cuáles son los rangos de IP de la Intranet ARC? | 🔴 |
+| Q5 | ¿Se restringe el ingreso a unos rangos de IP? ¿Cuáles? | 🟡 |
 | Q3 | ¿Qué campos pide cada uno de los 11 tipos de herramienta AID? (Los tipos ya están, por el manual.) | 🟡 |
 | Q6 | ¿Qué perfiles de usuario existen hoy? | 🟡 |
 | Q7 | ¿Cuánto se conservan soportes y auditoría? (Las fases documentales ya las define el manual.) | 🟡 |

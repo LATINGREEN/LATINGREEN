@@ -1,11 +1,11 @@
 # Colector OpenTelemetry local.
 #
 # A.2.1 / IA7 — **Sin telemetria saliente.** No hay ningun exportador hacia un
-# servicio externo, y no se puede anadir: la plataforma corre en la Intranet
-# ARC y esta clasificada como «Informacion Publico Clasificado».
+# servicio externo, y no se debe anadir: la plataforma esta clasificada como
+# «Informacion Publico Clasificado», este donde este desplegada (D-38).
 #
 # Si alguien anade aqui un exporter `otlphttp` apuntando a un dominio de
-# internet, esta sacando datos de la red cerrada.
+# internet, esta sacando datos de la plataforma hacia un tercero.
 
 receivers:
   otlp:
@@ -30,8 +30,8 @@ exporters:
   # Unico destino en el entorno local: la salida estandar del contenedor.
   debug:
     verbosity: normal
-  # TODO(despliegue): en la Intranet ARC, apuntar a la instancia local de
-  # Tempo/Jaeger que JACID designe. NUNCA a un servicio en internet.
+  # TODO(despliegue): apuntar a la instancia propia de Tempo/Jaeger que JACID
+  # designe. NUNCA a un servicio de un tercero.
 
 service:
   pipelines:
