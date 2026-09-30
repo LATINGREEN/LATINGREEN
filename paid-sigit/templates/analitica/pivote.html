@@ -1,0 +1,96 @@
+{% extends "base.html" %}{% load static humanize %}
+{% block titulo %}Tablas dinámicas{% endblock %}
+{% block migas %}<span>Análisis</span><span aria-hidden="true">/</span><strong>Tablas dinámicas</strong>{% endblock %}
+{% block cabeza %}<script src="{% static 'vendor/echarts-6.1.0.min.js' %}" defer></script><script src="{% static 'js/graficas.js' %}" defer></script>{% endblock %}
+{% block contenido %}
+<div class="encabezado">
+  <div>
+    <p class="kicker">Informes</p>
+    <h1>Tablas dinámicas</h1>
+    <p class="sub">Cruce cualquier dimensión con cualquier otra, elija qué medir y expórtelo a Excel.</p>
+  </div>
+  <div class="acciones">
+    <a class="boton secundario" href="{% url 'analitica:exportar_pivote' 'csv' %}?{{ parametros }}"><svg><use href="#i-descarga"/></svg>CSV</a>
+    <a class="boton realce" href="{% url 'analitica:exportar_pivote' 'xlsx' %}?{{ parametros }}"><svg><use href="#i-descarga"/></svg>Exportar a Excel</a>
+  </div>
+</div>
+
+<form class="tarjeta" method="get" data-autoenviar>
+  <div class="constructor-pivote">
+    <div class="campo"><label for="p-medida">Medir</label>
+      <select id="p-medida" name="medida">{% for m in medidas %}<option value="{{ m.clave }}" {% if m.clave == config.medida %}selected{% endif %}>{{ m.nombre }}</option>{% endfor %}</select></div>
+    <div class="campo"><label for="p-fila">Filas</label>
+      <select id="p-fila" name="fila">{% for d in dimensiones %}<option value="{{ d.clave }}" {% if d.clave == config.fila %}selected{% endif %}>{{ d.nombre }}</option>{% endfor %}</select></div>
+    <div class="campo"><label for="p-columna">Columnas</label>
+      <select id="p-columna" name="columna"><option value="">(ninguna)</option>{% for d in dimensiones %}<option value="{{ d.clave }}" {% if d.clave == config.columna %}selected{% endif %}>{{ d.nombre }}</option>{% endfor %}</select></div>
+    {% for clave, valor in filtros.items %}{% if valor %}<input type="hidden" name="{{ clave }}" value="{{ valor }}">{% endif %}{% endfor %}
+  </div>
+  <noscript><button class="boton" type="submit">Calcular</button></noscript>
+</form>
+
+<details class="tarjeta espacio-abajo">
+  <summary><strong>Filtrar los datos de la tabla</strong>{% if fichas %} · {{ fichas|length }} filtro{{ fichas|length|pluralize }} activo{{ fichas|length|pluralize }}{% endif %}</summary>
+  <div class="espacio-arriba">
+    {% include "analitica/_filtros.html" with extra_ocultos=None %}
+  </div>
+</details>
+{% if fichas %}<div class="fichas">{% for f in fichas %}<span class="ficha">{{ f.texto }}<a href="{{ f.quitar }}" aria-label="Quitar filtro {{ f.texto }}">×</a></span>{% endfor %}</div>{% endif %}
+
+<section class="tarjeta espacio-abajo">
+  <div class="tarjeta-cabeza"><h2>{{ medida.nombre }} por {{ nombre_fila|lower }}{% if nombre_columna %} y {{ nombre_columna|lower }}{% endif %}</h2>
+    <div class="acciones"><span class="estado neutro">Total: <span class="cifra">{% if medida.formato == 'moneda' %}$ {{ tabla.total|floatformat:0|intcomma }}{% else %}{{ tabla.total|floatformat:"-2"|intcomma }}{% endif %}</span></span></div>
+  </div>
+  {% if matriz %}
+  <div class="tabla-contenedor">
+    <table class="tabla pivote">
+      <caption class="visualmente-oculto">{{ medida.nombre }}: filas {{ nombre_fila }}{% if nombre_columna %}, columnas {{ nombre_columna }}{% endif %}</caption>
+      <thead><tr>
+        <th scope="col">{{ nombre_fila }}{% if nombre_columna %} \ {{ nombre_columna }}{% endif %}</th>
+        {% for c in tabla.columnas %}<th scope="col" class="num">{{ c }}</th>{% endfor %}
+        <th scope="col" class="num">Total</th>
+      </tr></thead>
+      <tbody>
+      {% for fila in matriz %}
+        <tr>
+          <th scope="row" class="fila">{{ fila.etiqueta }}</th>
+          {% for celda in fila.celdas %}<td class="celda" {% if celda.nivel %}data-nivel="{{ celda.nivel }}"{% endif %}>{% if celda.valor is not None %}{{ celda.valor|floatformat:"-2"|intcomma }}{% else %}·{% endif %}</td>{% endfor %}
+          <td class="celda total">{{ fila.total|floatformat:"-2"|intcomma }}</td>
+        </tr>
+      {% endfor %}
+      </tbody>
+      <tfoot><tr>
+        <th scope="row" class="fila total">Total</th>
+        {% for t in totales_columnas %}<td class="celda total">{{ t|floatformat:"-2"|intcomma }}</td>{% endfor %}
+        <td class="celda total">{{ tabla.total|floatformat:"-2"|intcomma }}</td>
+      </tr></tfoot>
+    </table>
+  </div>
+  {% else %}
+  <div class="vacio"><svg><use href="#i-pivote"/></svg><p>No hay datos con esa combinación de filtros.</p></div>
+  {% endif %}
+</section>
+
+<div class="bento">
+  <section class="tarjeta col-8">
+    <div class="tarjeta-cabeza"><h2>Gráfica de la tabla</h2></div>
+    <div class="grafica alta" data-grafica="pivote" role="img" aria-label="Gráfica de barras apiladas de la tabla dinámica"></div>
+  </section>
+  <section class="tarjeta col-4">
+    <h2>Informes guardados</h2>
+    <form method="post" action="{% url 'analitica:guardar_informe' %}">{% csrf_token %}
+      <input type="hidden" name="parametros" value="{{ parametros }}">
+      <div class="campo"><label for="nombre-informe">Guardar esta vista como</label><input type="text" id="nombre-informe" name="nombre" maxlength="150" placeholder="Ej.: Personas por departamento 2026" required></div>
+      <label class="opciones-si-no"><span><input type="checkbox" name="compartido"> Compartir con todos</span></label>
+      <p><button class="boton pequeno" type="submit">Guardar informe</button></p>
+    </form>
+    <ul class="lista-informes">
+      {% for i in informes %}
+      <li><a href="{% url 'analitica:pivote' %}?{{ i.configuracion.parametros }}">{{ i.nombre }}</a>{% if i.compartido %} <span class="estado neutro">compartido</span>{% endif %}
+        {% if i.propietario_id == user.pk %}<form method="post" action="{% url 'analitica:borrar_informe' i.pk %}" class="en-linea">{% csrf_token %}<button class="boton pequeno fantasma" type="submit" aria-label="Borrar {{ i.nombre }}"><svg><use href="#i-basura"/></svg></button></form>{% endif %}
+      </li>
+      {% empty %}<li class="sub">Aún no hay informes guardados.</li>{% endfor %}
+    </ul>
+  </section>
+</div>
+{{ grafica|json_script:"datos-pivote" }}
+{% endblock %}

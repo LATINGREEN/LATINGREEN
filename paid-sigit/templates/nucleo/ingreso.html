@@ -1,0 +1,55 @@
+{% extends "base.html" %}{% load static %}
+{% block titulo %}Ingreso{% endblock %}
+{% block cuerpo %}
+<div class="ingreso">
+  <section class="ingreso-arte" aria-labelledby="titulo-ingreso">
+    <div class="emblemas">
+      <img src="{% static 'identidad/escudo-armada.webp' %}" alt="Escudo de la Armada de Colombia" width="72" height="72">
+      <img src="{% static 'identidad/emblema-jacid.webp' %}" alt="Emblema de la Jefatura de Acción Integral y Desarrollo" width="72" height="72">
+      <div>
+        <strong>Armada de Colombia</strong><br>
+        <span>Jefatura de Acción Integral y Desarrollo</span>
+      </div>
+    </div>
+    <div>
+      <h1 id="titulo-ingreso">PAID <span>SIGIT</span></h1>
+      <p class="lema">Plataforma de Acción Integral y Desarrollo · {{ VERSION_PLATAFORMA }}</p>
+      <ul>
+        <li>Registre cada jornada una sola vez: la plataforma le avisa si ya existe una parecida.</li>
+        <li>Las actividades de la reserva llegan desde SIGIT y JACID las revisa antes de sumarlas.</li>
+        <li>Tablero con gráficas interactivas y tablas dinámicas exportables a Excel.</li>
+        <li>Indicadores de impacto de largo plazo, con la metodología SIGIT.</li>
+      </ul>
+    </div>
+    <p><small>Información Público Clasificado · La sesión se cierra tras {{ MINUTOS_SESION }} minutos de inactividad.</small></p>
+  </section>
+
+  <section class="ingreso-formulario">
+    <form method="post" novalidate>
+      {% csrf_token %}
+      <p class="kicker">Ingreso</p>
+      <h2>Bienvenido</h2>
+      <p class="sub">Use la credencial de su unidad.</p>
+      {% if error %}
+      <div class="aviso error" role="alert"><svg><use href="#i-alerta"/></svg><p>{{ error }}</p></div>
+      {% endif %}
+      {{ formulario.id_captcha }}
+      <div class="campo">
+        <label for="{{ formulario.credencial.id_for_label }}">Credencial</label>
+        {{ formulario.credencial }}
+      </div>
+      <div class="campo">
+        <label for="{{ formulario.clave.id_for_label }}">Clave</label>
+        {{ formulario.clave }}
+      </div>
+      <div class="campo">
+        <span class="etiqueta" id="texto-reto">Verificación</span>
+        <div class="captcha-reto" aria-describedby="texto-reto">{{ reto.texto }}</div>
+        <label for="{{ formulario.respuesta_captcha.id_for_label }}">Respuesta</label>
+        {{ formulario.respuesta_captcha }}
+      </div>
+      <button class="boton ancho-completo" type="submit">Ingresar</button>
+    </form>
+  </section>
+</div>
+{% endblock %}

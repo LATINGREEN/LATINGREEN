@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block titulo %}Personal{% endblock %}
+{% block migas %}<span>Registro</span><span aria-hidden="true">/</span><strong>Personal</strong>{% endblock %}
+{% block contenido %}
+<div class="encabezado"><div><p class="kicker">Maestro</p><h1>Personal</h1><p class="sub">Una persona, un registro: el documento no se repite.</p></div></div>
+<div class="bento">
+  <section class="{% if formulario %}col-7{% else %}col-12{% endif %}">
+    <div class="tabla-contenedor"><table class="tabla">
+      <thead><tr><th scope="col">Nombre</th><th scope="col">Documento</th><th scope="col">Grado</th><th scope="col">Unidad</th></tr></thead>
+      <tbody>{% for p in pagina %}<tr><td>{{ p.nombres }} {{ p.apellidos }}</td><td class="mono">{{ p.tipo_documento.codigo }} {{ p.numero_documento }}</td><td>{{ p.grado|default:"—" }}</td><td>{{ p.unidad.sigla }}</td></tr>
+      {% empty %}<tr><td colspan="4"><div class="vacio"><p>No hay personal registrado en su ámbito.</p></div></td></tr>{% endfor %}</tbody>
+    </table></div>
+    {% include "maestros/_paginacion.html" %}
+  </section>
+  {% if formulario %}
+  <section class="tarjeta col-5"><h2>Registrar persona</h2>
+    {% if formulario.non_field_errors %}<div class="aviso error" role="alert"><svg><use href="#i-alerta"/></svg>{{ formulario.non_field_errors }}</div>{% endif %}
+<form method="post" novalidate>{% csrf_token %}{% for campo in formulario %}{% include "nucleo/_campo.html" %}{% endfor %}
+      <button class="boton" type="submit">Registrar</button></form>
+  </section>
+  {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,54 @@
+{% extends "base.html" %}{% load static humanize %}
+{% block titulo %}Indicadores de impacto{% endblock %}
+{% block migas %}<span>Análisis</span><span aria-hidden="true">/</span><strong>Indicadores de impacto</strong>{% endblock %}
+{% block cabeza %}<script src="{% static 'vendor/echarts-6.1.0.min.js' %}" defer></script><script src="{% static 'js/graficas.js' %}" defer></script>{% endblock %}
+{% block contenido %}
+<div class="encabezado">
+  <div>
+    <p class="kicker">Metodología SIGIT</p>
+    <h1>Indicadores de impacto</h1>
+    <p class="sub">Miden el efecto de largo plazo de la acción integral en las comunidades, no solo lo que se hizo en cada jornada.</p>
+  </div>
+  {% if user.is_staff %}<div class="acciones"><a class="boton secundario" href="{% url 'admin:analitica_indicadorimpacto_add' %}"><svg><use href="#i-mas"/></svg>Definir indicador</a></div>{% endif %}
+</div>
+
+<div class="aviso info"><svg><use href="#i-info"/></svg>
+  <p>Los indicadores los define la <strong>mesa de expertos SIGIT</strong> con JACID (reunión del 30/09/2026). La plataforma no trae indicadores inventados: registra los aprobados, con su fórmula, línea base, meta y fuente, y guarda cada medición por periodo y unidad.</p>
+</div>
+
+{% if datos %}
+<div class="bento animar">
+  {% for d in datos %}
+  <section class="tarjeta col-6">
+    <div class="tarjeta-cabeza">
+      <div><p class="kicker">{{ d.indicador.codigo }} · {{ d.indicador.periodicidad }}</p><h2>{{ d.indicador.nombre }}</h2></div>
+      <div class="acciones">{% if d.avance is not None %}<span class="estado {% if d.avance >= 100 %}completo{% elif d.avance >= 50 %}neutro{% else %}pendiente{% endif %}">{{ d.avance }} % hacia la meta</span>{% endif %}</div>
+    </div>
+    <p class="sub">{{ d.indicador.formula }}</p>
+    <dl class="datos">
+      <div><dt>Línea base</dt><dd class="cifra">{{ d.indicador.linea_base|floatformat:"-2"|default:"—" }} {{ d.indicador.unidad_medida }}</dd></div>
+      <div><dt>Meta</dt><dd class="cifra">{{ d.indicador.meta|floatformat:"-2"|default:"—" }} {{ d.indicador.unidad_medida }}</dd></div>
+      <div><dt>Última medición</dt><dd class="cifra">{{ d.ultimo|floatformat:"-2"|default:"—" }}</dd></div>
+      <div><dt>Fuente</dt><dd>{{ d.indicador.fuente }}</dd></div>
+    </dl>
+    <div class="grafica" data-indicador="{{ d.indicador.codigo }}" role="img" aria-label="Evolución de {{ d.indicador.nombre }}"></div>
+  </section>
+  {% endfor %}
+</div>
+{% else %}
+<div class="tarjeta vacio"><svg><use href="#i-indicador"/></svg><p>Aún no hay indicadores aprobados.</p>{% if user.is_staff %}<a class="boton" href="{% url 'admin:analitica_indicadorimpacto_add' %}">Definir el primero</a>{% endif %}</div>
+{% endif %}
+
+{% if formulario and datos %}
+<section class="tarjeta espacio-arriba">
+  <h2>Registrar una medición</h2>
+  <form method="post" novalidate>{% csrf_token %}
+    <div class="rejilla-form">
+      {% for campo in formulario %}{% include "nucleo/_campo.html" %}{% endfor %}
+    </div>
+    <button class="boton" type="submit">Registrar medición</button>
+  </form>
+</section>
+{% endif %}
+{{ series|json_script:"datos-indicadores" }}
+{% endblock %}

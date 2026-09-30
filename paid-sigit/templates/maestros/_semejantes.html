@@ -1,0 +1,10 @@
+{% if semejantes %}
+<div class="aviso duplicado" role="status">
+  <svg><use href="#i-alerta"/></svg>
+  <div>
+    <strong>{% if en_vivo %}Ya hay entidades con un nombre parecido{% else %}¿Es alguna de estas? No la registre dos veces{% endif %}</strong>
+    <ul>{% for e in semejantes %}<li>{{ e.nombre }}{% if e.nit %} · NIT {{ e.nit }}{% endif %} · {{ e.municipio }} · <span class="cifra">{{ e.semejanza }} %</span> parecida</li>{% endfor %}</ul>
+    {% if en_vivo %}<p class="sub">Si es una de ellas, úsela en las jornadas en lugar de crearla otra vez.</p>{% endif %}
+  </div>
+</div>
+{% endif %}

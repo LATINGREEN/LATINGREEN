@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block titulo %}Error {{ codigo }}{% endblock %}
+{% block cuerpo %}
+<main class="contenido" id="contenido">
+  <div class="tarjeta vacio">
+    <svg><use href="#i-alerta"/></svg>
+    <h1>{{ codigo }}</h1>
+    <p>{{ mensaje }}</p>
+    <a class="boton" href="{% url 'nucleo:inicio' %}">Volver al inicio</a>
+  </div>
+</main>
+{% endblock %}

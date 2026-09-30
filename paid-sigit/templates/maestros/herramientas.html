@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% block titulo %}Herramientas AID{% endblock %}
+{% block migas %}<span>Registro</span><span aria-hidden="true">/</span><strong>Herramientas AID</strong>{% endblock %}
+{% block contenido %}
+<div class="encabezado"><div><p class="kicker">Maestro</p><h1>Herramientas de Acción Integral y Desarrollo</h1><p class="sub">Los once tipos del Manual del Usuario. Si está inactiva, explique por qué.</p></div></div>
+<div class="tabla-contenedor espacio-abajo"><table class="tabla">
+  <thead><tr><th scope="col">Código</th><th scope="col">Nombre</th><th scope="col">Tipo</th><th scope="col">Estado</th><th scope="col">Municipio</th><th scope="col">Responsable</th></tr></thead>
+  <tbody>{% for h in pagina %}<tr><td class="mono">{{ h.codigo }}</td><td>{{ h.nombre }}</td><td>{{ h.tipo }}</td><td><span class="estado {% if h.estado.codigo == 'ACTIVA' %}completo{% else %}pendiente{% endif %}">{{ h.estado }}</span></td><td>{{ h.municipio }}</td><td>{{ h.responsable }}</td></tr>
+  {% empty %}<tr><td colspan="6"><div class="vacio"><p>No hay herramientas registradas en su ámbito.</p></div></td></tr>{% endfor %}</tbody>
+</table></div>
+{% include "maestros/_paginacion.html" %}
+{% if formulario %}
+<section class="tarjeta"><h2>Registrar herramienta AID</h2>
+{% if formulario.non_field_errors %}<div class="aviso error" role="alert"><svg><use href="#i-alerta"/></svg>{{ formulario.non_field_errors }}</div>{% endif %}
+  <form method="post" novalidate>{% csrf_token %}
+    <div class="rejilla-form">
+      {% for campo in formulario %}{% if 'latitud' not in campo.name and 'longitud' not in campo.name %}{% include "nucleo/_campo.html" %}{% endif %}{% endfor %}
+    </div>
+    <div data-gms>
+      <fieldset><legend>Latitud <span class="obligatorio">*</span></legend><div class="gms">
+        {% include "nucleo/_campo.html" with campo=formulario.latitud_grados %}{% include "nucleo/_campo.html" with campo=formulario.latitud_minutos %}{% include "nucleo/_campo.html" with campo=formulario.latitud_segundos %}{% include "nucleo/_campo.html" with campo=formulario.latitud_hemisferio %}
+      </div></fieldset>
+      <fieldset><legend>Longitud <span class="obligatorio">*</span></legend><div class="gms">
+        {% include "nucleo/_campo.html" with campo=formulario.longitud_grados %}{% include "nucleo/_campo.html" with campo=formulario.longitud_minutos %}{% include "nucleo/_campo.html" with campo=formulario.longitud_segundos %}{% include "nucleo/_campo.html" with campo=formulario.longitud_hemisferio %}
+      </div></fieldset>
+      <p class="vista-previa-coord" aria-live="polite"></p>
+    </div>
+    <button class="boton" type="submit">Registrar herramienta</button>
+  </form>
+</section>
+{% endif %}
+{% endblock %}

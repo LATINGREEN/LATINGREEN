@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% block titulo %}API e interoperabilidad{% endblock %}
+{% block migas %}<span>Plataforma</span><span aria-hidden="true">/</span><strong>API e interoperabilidad</strong>{% endblock %}
+{% block contenido %}
+<div class="encabezado">
+  <div><p class="kicker">Gobernanza del dato</p><h1>API de interoperabilidad</h1>
+  <p class="sub">Para que PAID SIGIT no sea un sistema aislado: SIGIT entrega actividades y los demás sistemas de la Armada consultan datos maestros.</p></div>
+  <div class="acciones"><a class="boton realce" href="{% url 'api:esquema' %}"><svg><use href="#i-descarga"/></svg>Contrato OpenAPI (YAML)</a></div>
+</div>
+<div class="bento">
+  <section class="tarjeta col-6">
+    <h2>Autenticación</h2>
+    <p>Cada sistema recibe un <strong>testigo propio</strong>, emitido por un administrador en <em>Gestión → Sistemas externos</em>. Se muestra una sola vez; la plataforma guarda solo su resumen SHA-256.</p>
+    <pre class="codigo"><code>Authorization: Bearer sigit_…</code></pre>
+    <p>Dos alcances: <strong>ENTREGA</strong> (enviar actividades a la bandeja de revisión) y <strong>LECTURA</strong> (consultar datos maestros). Todo sistema consulta dentro del ámbito de su unidad: la base de datos no le muestra lo de otras.</p>
+    <p>Límite: 600 peticiones por hora y por sistema. Errores con la forma <code>{codigo, mensaje, detalles, id_correlacion}</code>.</p>
+  </section>
+  <section class="tarjeta col-6">
+    <h2>Entregar actividades desde SIGIT</h2>
+    <pre class="codigo"><code>POST /api/v1/integracion/actividades/
+{"actividades": [{
+  "id_externo": "RES-2026-0142",
+  "tipo_jornada": "CONJUNTA",
+  "descripcion": "Jornada de salud…",
+  "fecha_ejecucion": "2026-09-20",
+  "lugar": "Coliseo municipal",
+  "municipio_dane": "52835",
+  "latitud": 1.8067, "longitud": -78.7647,
+  "poblacion": [{"codigo": "…", "cantidad": 40}]
+}]}</code></pre>
+    <p>Responde <code>202</code> con el resultado de cada una: <code>RECIBIDA</code>, <code>ACTUALIZADA</code>, <code>REPETIDA</code> o <code>RECHAZADA</code> (con los errores). Consulte después <code>GET /api/v1/integracion/actividades/{id_externo}/</code> para saber si JACID la aprobó o por qué la rechazó.</p>
+  </section>
+  <section class="tarjeta col-12">
+    <h2>Datos maestros y consultas</h2>
+    <div class="tabla-contenedor"><table class="tabla">
+      <thead><tr><th scope="col">Método y ruta</th><th scope="col">Qué devuelve</th></tr></thead>
+      <tbody>
+        <tr><td class="mono">GET /api/v1/catalogos/{nombre}/</td><td>Elementos de un catálogo. Disponibles: {% for c in catalogos %}<code>{{ c }}</code>{% if not forloop.last %}, {% endif %}{% endfor %}.</td></tr>
+        <tr><td class="mono">GET /api/v1/unidades/</td><td>Unidades con su código, sigla, nivel y superior.</td></tr>
+        <tr><td class="mono">GET /api/v1/municipios/?departamento=52</td><td>Municipios DANE.</td></tr>
+        <tr><td class="mono">GET /api/v1/jornadas/?desde=2026-01-01&amp;completas=true</td><td>Resumen de jornadas en el ámbito del solicitante, paginado.</td></tr>
+        <tr><td class="mono">GET /api/v1/esquema/</td><td>Contrato OpenAPI 3 completo, para generar clientes.</td></tr>
+      </tbody>
+    </table></div>
+  </section>
+</div>
+{% endblock %}

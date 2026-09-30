@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% block titulo %}Bandeja de revisión SIGIT{% endblock %}
+{% block migas %}<span>Integración SIGIT</span><span aria-hidden="true">/</span><strong>Bandeja de revisión</strong>{% endblock %}
+{% block contenido %}
+<div class="encabezado">
+  <div><p class="kicker">Supervisión de JACID</p><h1>Bandeja de revisión</h1>
+  <p class="sub">Lo que reporta la reserva llega aquí una sola vez. Nada entra al consolidado sin que JACID lo apruebe, y nadie lo vuelve a digitar.</p></div>
+  <div class="acciones"><a class="boton secundario" href="{% url 'integracion:cargar_archivo' %}"><svg><use href="#i-archivo"/></svg>Cargar archivo plano</a></div>
+</div>
+<div class="bento animar espacio-abajo">
+  <article class="tarjeta kpi destacado col-4"><span class="etiqueta">Pendientes de revisión</span><span class="valor">{{ conteos.PENDIENTE|default:0 }}</span><span class="detalle">{{ con_duplicados }} con posibles duplicados</span></article>
+  <article class="tarjeta kpi col-4"><span class="etiqueta">Aprobadas</span><span class="valor">{{ conteos.APROBADO|default:0 }}</span><span class="detalle">Convertidas en jornadas (origen SIGIT)</span></article>
+  <article class="tarjeta kpi col-4"><span class="etiqueta">Rechazadas</span><span class="valor">{{ conteos.RECHAZADO|default:0 }}</span><span class="detalle">Con motivo, que SIGIT consulta por la API</span></article>
+</div>
+<nav class="fichas" aria-label="Estado">{% for valor, texto in estados %}<a class="boton pequeno {% if estado == valor %}{% else %}secundario{% endif %}" href="?estado={{ valor }}">{{ texto }}</a>{% endfor %}<a class="boton pequeno {% if estado not in 'PENDIENTE APROBADO RECHAZADO' %}{% else %}secundario{% endif %}" href="?estado=todos">Todas</a></nav>
+<div class="tabla-contenedor espacio-abajo"><table class="tabla">
+  <thead><tr><th scope="col">Id. en SIGIT</th><th scope="col">Recibida</th><th scope="col">Ejecución</th><th scope="col">Lugar</th><th scope="col">Tipo propuesto</th><th scope="col">Alertas</th><th scope="col">Estado</th><th scope="col"><span class="visualmente-oculto">Acciones</span></th></tr></thead>
+  <tbody>
+  {% for r in pagina %}
+  <tr>
+    <td class="mono">{{ r.id_externo }}</td>
+    <td class="cifra">{{ r.recibido_en|date:"d/m/Y H:i" }}</td>
+    <td class="cifra">{{ r.datos.fecha_ejecucion }}</td>
+    <td>{{ r.datos.lugar }}</td>
+    <td>{{ r.datos.tipo_jornada }}</td>
+    <td>{% if r.posibles_duplicados %}<span class="estado pendiente"><svg><use href="#i-alerta"/></svg>{{ r.posibles_duplicados|length }} parecida{{ r.posibles_duplicados|length|pluralize }}</span>{% else %}—{% endif %}</td>
+    <td>{% if r.estado == 'PENDIENTE' %}<span class="estado pendiente">Pendiente</span>{% elif r.estado == 'APROBADO' %}<span class="estado completo"><svg><use href="#i-check"/></svg>{{ r.jornada.codigo }}</span>{% else %}<span class="estado incompleto">Rechazada</span>{% endif %}</td>
+    <td class="acciones-fila"><a class="boton pequeno {% if r.estado == 'PENDIENTE' %}{% else %}secundario{% endif %}" href="{% url 'integracion:detalle' r.pk %}">{% if r.estado == 'PENDIENTE' %}Revisar{% else %}Ver{% endif %}</a></td>
+  </tr>
+  {% empty %}
+  <tr><td colspan="8"><div class="vacio"><svg><use href="#i-bandeja"/></svg><p>No hay actividades en este estado.</p></div></td></tr>
+  {% endfor %}
+  </tbody>
+</table></div>
+<section class="tarjeta">
+  <h2>Últimos lotes recibidos</h2>
+  <div class="tabla-contenedor"><table class="tabla">
+    <thead><tr><th scope="col">Lote</th><th scope="col">Sistema</th><th scope="col">Vía</th><th scope="col">Recibido</th><th scope="col" class="num">Total</th><th scope="col" class="num">Nuevas</th><th scope="col" class="num">Repetidas</th><th scope="col" class="num">Con errores</th></tr></thead>
+    <tbody>{% for l in lotes %}<tr><td class="mono">{{ l.pk }}</td><td>{{ l.sistema.codigo }}</td><td>{{ l.get_via_display }}{% if l.nombre_archivo %} · {{ l.nombre_archivo }}{% endif %}</td><td class="cifra">{{ l.recibido_en|date:"d/m/Y H:i" }}</td><td class="num">{{ l.total }}</td><td class="num">{{ l.aceptados }}</td><td class="num">{{ l.repetidos }}</td><td class="num">{{ l.rechazados }}</td></tr>
+    {% empty %}<tr><td colspan="8"><div class="vacio"><p>Aún no ha llegado ningún lote.</p></div></td></tr>{% endfor %}</tbody>
+  </table></div>
+</section>
+{% endblock %}

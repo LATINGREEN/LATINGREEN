@@ -1,0 +1,112 @@
+{% load static %}<!doctype html>
+<html lang="es-CO">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="htmx-config" content='{"includeIndicatorStyles": false, "allowEval": false, "allowScriptTags": false, "selfRequestsOnly": true}'>
+  <title>{% block titulo %}Inicio{% endblock %} · {{ NOMBRE_PLATAFORMA }} {{ VERSION_PLATAFORMA }}</title>
+  <link rel="icon" href="{% static 'identidad/emblema-jacid.webp' %}">
+  <link rel="stylesheet" href="{% static 'css/sigit.css' %}">
+  {# Síncrono y diminuto: aplica tema, contraste y tamaño de letra antes de pintar. #}
+  <script src="{% static 'js/preferencias.js' %}"></script>
+  <script src="{% static 'vendor/htmx-2.0.11.min.js' %}" defer></script>
+  <script src="{% static 'js/sigit.js' %}" defer></script>
+  {% block cabeza %}{% endblock %}
+</head>
+<body hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'>
+{% include "nucleo/_iconos.html" %}
+<a class="saltar" href="#contenido">Saltar al contenido</a>
+{% block cuerpo %}
+<div class="marco">
+  <aside class="lateral" id="lateral" aria-label="Navegación principal">
+    <a class="marca" href="{% url 'analitica:tablero' %}">
+      <img src="{% static 'identidad/emblema-jacid.webp' %}" alt="" width="44" height="44">
+      <span class="marca-texto">
+        <span class="marca-nombre">{{ NOMBRE_PLATAFORMA }}</span>
+        <span class="marca-version">{{ VERSION_PLATAFORMA }}</span>
+      </span>
+    </a>
+    {% with ruta=request.resolver_match.view_name %}
+    <nav class="nav">
+      <span class="nav-grupo">Análisis</span>
+      <a href="{% url 'analitica:tablero' %}" {% if ruta == 'analitica:tablero' %}aria-current="page"{% endif %}><svg><use href="#i-tablero"/></svg><span class="etiqueta">Tablero</span></a>
+      <a href="{% url 'analitica:pivote' %}" {% if ruta == 'analitica:pivote' %}aria-current="page"{% endif %}><svg><use href="#i-pivote"/></svg><span class="etiqueta">Tablas dinámicas</span></a>
+      <a href="{% url 'analitica:indicadores' %}" {% if ruta == 'analitica:indicadores' %}aria-current="page"{% endif %}><svg><use href="#i-indicador"/></svg><span class="etiqueta">Indicadores de impacto</span></a>
+      <span class="nav-grupo">Registro</span>
+      <a href="{% url 'jornadas:listado' %}" {% if ruta|slice:':9' == 'jornadas:' %}aria-current="page"{% endif %}><svg><use href="#i-jornadas"/></svg><span class="etiqueta">Jornadas</span></a>
+      <a href="{% url 'maestros:entidades' %}" {% if ruta == 'maestros:entidades' %}aria-current="page"{% endif %}><svg><use href="#i-entidad"/></svg><span class="etiqueta">Entidades</span></a>
+      <a href="{% url 'maestros:personal' %}" {% if ruta == 'maestros:personal' %}aria-current="page"{% endif %}><svg><use href="#i-personal"/></svg><span class="etiqueta">Personal</span></a>
+      <a href="{% url 'maestros:herramientas' %}" {% if ruta == 'maestros:herramientas' %}aria-current="page"{% endif %}><svg><use href="#i-herramienta"/></svg><span class="etiqueta">Herramientas AID</span></a>
+      {% if puede_revisar %}
+      <span class="nav-grupo">Integración SIGIT</span>
+      <a href="{% url 'integracion:bandeja' %}" {% if ruta|slice:':12' == 'integracion:' %}aria-current="page"{% endif %}><svg><use href="#i-bandeja"/></svg><span class="etiqueta">Bandeja de revisión</span>{% if pendientes_sigit %}<span class="insignia">{{ pendientes_sigit }}</span>{% endif %}</a>
+      {% endif %}
+      <span class="nav-grupo">Plataforma</span>
+      <a href="{% url 'api:documentacion' %}" {% if ruta == 'api:documentacion' %}aria-current="page"{% endif %}><svg><use href="#i-api"/></svg><span class="etiqueta">API e interoperabilidad</span></a>
+      {% if user.is_staff %}
+      <a href="{% url 'admin:index' %}"><svg><use href="#i-gestion"/></svg><span class="etiqueta">Gestión</span></a>
+      {% endif %}
+    </nav>
+    {% endwith %}
+    <div class="lateral-pie"><span class="etiqueta">Información Público Clasificado</span></div>
+  </aside>
+
+  <div class="principal">
+    <header class="cabecera">
+      <button class="boton-icono solo-movil" type="button" data-accion="menu" aria-controls="lateral" aria-label="Abrir menú"><svg><use href="#i-menu"/></svg></button>
+      <button class="boton-icono" type="button" data-accion="plegar" aria-label="Plegar o desplegar el menú" title="Plegar menú"><svg><use href="#i-plegar"/></svg></button>
+      <nav class="migas" aria-label="Ubicación">{% block migas %}{% endblock %}</nav>
+      <div class="cabecera-acciones">
+        <button class="buscador-atajo" type="button" data-accion="paleta" aria-haspopup="dialog">
+          <svg width="16" height="16"><use href="#i-buscar"/></svg><span class="etiqueta">Ir a… o buscar jornada</span><kbd>Ctrl K</kbd>
+        </button>
+        <div class="accesibilidad" role="group" aria-label="Accesibilidad">
+          <button class="boton-icono" type="button" data-accion="letra-menos" aria-label="Reducir tamaño de letra">A−</button>
+          <button class="boton-icono" type="button" data-accion="letra-mas" aria-label="Aumentar tamaño de letra">A+</button>
+          <button class="boton-icono" type="button" data-accion="contraste" aria-label="Alto contraste" aria-pressed="false"><svg><use href="#i-contraste"/></svg></button>
+          <button class="boton-icono" type="button" data-accion="tema" aria-label="Modo oscuro" aria-pressed="false"><svg><use href="#i-luna"/></svg></button>
+        </div>
+        <div class="chip-usuario">
+          <span class="avatar" aria-hidden="true">{{ user.unidad.sigla|slice:':3' }}</span>
+          <span class="detalle">
+            <strong>{{ user.credencial }}</strong><br>
+            <span class="reloj-sesion" data-segundos="{{ MINUTOS_SESION }}" data-renovar="{% url 'nucleo:renovar_sesion' %}" data-salir="{% url 'nucleo:ingreso' %}" aria-live="polite">Sesión: {{ MINUTOS_SESION }}:00</span>
+          </span>
+          <form method="post" action="{% url 'nucleo:salida' %}">{% csrf_token %}
+            <button class="boton-icono" type="submit" aria-label="Cerrar sesión" title="Cerrar sesión"><svg><use href="#i-salir"/></svg></button>
+          </form>
+        </div>
+      </div>
+    </header>
+
+    <main class="contenido" id="contenido" tabindex="-1">
+      {% block contenido %}{% endblock %}
+    </main>
+    <footer class="pie">
+      <span>{{ NOMBRE_PLATAFORMA }} {{ VERSION_PLATAFORMA }} · Jefatura de Acción Integral y Desarrollo — Armada de Colombia</span>
+      <span>Unidad: {{ user.unidad.nombre }}</span>
+    </footer>
+  </div>
+</div>
+
+<dialog class="paleta" id="paleta" aria-label="Paleta de órdenes">
+  <input type="search" id="paleta-busqueda" placeholder="Escriba para ir a una sección o buscar una jornada por código o lugar…" autocomplete="off" aria-controls="paleta-resultados">
+  <ul id="paleta-resultados" role="listbox"
+      data-fuente="{% url 'jornadas:busqueda_rapida' %}"
+      data-destinos='[{"t":"Tablero","u":"{% url 'analitica:tablero' %}"},{"t":"Tablas dinámicas","u":"{% url 'analitica:pivote' %}"},{"t":"Indicadores de impacto","u":"{% url 'analitica:indicadores' %}"},{"t":"Jornadas","u":"{% url 'jornadas:listado' %}"},{"t":"Nueva jornada","u":"{% url 'jornadas:nueva' %}"},{"t":"Entidades","u":"{% url 'maestros:entidades' %}"},{"t":"Personal","u":"{% url 'maestros:personal' %}"},{"t":"Herramientas AID","u":"{% url 'maestros:herramientas' %}"},{"t":"Bandeja de revisión SIGIT","u":"{% url 'integracion:bandeja' %}"},{"t":"API e interoperabilidad","u":"{% url 'api:documentacion' %}"}]'></ul>
+  <div class="pie-paleta">↑ ↓ para moverse · Enter para abrir · Esc para cerrar</div>
+</dialog>
+{% endblock %}
+
+<div class="notificaciones" aria-live="polite">
+  {% for mensaje in messages %}
+  <div class="notificacion {{ mensaje.tags }}" role="status">
+    <span>{{ mensaje }}</span>
+    <button type="button" data-accion="cerrar-notificacion" aria-label="Cerrar">×</button>
+  </div>
+  {% endfor %}
+</div>
+{% block scripts %}{% endblock %}
+</body>
+</html>

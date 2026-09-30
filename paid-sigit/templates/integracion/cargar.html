@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block titulo %}Cargar archivo plano{% endblock %}
+{% block migas %}<a href="{% url 'integracion:bandeja' %}">Bandeja de revisión</a><span aria-hidden="true">/</span><strong>Cargar archivo plano</strong>{% endblock %}
+{% block contenido %}
+<div class="encabezado"><div><p class="kicker">Integración SIGIT</p><h1>Cargar archivo plano</h1>
+<p class="sub">La alternativa a la API: un CSV periódico que exporta SIGIT. Pasa por la misma validación y termina en la misma bandeja.</p></div>
+<div class="acciones"><a class="boton secundario" href="{% url 'integracion:plantilla' %}"><svg><use href="#i-descarga"/></svg>Descargar plantilla</a></div></div>
+<div class="bento">
+  <section class="tarjeta col-5">
+    <form method="post" enctype="multipart/form-data" novalidate>{% csrf_token %}
+      {% for campo in formulario %}{% include "nucleo/_campo.html" %}{% endfor %}
+      <button class="boton" type="submit">Validar y enviar a la bandeja</button>
+    </form>
+  </section>
+  <section class="tarjeta col-7">
+    <h2>Cómo es el archivo</h2>
+    <ul>
+      <li>CSV en UTF-8, separado por punto y coma o coma. Una actividad por fila.</li>
+      <li><code>id_externo</code> identifica la actividad en SIGIT: reenviar el mismo archivo no duplica nada.</li>
+      <li>Fechas en <code>AAAA-MM-DD</code>; coordenadas decimales con punto (<code>1.80670</code>, <code>-78.76470</code>).</li>
+      <li><code>poblacion</code> y <code>servicios</code>: <code>CODIGO:cantidad|CODIGO:cantidad</code>, con los códigos de los catálogos de JACID.</li>
+      <li>Lo que SIGIT no sepa (participación del EJC o la FAC) puede ir vacío: lo decide el revisor al aprobar.</li>
+    </ul>
+  </section>
+</div>
+{% if resultados %}
+<section class="tarjeta espacio-arriba"><h2>Resultado del lote</h2>
+  <div class="tabla-contenedor"><table class="tabla">
+    <thead><tr><th scope="col">Id. en SIGIT</th><th scope="col">Resultado</th><th scope="col">Detalle</th></tr></thead>
+    <tbody>{% for r in resultados %}<tr><td class="mono">{{ r.id_externo }}</td>
+      <td>{% if r.resultado == 'RECHAZADA' %}<span class="estado incompleto">Con errores</span>{% elif r.resultado == 'REPETIDA' %}<span class="estado neutro">Repetida (sin cambios)</span>{% else %}<span class="estado completo">{{ r.resultado|capfirst }}</span>{% endif %}</td>
+      <td>{% for campo, errores in r.errores.items %}<strong>{{ campo }}</strong>: {{ errores|join:" " }} {% endfor %}{% if r.posibles_duplicados %}<span class="estado pendiente">{{ r.posibles_duplicados }} parecida(s)</span>{% endif %}</td></tr>{% endfor %}</tbody>
+  </table></div>
+</section>
+{% endif %}
+{% endblock %}

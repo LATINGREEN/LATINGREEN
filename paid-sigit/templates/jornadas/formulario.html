@@ -1,0 +1,103 @@
+{% extends "base.html" %}
+{% block titulo %}{{ titulo }}{% endblock %}
+{% block migas %}<a href="{% url 'jornadas:listado' %}">Jornadas</a><span aria-hidden="true">/</span><strong>{{ titulo }}</strong>{% endblock %}
+{% block contenido %}
+<div class="encabezado">
+  <div>
+    <p class="kicker">Datos generales</p>
+    <h1>{{ titulo }}</h1>
+    <p class="sub">Los campos con <span class="obligatorio">*</span> son obligatorios. Nada viene marcado de antemano: elija cada dato.</p>
+  </div>
+</div>
+
+{% if base %}
+<div class="aviso info" role="status"><svg><use href="#i-copiar"/></svg>
+  <p>Datos copiados de <a href="{% url 'jornadas:detalle' base.pk %}">{{ base.codigo }}</a>: tipo, lugar, municipio y coordenadas. <strong>Revíselos</strong> y registre las fechas de esta jornada.</p>
+</div>
+{% endif %}
+
+{% if parecidas %}
+<div class="aviso duplicado" role="alert" id="posibles-duplicados">
+  <svg><use href="#i-alerta"/></svg>
+  <div>
+    <h2>¿Ya está registrada? Encontramos jornadas parecidas</h2>
+    <p>Mismo municipio, fechas cercanas y un lugar de nombre semejante. Ábralas antes de guardar para no duplicar el registro.</p>
+    <ul>
+    {% for p in parecidas %}
+      <li><a href="{{ p.url }}" target="_blank" rel="noopener">{{ p.codigo }}</a> · {{ p.lugar }} · {{ p.fecha_ejecucion }} · {{ p.unidad }} · semejanza {{ p.semejanza }}</li>
+    {% endfor %}
+    </ul>
+    <label class="opciones-si-no"><span><input type="checkbox" form="formulario-jornada" name="confirmo_no_duplicado" value="on"> {{ formulario.confirmo_no_duplicado.label }}</span></label>
+  </div>
+</div>
+{% endif %}
+
+{% if formulario.non_field_errors %}<div class="aviso error" role="alert"><svg><use href="#i-alerta"/></svg>{{ formulario.non_field_errors }}</div>{% endif %}
+
+<form method="post" id="formulario-jornada" novalidate class="animar">
+  {% csrf_token %}
+  <section class="tarjeta">
+    <h2>Identificación</h2>
+    <div class="rejilla-form">
+      {% include "nucleo/_campo.html" with campo=formulario.unidad %}
+      {% include "nucleo/_campo.html" with campo=formulario.tipo_jornada %}
+      {% include "nucleo/_campo.html" with campo=formulario.fecha_inicio %}
+      {% include "nucleo/_campo.html" with campo=formulario.fecha_fin %}
+      {% include "nucleo/_campo.html" with campo=formulario.fecha_ejecucion %}
+    </div>
+  </section>
+
+  <section class="tarjeta">
+    <h2>Lugar</h2>
+    <div class="rejilla-form">
+      {% include "nucleo/_campo.html" with campo=formulario.departamento %}
+      {% include "nucleo/_campo.html" with campo=formulario.municipio %}
+      {% include "nucleo/_campo.html" with campo=formulario.lugar clase="ancho" %}
+    </div>
+    <div data-gms>
+      <fieldset>
+        <legend>Latitud <span class="obligatorio" aria-hidden="true">*</span></legend>
+        <div class="gms">
+          {% include "nucleo/_campo.html" with campo=formulario.latitud_grados %}
+          {% include "nucleo/_campo.html" with campo=formulario.latitud_minutos %}
+          {% include "nucleo/_campo.html" with campo=formulario.latitud_segundos %}
+          {% include "nucleo/_campo.html" with campo=formulario.latitud_hemisferio %}
+        </div>
+      </fieldset>
+      <fieldset>
+        <legend>Longitud <span class="obligatorio" aria-hidden="true">*</span></legend>
+        <div class="gms">
+          {% include "nucleo/_campo.html" with campo=formulario.longitud_grados %}
+          {% include "nucleo/_campo.html" with campo=formulario.longitud_minutos %}
+          {% include "nucleo/_campo.html" with campo=formulario.longitud_segundos %}
+          {% include "nucleo/_campo.html" with campo=formulario.longitud_hemisferio %}
+        </div>
+      </fieldset>
+      <p class="vista-previa-coord" aria-live="polite"></p>
+    </div>
+  </section>
+
+  <section class="tarjeta">
+    <h2>Participación</h2>
+    <div class="rejilla-form">
+      <div class="campo"><span class="etiqueta">¿Participó la Armada?</span><span class="estado completo"><svg><use href="#i-check"/></svg>Sí, siempre</span></div>
+      {% include "nucleo/_si_no.html" with campo=formulario.participo_ejc %}
+      {% include "nucleo/_si_no.html" with campo=formulario.participo_fac %}
+      {% include "nucleo/_si_no.html" with campo=formulario.poblacion_afecta_tropa %}
+    </div>
+  </section>
+
+  <section class="tarjeta">
+    <h2>Descripción</h2>
+    {% include "nucleo/_campo.html" with campo=formulario.descripcion %}
+    {% include "nucleo/_campo.html" with campo=formulario.observaciones %}
+  </section>
+
+  <div class="encabezado">
+    <div class="acciones">
+      <a class="boton fantasma" href="{% if jornada %}{% url 'jornadas:detalle' jornada.pk %}{% else %}{% url 'jornadas:listado' %}{% endif %}">Cancelar</a>
+      <button class="boton" type="submit"><svg><use href="#i-check"/></svg>{% if jornada %}Guardar cambios{% else %}Registrar y seguir con las pestañas{% endif %}</button>
+    </div>
+  </div>
+</form>
+{% endblock %}

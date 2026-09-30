@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+{% block titulo %}Actividad {{ registro.id_externo }}{% endblock %}
+{% block migas %}<a href="{% url 'integracion:bandeja' %}">Bandeja de revisión</a><span aria-hidden="true">/</span><strong class="mono">{{ registro.id_externo }}</strong>{% endblock %}
+{% block contenido %}
+<div class="encabezado">
+  <div><p class="kicker">{{ registro.sistema.nombre }} · lote {{ registro.lote_id }}</p>
+  <h1>{{ datos.lugar }}</h1>
+  <p class="sub">Id. en SIGIT <span class="mono">{{ registro.id_externo }}</span> · recibida el {{ registro.recibido_en|date:"d/m/Y H:i" }}</p></div>
+</div>
+
+{% if registro.estado != 'PENDIENTE' %}
+<div class="aviso {% if registro.estado == 'APROBADO' %}exito{% else %}error{% endif %}"><svg><use href="#i-info"/></svg>
+  <p>{{ registro.get_estado_display }} por {{ registro.revisado_por }} el {{ registro.revisado_en|date:"d/m/Y H:i" }}.
+  {% if registro.jornada %}Jornada: <a class="mono" href="{% url 'jornadas:detalle' registro.jornada.pk %}">{{ registro.jornada.codigo }}</a>.{% endif %}
+  {% if registro.motivo_rechazo %}Motivo: {{ registro.motivo_rechazo }}{% endif %}</p>
+</div>
+{% endif %}
+
+{% if duplicados %}
+<div class="aviso duplicado" role="alert"><svg><use href="#i-alerta"/></svg><div>
+  <h2>Posible actividad ya registrada</h2>
+  <p>En el mismo municipio y en fechas cercanas ya hay jornadas con un lugar parecido. Si es la misma, <strong>rechácela como duplicada</strong>: registrarla otra vez inflaría el consolidado.</p>
+  <ul>{% for d in duplicados %}<li><a class="mono" href="{% url 'jornadas:detalle' d.id %}" target="_blank" rel="noopener">{{ d.codigo }}</a> · {{ d.lugar }} · {{ d.fecha_ejecucion }} · {{ d.unidad }} · semejanza {{ d.semejanza }}</li>{% endfor %}</ul>
+</div></div>
+{% endif %}
+
+<div class="bento">
+  <section class="tarjeta col-7">
+    <h2>Lo que reporta SIGIT</h2>
+    <dl class="datos">
+      <div><dt>Tipo propuesto</dt><dd>{{ datos.tipo_jornada }}</dd></div>
+      <div><dt>Ejecución</dt><dd class="cifra">{{ datos.fecha_ejecucion }}</dd></div>
+      <div><dt>Inicio · fin</dt><dd class="cifra">{{ datos.fecha_inicio|default:"(igual a la ejecución)" }} · {{ datos.fecha_fin|default:"—" }}</dd></div>
+      <div><dt>Municipio</dt><dd>{{ municipio|default:datos.municipio_dane }}</dd></div>
+      <div><dt>Coordenadas</dt><dd class="mono">{{ datos.latitud }}, {{ datos.longitud }}</dd></div>
+      <div><dt>Unidad propuesta</dt><dd>{{ registro.unidad_propuesta.sigla }}</dd></div>
+    </dl>
+    <h3 class="espacio-arriba">Descripción</h3>
+    <p>{{ datos.descripcion|linebreaksbr }}</p>
+    {% if poblacion %}<h3>Población beneficiada</h3><ul>{% for g, n in poblacion %}<li>{{ g }}: <span class="cifra">{{ n }}</span></li>{% endfor %}</ul>{% endif %}
+    {% if servicios_prestados %}<h3>Servicios prestados</h3><ul>{% for s, n in servicios_prestados %}<li>{{ s }}: <span class="cifra">{{ n }}</span></li>{% endfor %}</ul>{% endif %}
+    {% if datos.observaciones %}<h3>Observaciones</h3><p>{{ datos.observaciones }}</p>{% endif %}
+  </section>
+
+  {% if registro.estado == 'PENDIENTE' %}
+  <section class="tarjeta col-5">
+    <h2>Decisión de JACID</h2>
+    <form method="post" novalidate>{% csrf_token %}
+      <input type="hidden" name="accion" value="aprobar">
+      {% if formulario.non_field_errors %}<div class="aviso error" role="alert"><svg><use href="#i-alerta"/></svg>{{ formulario.non_field_errors }}</div>{% endif %}
+      {% include "nucleo/_campo.html" with campo=formulario.unidad %}
+      {% include "nucleo/_campo.html" with campo=formulario.tipo_jornada %}
+      {% include "nucleo/_si_no.html" with campo=formulario.participo_ejc %}
+      {% include "nucleo/_si_no.html" with campo=formulario.participo_fac %}
+      {% include "nucleo/_si_no.html" with campo=formulario.poblacion_afecta_tropa %}
+      {% if duplicados %}<label class="opciones-si-no"><span><input type="checkbox" name="confirmo_no_duplicado"> {{ formulario.confirmo_no_duplicado.label }}</span></label>{% endif %}
+      <p><button class="boton" type="submit"><svg><use href="#i-check"/></svg>Aprobar y crear la jornada</button></p>
+    </form>
+    <hr>
+    <form method="post" action="{% url 'integracion:rechazar' registro.pk %}" novalidate>{% csrf_token %}
+      <div class="campo"><label for="motivo">Motivo del rechazo</label>
+        <textarea id="motivo" name="motivo" rows="3" placeholder="Ej.: duplicada de la jornada 2813304R92026…; o no corresponde a la categoría de acción integral." required></textarea></div>
+      <button class="boton peligro" type="submit">Rechazar</button>
+    </form>
+  </section>
+  {% endif %}
+</div>
+{% endblock %}

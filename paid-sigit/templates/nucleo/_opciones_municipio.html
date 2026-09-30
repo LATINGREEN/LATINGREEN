@@ -1,0 +1,2 @@
+<option value="">{% if municipios %}Elija el municipio{% else %}Elija primero el departamento{% endif %}</option>
+{% for m in municipios %}<option value="{{ m.pk }}">{{ m.nombre }}</option>{% endfor %}

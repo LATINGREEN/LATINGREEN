@@ -1,0 +1,40 @@
+{% load humanize %}
+<section class="tarjeta" id="pestana-soportes">
+  <p class="kicker">Pestaña 11 de 11</p>
+  <h2>Soportes</h2>
+  {% if aviso %}<div class="aviso exito" role="status"><svg><use href="#i-check"/></svg><p>{{ aviso }}</p></div>{% endif %}
+  <p class="sub">Actas, fotografías, listados de asistencia. Máximo 10 MB <strong>en total</strong> por jornada.</p>
+  <div class="campo">
+    <span class="etiqueta">Cuota usada: <span class="cifra">{{ cuota_usada_mb|floatformat:2 }}</span> de 10 MB</span>
+    <div class="barra-progreso" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="{{ cuota_pct }}"><span class="{{ cuota_clase }}"></span></div>
+  </div>
+  <div class="tabla-contenedor">
+    <table class="tabla">
+      <thead><tr><th scope="col">Archivo</th><th scope="col">Tipo</th><th scope="col" class="num">Tamaño</th><th scope="col">Huella SHA-256</th><th scope="col"><span class="visualmente-oculto">Acciones</span></th></tr></thead>
+      <tbody>
+      {% for a in filas %}
+        <tr>
+          <td><a href="{% url 'jornadas:descargar_soporte' jornada.pk a.pk %}"><svg width="16" height="16"><use href="#i-archivo"/></svg> {{ a.nombre_archivo }}</a></td>
+          <td>{{ a.categoria }}</td>
+          <td class="num">{{ a.peso_bytes|filesizeformat }}</td>
+          <td class="mono" title="{{ a.resumen_sha256 }}">{{ a.resumen_sha256|slice:":12" }}…</td>
+          <td class="acciones-fila">{% if puede_editar %}<button class="boton pequeno fantasma" type="button" hx-post="{% url 'jornadas:quitar_fila' jornada.pk 'soportes' a.pk %}" hx-target="#panel-paso" hx-confirm="¿Quitar este soporte?" aria-label="Quitar soporte"><svg><use href="#i-basura"/></svg></button>{% endif %}</td>
+        </tr>
+      {% empty %}
+        <tr><td colspan="5"><div class="vacio"><p>Aún no hay soportes. Sin al menos uno, la jornada no queda completa.</p></div></td></tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% if puede_editar %}
+  <form class="fila-alta" hx-post="{% url 'jornadas:cargar_soporte' jornada.pk %}" hx-target="#panel-paso" hx-encoding="multipart/form-data">
+    {% csrf_token %}
+    {% include "nucleo/_campo.html" with campo=formulario_adjunto.archivo %}
+    <div><button class="boton" type="submit"><svg><use href="#i-descarga"/></svg>Cargar soporte</button></div>
+  </form>
+  {% endif %}
+  <div class="navegacion-pasos">
+    <a class="boton secundario" href="?paso={{ anterior.0 }}">← {{ anterior.1 }}</a>
+    <a class="boton" href="?paso=generales">Terminar</a>
+  </div>
+</section>

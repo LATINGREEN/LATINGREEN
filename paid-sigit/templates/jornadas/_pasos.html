@@ -1,0 +1,14 @@
+<nav class="pasos" aria-label="Pestañas de la jornada">
+  <div class="tarjeta progreso-total">
+    <p class="kicker">Avance</p>
+    <p><strong class="cifra">{{ listas }}</strong> de 11 pestañas con datos</p>
+    <div class="barra-progreso" role="progressbar" aria-valuemin="0" aria-valuemax="11" aria-valuenow="{{ listas }}"><span class="avance-{{ listas }}"></span></div>
+    {% if jornada.registro_completo %}<p class="espacio-arriba"><span class="estado completo"><svg><use href="#i-check"/></svg>Completa: entra al consolidado</span></p>{% endif %}
+  </div>
+  <a class="paso lista" href="?paso=generales" {% if paso == 'generales' or not paso %}aria-current="step"{% endif %}><span class="marca-paso">✓</span>Datos generales</a>
+  {% for p in pestanas %}
+  <a class="paso{% if p.completa %} lista{% endif %}" href="?paso={{ p.clave }}" {% if paso == p.clave %}aria-current="step"{% endif %}>
+    <span class="marca-paso">{% if p.completa %}✓{% else %}{{ forloop.counter }}{% endif %}</span>{{ p.titulo }}<span class="filas">{{ p.filas }}</span>
+  </a>
+  {% endfor %}
+</nav>

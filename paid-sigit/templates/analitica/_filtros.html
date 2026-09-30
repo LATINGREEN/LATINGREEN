@@ -1,0 +1,19 @@
+<form class="filtros" method="get" data-autoenviar>
+  {% for nombre, valor in extra_ocultos %}<input type="hidden" name="{{ nombre }}" value="{{ valor }}">{% endfor %}
+  <div class="campo"><label for="f-desde">Desde</label><input type="date" id="f-desde" name="desde" value="{{ filtros.desde }}"></div>
+  <div class="campo"><label for="f-hasta">Hasta</label><input type="date" id="f-hasta" name="hasta" value="{{ filtros.hasta }}"></div>
+  <div class="campo"><label for="f-unidad">Unidad</label>
+    <select id="f-unidad" name="unidad"><option value="">Todas en su ámbito</option>{% for u in unidades %}<option value="{{ u.pk }}" {% if filtros.unidad == u.pk|stringformat:'s' %}selected{% endif %}>{{ u.sigla }}</option>{% endfor %}</select></div>
+  <div class="campo"><label for="f-tipo">Tipo de jornada</label>
+    <select id="f-tipo" name="tipo"><option value="">Todos</option>{% for t in tipos %}<option value="{{ t.pk }}" {% if filtros.tipo == t.pk|stringformat:'s' %}selected{% endif %}>{{ t.nombre }}</option>{% endfor %}</select></div>
+  <div class="campo"><label for="f-depto">Departamento</label>
+    <select id="f-depto" name="departamento"><option value="">Todos</option>{% for d in departamentos %}<option value="{{ d.pk }}" {% if filtros.departamento == d.pk|stringformat:'s' %}selected{% endif %}>{{ d.nombre }}</option>{% endfor %}</select></div>
+  <div class="campo"><label for="f-estado">Estado</label>
+    <select id="f-estado" name="estado"><option value="">Todos</option><option value="completo" {% if filtros.estado == 'completo' %}selected{% endif %}>Solo completas</option><option value="incompleto" {% if filtros.estado == 'incompleto' %}selected{% endif %}>Solo incompletas</option></select></div>
+  <div class="acciones"><button class="boton" type="submit">Aplicar</button></div>
+</form>
+{% if fichas %}
+<div class="fichas" aria-label="Filtros activos">
+  {% for f in fichas %}<span class="ficha">{{ f.texto }}<a href="{{ f.quitar }}" aria-label="Quitar filtro {{ f.texto }}">×</a></span>{% endfor %}
+</div>
+{% endif %}

@@ -1,0 +1,83 @@
+{% extends "base.html" %}{% load static humanize sigit %}
+{% block titulo %}Tablero{% endblock %}
+{% block migas %}<span>Análisis</span><span aria-hidden="true">/</span><strong>Tablero</strong>{% endblock %}
+{% block cabeza %}<script src="{% static 'vendor/echarts-6.1.0.min.js' %}" defer></script><script src="{% static 'js/graficas.js' %}" defer></script>{% endblock %}
+{% block contenido %}
+<div class="encabezado">
+  <div>
+    <p class="kicker">Acción integral · {{ user.unidad.sigla }}</p>
+    <h1>Tablero de gestión</h1>
+    <p class="sub">Pulse una barra, un sector o un punto para filtrar o abrir el detalle.</p>
+  </div>
+  <div class="acciones">
+    {% for a in atajos %}<a class="boton pequeno secundario" href="?desde={{ a.desde }}&hasta={{ a.hasta }}">{{ a.texto }}</a>{% endfor %}
+  </div>
+</div>
+
+{% include "analitica/_filtros.html" %}
+
+<div class="bento animar">
+  <article class="tarjeta kpi destacado col-3">
+    <span class="etiqueta">Jornadas registradas</span>
+    <span class="valor">{{ kpi.total|intcomma }}</span>
+    <div class="barra-progreso" role="progressbar" aria-valuenow="{{ kpi.pct_completas }}" aria-valuemin="0" aria-valuemax="100" aria-label="Porcentaje completas"><span class="{{ kpi.clase_pct }}"></span></div>
+    <span class="detalle">{{ kpi.pct_completas }} % completas ({{ kpi.completas|intcomma }}) · entran al consolidado</span>
+  </article>
+  <article class="tarjeta kpi col-3">
+    <span class="etiqueta">Personas beneficiadas</span>
+    <span class="valor">{{ kpi.personas|intcomma }}</span>
+    <span class="detalle">Suma de la pestaña «Población beneficiada»</span>
+  </article>
+  <article class="tarjeta kpi col-3">
+    <span class="etiqueta">Servicios prestados</span>
+    <span class="valor">{{ kpi.servicios|intcomma }}</span>
+    <span class="detalle">En {{ kpi.municipios }} municipio{{ kpi.municipios|pluralize }}</span>
+  </article>
+  <article class="tarjeta kpi col-3">
+    <span class="etiqueta">Bienes donados (valor estimado)</span>
+    <span class="valor" title="$ {{ kpi.valor_bienes|floatformat:0|intcomma }}">$ {{ kpi.valor_bienes|compacto }}</span>
+    <span class="detalle">{% if puede_revisar %}<a href="{% url 'integracion:bandeja' %}">{{ kpi.pendientes_revision }} actividad{{ kpi.pendientes_revision|pluralize:"es" }} de SIGIT por revisar</a>{% else %}{{ kpi.sigit }} jornada{{ kpi.sigit|pluralize }} recibida{{ kpi.sigit|pluralize }} de SIGIT{% endif %}</span>
+  </article>
+
+  <section class="tarjeta col-8">
+    <div class="tarjeta-cabeza"><h2>Jornadas y personas beneficiadas por mes</h2></div>
+    <div class="grafica" data-grafica="meses" role="img" aria-label="Jornadas y personas beneficiadas por mes"></div>
+  </section>
+  <section class="tarjeta col-4">
+    <div class="tarjeta-cabeza"><h2>Por tipo de jornada</h2></div>
+    <div class="grafica" data-grafica="tipos" role="img" aria-label="Jornadas por tipo"></div>
+  </section>
+
+  <section class="tarjeta col-6">
+    <div class="tarjeta-cabeza"><h2>Departamentos con más jornadas</h2></div>
+    <div class="grafica" data-grafica="departamentos" role="img" aria-label="Jornadas por departamento"></div>
+  </section>
+  <section class="tarjeta col-6">
+    <div class="tarjeta-cabeza"><h2>Población beneficiada por grupo</h2></div>
+    <div class="grafica" data-grafica="grupos" role="img" aria-label="Personas por grupo poblacional"></div>
+  </section>
+
+  <section class="tarjeta col-12">
+    <div class="tarjeta-cabeza"><h2>Calendario de actividad</h2><p class="sub">Cada cuadro es un día; más oscuro, más jornadas.</p></div>
+    <div class="grafica baja" data-grafica="calendario" role="img" aria-label="Jornadas por día"></div>
+  </section>
+
+  <section class="tarjeta col-7">
+    <div class="tarjeta-cabeza"><h2>Servicios más prestados</h2></div>
+    <div class="grafica" data-grafica="servicios" role="img" aria-label="Servicios prestados"></div>
+  </section>
+  <section class="tarjeta col-5">
+    <div class="tarjeta-cabeza"><h2>Dónde ocurrieron</h2><p class="sub">Coordenadas registradas; pulse un punto para abrir la jornada.</p></div>
+    <div class="grafica" data-grafica="puntos" role="img" aria-label="Ubicación de las jornadas"></div>
+  </section>
+
+  <section class="tarjeta col-12">
+    <div class="tarjeta-cabeza"><h2>Jornadas por unidad</h2>
+      <div class="acciones"><a class="boton pequeno secundario" href="{% url 'analitica:pivote' %}?fila=unidad&columna=tipo&medida=jornadas">Abrir como tabla dinámica</a></div>
+    </div>
+    <div class="grafica" data-grafica="unidades" role="img" aria-label="Jornadas por unidad"></div>
+  </section>
+</div>
+{{ series|json_script:"datos-tablero" }}
+<span hidden id="url-listado" data-url="{{ url_listado }}"></span>
+{% endblock %}

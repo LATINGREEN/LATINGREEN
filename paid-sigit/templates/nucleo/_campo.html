@@ -1,0 +1,7 @@
+{# Un campo con etiqueta, ayuda y error accesibles. Uso: include con campo=… #}
+<div class="campo{% if clase %} {{ clase }}{% endif %}">
+  <label for="{{ campo.id_for_label }}">{{ campo.label }}{% if campo.field.required %} <span class="obligatorio" aria-hidden="true">*</span>{% endif %}</label>
+  {{ campo }}
+  {% if campo.help_text %}<span class="ayuda" id="{{ campo.id_for_label }}-ayuda">{{ campo.help_text }}</span>{% endif %}
+  {% for error in campo.errors %}<span class="error" role="alert"><svg width="16" height="16"><use href="#i-alerta"/></svg>{{ error }}</span>{% endfor %}
+</div>

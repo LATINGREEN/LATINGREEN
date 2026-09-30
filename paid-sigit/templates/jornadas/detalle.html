@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% block titulo %}{{ jornada.codigo }}{% endblock %}
+{% block migas %}<a href="{% url 'jornadas:listado' %}">Jornadas</a><span aria-hidden="true">/</span><strong class="mono">{{ jornada.codigo }}</strong>{% endblock %}
+{% block contenido %}
+<div class="encabezado">
+  <div>
+    <p class="kicker">{{ jornada.tipo_jornada.nombre }} · {{ jornada.unidad.sigla }}{% if jornada.origen == 'SIGIT' %} · <span class="estado sigit">Recibida de SIGIT</span>{% endif %}</p>
+    <h1 class="mono">{{ jornada.codigo }}</h1>
+    <p class="sub">{{ jornada.lugar }} · {{ jornada.municipio.nombre }}, {{ jornada.municipio.departamento.nombre }} · {{ jornada.fecha_ejecucion|date:"d/m/Y" }}</p>
+  </div>
+  {% if puede_editar %}
+  <div class="acciones">
+    <a class="boton secundario" href="{% url 'jornadas:nueva' %}?basada_en={{ jornada.pk }}" title="Copia tipo, lugar y coordenadas; usted pone fechas y cifras"><svg><use href="#i-copiar"/></svg>Registrar otra como esta</a>
+    <a class="boton secundario" href="{% url 'jornadas:editar' jornada.pk %}">Editar datos generales</a>
+    <form method="post" action="{% url 'jornadas:eliminar' jornada.pk %}" data-confirmar="¿Retirar la jornada {{ jornada.codigo }}? Sale de listados y consolidados; queda en la bitácora.">{% csrf_token %}
+      <button class="boton fantasma" type="submit"><svg><use href="#i-basura"/></svg>Retirar</button>
+    </form>
+  </div>
+  {% endif %}
+</div>
+
+<div class="jornada-marco">
+  <div id="pasos" hx-get="{% url 'jornadas:pasos' jornada.pk %}?paso={{ paso }}" hx-trigger="pestanaCambiada from:body" hx-swap="innerHTML">
+    {% include "jornadas/_pasos.html" %}
+  </div>
+  <div class="panel-paso" id="panel-paso">
+    {% if paso == 'generales' %}
+    <section class="tarjeta animar">
+      <div class="tarjeta-cabeza"><h2>Datos generales</h2>
+        <div class="acciones">{% if jornada.registro_completo %}<span class="estado completo"><svg><use href="#i-check"/></svg>Registro completo</span>{% else %}<span class="estado incompleto"><svg><use href="#i-alerta"/></svg>{{ listas }} de 11 pestañas</span>{% endif %}</div>
+      </div>
+      <dl class="datos">
+        <div><dt>Unidad</dt><dd>{{ jornada.unidad }}</dd></div>
+        <div><dt>Tipo de jornada</dt><dd>{{ jornada.tipo_jornada }}</dd></div>
+        <div><dt>Inicio</dt><dd class="cifra">{{ jornada.fecha_inicio|date:"d/m/Y" }}</dd></div>
+        <div><dt>Fin</dt><dd class="cifra">{{ jornada.fecha_fin|date:"d/m/Y"|default:"—" }}</dd></div>
+        <div><dt>Ejecución</dt><dd class="cifra">{{ jornada.fecha_ejecucion|date:"d/m/Y" }}</dd></div>
+        <div><dt>Municipio</dt><dd>{{ jornada.municipio }}</dd></div>
+        <div><dt>Coordenadas (GMS)</dt><dd class="mono">{{ jornada.latitud_grados }}° {{ jornada.latitud_minutos }}' {{ jornada.latitud_segundos|floatformat:2 }}" {{ jornada.latitud_hemisferio }} · {{ jornada.longitud_grados }}° {{ jornada.longitud_minutos }}' {{ jornada.longitud_segundos|floatformat:2 }}" {{ jornada.longitud_hemisferio }}</dd></div>
+        <div><dt>Decimales</dt><dd class="mono">{{ jornada.latitud_decimal|floatformat:6 }}, {{ jornada.longitud_decimal|floatformat:6 }}</dd></div>
+        <div><dt>Participación</dt><dd>ARC: Sí · EJC: {{ jornada.participo_ejc|yesno:"Sí,No" }} · FAC: {{ jornada.participo_fac|yesno:"Sí,No" }}</dd></div>
+        <div><dt>Población afecta a la tropa</dt><dd>{{ jornada.poblacion_afecta_tropa|yesno:"Sí,No,No se registró" }}</dd></div>
+      </dl>
+      <h3 class="espacio-arriba">Descripción (clavegrama)</h3>
+      <p>{{ jornada.descripcion|linebreaksbr }}</p>
+      {% if jornada.observaciones %}<h3>Observaciones</h3><p>{{ jornada.observaciones|linebreaksbr }}</p>{% endif %}
+      {% if jornada.registro_externo %}<div class="aviso info"><svg><use href="#i-bandeja"/></svg><p>Recibida de <strong>{{ jornada.registro_externo.sistema.nombre }}</strong> con el identificador <span class="mono">{{ jornada.registro_externo.id_externo }}</span>; aprobada por {{ jornada.registro_externo.revisado_por }} el {{ jornada.registro_externo.revisado_en|date:"d/m/Y H:i" }}.</p></div>{% endif %}
+      <div class="navegacion-pasos"><span></span><a class="boton" href="?paso=tipo-operacion">Ir a las pestañas →</a></div>
+    </section>
+    {% else %}
+      {% include plantilla_paso %}
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

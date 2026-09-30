@@ -1,0 +1,32 @@
+<div class="tabla-contenedor">
+  <table class="tabla">
+    <caption class="visualmente-oculto">Jornadas, {{ total }} en total</caption>
+    <thead><tr><th scope="col">Código</th><th scope="col">Fecha</th><th scope="col">Unidad</th><th scope="col">Tipo</th><th scope="col">Lugar</th><th scope="col">Municipio</th><th scope="col">Estado</th><th scope="col"><span class="visualmente-oculto">Acciones</span></th></tr></thead>
+    <tbody>
+    {% for j in pagina %}
+      <tr>
+        <td class="mono"><a href="{% url 'jornadas:detalle' j.pk %}">{{ j.codigo }}</a></td>
+        <td class="cifra">{{ j.fecha_ejecucion|date:"d/m/Y" }}</td>
+        <td>{{ j.unidad.sigla }}</td>
+        <td>{{ j.tipo_jornada.nombre }}</td>
+        <td>{{ j.lugar }}</td>
+        <td>{{ j.municipio.nombre }}<br><small class="sub">{{ j.municipio.departamento.nombre }}</small></td>
+        <td>
+          {% if j.registro_completo %}<span class="estado completo"><svg><use href="#i-check"/></svg>Completa</span>{% else %}<span class="estado incompleto"><svg><use href="#i-alerta"/></svg>Incompleta</span>{% endif %}
+          {% if j.origen == 'SIGIT' %}<span class="estado sigit">SIGIT</span>{% endif %}
+        </td>
+        <td class="acciones-fila"><a class="boton pequeno secundario" href="{% url 'jornadas:detalle' j.pk %}">Abrir</a></td>
+      </tr>
+    {% empty %}
+      <tr><td colspan="8"><div class="vacio"><svg><use href="#i-jornadas"/></svg><p>No hay jornadas con esos filtros.</p>{% if puede_registrar %}<a class="boton" href="{% url 'jornadas:nueva' %}">Registrar la primera</a>{% endif %}</div></td></tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% if pagina.paginator.num_pages > 1 %}
+<nav class="paginacion" aria-label="Páginas">
+  {% if pagina.has_previous %}<a class="boton pequeno secundario" href="?{{ parametros }}&pagina={{ pagina.previous_page_number }}" hx-get="?{{ parametros }}&pagina={{ pagina.previous_page_number }}" hx-target="#tabla-jornadas" hx-push-url="true">Anterior</a>{% endif %}
+  <span>Página {{ pagina.number }} de {{ pagina.paginator.num_pages }}</span>
+  {% if pagina.has_next %}<a class="boton pequeno secundario" href="?{{ parametros }}&pagina={{ pagina.next_page_number }}" hx-get="?{{ parametros }}&pagina={{ pagina.next_page_number }}" hx-target="#tabla-jornadas" hx-push-url="true">Siguiente</a>{% endif %}
+</nav>
+{% endif %}
