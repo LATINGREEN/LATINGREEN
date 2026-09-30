@@ -21,6 +21,10 @@ paso "Escaneo de seguridad del código (bandit)"
 paso "Migraciones al día con los modelos"
 SIGIT_DEBUG=1 $PY manage.py makemigrations --check --dry-run
 
+paso "Diccionario de datos al día con los modelos"
+SIGIT_DEBUG=1 $PY manage.py diccionario_datos | diff -q - docs/DICCIONARIO-DATOS.md >/dev/null \
+  || { echo "docs/DICCIONARIO-DATOS.md está desactualizado: python manage.py diccionario_datos > docs/DICCIONARIO-DATOS.md" >&2; exit 1; }
+
 paso "Configuración de despliegue (check --deploy con valores de producción)"
 SIGIT_CLAVE_SECRETA="$($PY -c 'import secrets; print(secrets.token_urlsafe(64))')" \
 DATABASE_URL="postgres://x:y@127.0.0.1:5432/z" SIGIT_HOSTS="paid.ejemplo" \
