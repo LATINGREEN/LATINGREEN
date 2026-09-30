@@ -1,0 +1,9 @@
+.venv
+.git
+adjuntos
+estaticos_recolectados
+.pytest_cache
+.ruff_cache
+.coverage
+.env
+**/__pycache__
