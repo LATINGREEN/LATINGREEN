@@ -1,0 +1,58 @@
+[project]
+name = "paid-sigit"
+version = "2026.1.0"
+description = "PAID SIGIT Versión 2026 — Plataforma de Acción Integral y Desarrollo con la metodología SIGIT"
+requires-python = ">=3.11,<3.14"
+# Versiones EXACTAS, sin rangos: lo que se probó es lo que se despliega.
+# Todas con licencia permisiva o LGPL de biblioteca; ver docs/LICENCIAS.md.
+dependencies = [
+  "Django==5.2.17",
+  "djangorestframework==3.18.1",
+  "drf-spectacular==0.30.0",
+  "psycopg[binary]==3.3.6",
+  "argon2-cffi==25.1.0",
+  "openpyxl==3.1.5",
+  "gunicorn==26.2.0",
+  "whitenoise==6.12.0",
+]
+
+[dependency-groups]
+dev = [
+  "pytest==9.1.1",
+  "pytest-django==4.14.0",
+  "pytest-cov==7.1.0",
+  "ruff==0.16.9",
+  "bandit==1.9.4",
+  "pip-audit==2.10.1",
+  "pip-licenses==5.5.5",
+]
+
+[tool.uv]
+package = false
+
+[tool.pytest.ini_options]
+DJANGO_SETTINGS_MODULE = "config.settings"
+python_files = ["test_*.py"]
+addopts = "-q --reuse-db"
+testpaths = ["pruebas"]
+filterwarnings = ["ignore:No directory at:UserWarning"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+extend-exclude = ["*/migrations/*"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP", "S", "DJ", "N", "SIM", "RUF"]
+# N818: las excepciones se nombran en español («SoporteRechazado»), no con sufijo «Error».
+# DJ008: las pestañas heredan __str__ de su base abstracta, que ruff no sigue.
+ignore = ["RUF001", "RUF002", "RUF003", "RUF012", "N818"]
+
+[tool.ruff.lint.per-file-ignores]
+"pruebas/*" = ["S101", "S105", "S106"]
+"sigit/jornadas/models.py" = ["DJ008"]
+# Datos de demostración: azar reproducible, no criptográfico.
+"sigit/nucleo/management/commands/sembrar_demostracion.py" = ["S311"]
+
+[tool.bandit]
+exclude_dirs = ["pruebas", ".venv"]
