@@ -38,6 +38,9 @@ def _booleano(nombre: str, por_omision: bool) -> bool:
 DEBUG = _booleano("SIGIT_DEBUG", False)
 # Bajo pytest se activa solo: la batería corre sin variables de entorno a mano.
 PRUEBAS = _booleano("SIGIT_PRUEBAS", False) or "pytest" in sys.modules
+# Despliegue de DEMOSTRACIÓN en línea: permite sembrar datos de EJEMPLO sin
+# SIGIT_DEBUG y muestra en cada pantalla que los datos no son oficiales.
+DEMOSTRACION = _booleano("SIGIT_DEMOSTRACION", False)
 
 # En desarrollo se admite una clave local conocida; en producción, no.
 if DEBUG or PRUEBAS:
@@ -51,6 +54,11 @@ ALLOWED_HOSTS = [h.strip() for h in os.environ.get("SIGIT_HOSTS", "localhost,127
 CSRF_TRUSTED_ORIGINS = [
     o.strip() for o in os.environ.get("SIGIT_ORIGENES_CONFIABLES", "").split(",") if o.strip()
 ]
+# Render publica el nombre que asignó al servicio; se admite ese y solo ese,
+# en vez de todo *.onrender.com.
+if _RENDER := os.environ.get("RENDER_EXTERNAL_HOSTNAME"):
+    ALLOWED_HOSTS.append(_RENDER)
+    CSRF_TRUSTED_ORIGINS.append(f"https://{_RENDER}")
 
 INSTALLED_APPS = [
     "django.contrib.admin",
@@ -175,6 +183,9 @@ HTTPS = _booleano("SIGIT_HTTPS", not DEBUG and not PRUEBAS)
 SESSION_COOKIE_SECURE = HTTPS
 CSRF_COOKIE_SECURE = HTTPS
 SECURE_SSL_REDIRECT = HTTPS and _booleano("SIGIT_REDIRIGIR_HTTPS", True)
+# La sonda de salud del orquestador llega por http interno, sin el encabezado
+# del proxy: redirigirla la daría por caída.
+SECURE_REDIRECT_EXEMPT = [r"^salud/$"]
 SECURE_HSTS_SECONDS = 31536000 if HTTPS else 0
 SECURE_HSTS_INCLUDE_SUBDOMAINS = HTTPS
 SECURE_CONTENT_TYPE_NOSNIFF = True

@@ -527,3 +527,9 @@ form.en-linea { display: inline; margin-left: auto; }
 pre.codigo { background: var(--azul-900); color: #e6ecf6; padding: var(--e-4); border-radius: var(--radio-s); overflow-x: auto; font-size: var(--t-xs); line-height: 1.5; }
 :root[data-contraste='alto'] pre.codigo { background: #000; color: #fff; }
 .grafica.baja { height: 200px; }
+
+/* Despliegue de demostración en línea: que nadie tome los datos por oficiales. */
+.sello-demostracion { position: fixed; right: 12px; bottom: 12px; z-index: 60; margin: 0;
+  padding: 6px 12px; border-radius: 999px; background: var(--dorado); color: var(--azul-armada);
+  font: 700 var(--t-xs)/1.2 var(--f-titulo); letter-spacing: .04em; pointer-events: none;
+  box-shadow: 0 2px 8px rgb(0 0 0 / .25); }

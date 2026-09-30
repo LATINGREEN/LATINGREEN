@@ -17,6 +17,7 @@
 <body hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'>
 {% include "nucleo/_iconos.html" %}
 <a class="saltar" href="#contenido">Saltar al contenido</a>
+{% if DEMOSTRACION %}<p class="sello-demostracion" role="note">Demostración · datos de EJEMPLO, no oficiales</p>{% endif %}
 {% block cuerpo %}
 <div class="marco">
   <aside class="lateral" id="lateral" aria-label="Navegación principal">

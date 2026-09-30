@@ -80,6 +80,27 @@ docker compose exec web python manage.py cargar_divipola /ruta/divipola.csv
 > recolección de estáticos en modo producción, que es el paso de la
 > construcción con más riesgo. Pruébese antes de la entrega.
 
+### 4.1 Demostración en línea en Render (plan gratuito)
+
+`render.yaml`, en la raíz del repositorio, describe el servicio web y su base
+PostgreSQL 16. En Render: **New → Blueprint**, elegir el repositorio y
+**Apply**. Construye con `scripts/render-construir.sh` y arranca con
+`scripts/render-arrancar.sh`, que comprueba el rol de la base, migra, siembra
+la demostración y levanta gunicorn. Cada arranque es idempotente.
+
+- Es una **demostración**: `SIGIT_DEMOSTRACION=1` siembra datos de EJEMPLO con
+  las claves conocidas de §2 y muestra en cada pantalla un sello «datos de
+  EJEMPLO, no oficiales». No es un despliegue de producción.
+- Render da **un solo rol** de base de datos, dueño de las tablas. La RLS sigue
+  aplicando porque es forzada y ese rol no es superusuario ni tiene
+  `BYPASSRLS`; `comprobar_rol_bd` lo verifica en cada arranque y se niega a
+  seguir si no. Lo que se pierde frente a Docker es la segunda barrera: el rol
+  de la aplicación podría desactivar la RLS. Por eso esto no es producción.
+- Plan gratuito: el servicio **se duerme** tras 15 minutos sin visitas (tarda
+  cerca de un minuto en despertar); la base gratuita **se borra a los 30
+  días**; el disco no persiste, así que los soportes cargados se pierden al
+  dormirse.
+
 ## 5. Variables de entorno
 
 | Variable | Obligatoria | Uso |
@@ -96,6 +117,7 @@ docker compose exec web python manage.py cargar_divipola /ruta/divipola.csv
 | `SIGIT_RUTA_ADJUNTOS` | no | Carpeta de soportes (volumen en Docker) |
 | `SIGIT_SESION_SEGUNDOS` | no (600) | Inactividad máxima de la sesión |
 | `SIGIT_DEBUG` | no | Solo desarrollo. Nunca en producción |
+| `SIGIT_DEMOSTRACION` | no | Despliegue de demostración: permite `sembrar_demostracion` y muestra el sello de datos de ejemplo. Nunca en producción |
 
 ## 6. Operación
 

@@ -40,7 +40,9 @@ export SIGIT_DEBUG=1
 .venv/bin/python manage.py runserver
 ```
 
-Pasos completos (roles de base de datos, Docker, variables) en
+Demostración en línea: `render.yaml` en la raíz del repositorio (Render, plan
+gratuito; §4.1 del manual técnico). Pasos completos (roles de base de datos,
+Docker, variables) en
 [`docs/MANUAL-TECNICO.md`](docs/MANUAL-TECNICO.md).
 
 ## Documentación

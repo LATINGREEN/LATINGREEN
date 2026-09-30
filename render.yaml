@@ -1,0 +1,49 @@
+# Despliegue de DEMOSTRACIÓN de PAID SIGIT Versión 2026 en Render (plan gratuito).
+# Render → New → Blueprint → este repositorio. Detalle y límites en
+# paid-sigit/docs/MANUAL-TECNICO.md §4.1.
+#
+# Datos de EJEMPLO, no oficiales. El plan gratuito duerme el servicio tras 15
+# minutos sin visitas (tarda cerca de un minuto en despertar) y borra la base de
+# datos gratuita a los 30 días de creada.
+databases:
+  - name: paid-sigit-bd
+    plan: free
+    region: virginia
+    postgresMajorVersion: "16"
+    databaseName: paid_sigit
+    user: sigit_propietario
+    # Sin conexiones desde internet: solo el servicio web, por la red interna.
+    ipAllowList: []
+
+services:
+  - type: web
+    name: paid-sigit
+    runtime: python
+    plan: free
+    region: virginia
+    branch: claude/mision-adjunto-ypcpjw
+    rootDir: paid-sigit
+    buildCommand: ./scripts/render-construir.sh
+    startCommand: ./scripts/render-arrancar.sh
+    autoDeploy: true
+    envVars:
+      - key: PYTHON_VERSION
+        value: "3.12.11"
+      - key: DATABASE_URL
+        fromDatabase:
+          name: paid-sigit-bd
+          property: connectionString
+      - key: SIGIT_CLAVE_RENDER_1
+        generateValue: true
+      - key: SIGIT_CLAVE_RENDER_2
+        generateValue: true
+      - key: SIGIT_DEMOSTRACION
+        value: "1"
+      - key: SIGIT_HTTPS
+        value: "1"
+      - key: SIGIT_DETRAS_DE_PROXY
+        value: "1"
+      - key: SIGIT_PROXIES_DE_CONFIANZA
+        value: "1"
+      - key: SIGIT_HOSTS
+        value: localhost

@@ -136,3 +136,24 @@ def test_la_bitacora_registra_quien_cambio_que(usuarios, crear_jornada):
     jornada.refresh_from_db()
     assert jornada.creado_por_id == usuarios["BIM23"].pk
     sistema()
+
+
+def test_la_aplicacion_se_niega_a_atender_con_un_rol_que_salta_la_rls():
+    from io import StringIO
+    from unittest import mock
+
+    from django.core.management import CommandError, call_command
+
+    salida = StringIO()
+    call_command("comprobar_rol_bd", stdout=salida)
+    assert "sujeto a RLS" in salida.getvalue()
+
+    # Un rol con BYPASSRLS haría desaparecer el aislamiento sin ningún error.
+    with (
+        mock.patch(
+            "sigit.nucleo.management.commands.comprobar_rol_bd.rol_actual",
+            return_value=("rol_x", False, True),
+        ),
+        pytest.raises(CommandError, match="salta la RLS"),
+    ):
+        call_command("comprobar_rol_bd")

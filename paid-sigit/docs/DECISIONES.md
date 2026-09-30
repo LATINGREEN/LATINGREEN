@@ -108,3 +108,18 @@ Quién es dueño del código (cesión de derechos patrimoniales a la Armada) es
 una decisión jurídica entre la reserva y la institución. No se presume con un
 archivo de licencia. Las licencias de terceros sí están inventariadas y
 comprobadas (`LICENCIAS.md`).
+
+## D-S13 · Demostración en línea en Render · 2026-09-30
+
+**Contexto.** El usuario pidió verla en línea en un dominio provisional. El
+alojamiento compartido de Hostinger no ejecuta Python ni PostgreSQL; Render
+tiene plan gratuito para ambos, sin tarjeta.
+
+**Decisión.** `render.yaml` + dos guiones en `scripts/`. La demostración se
+marca con `SIGIT_DEMOSTRACION`, no con `SIGIT_DEBUG`: el modo depuración
+mostraría trazas a cualquiera en internet. Render da un solo rol de base de
+datos; la RLS forzada lo somete igual, y `comprobar_rol_bd` impide arrancar si
+el rol fuera superusuario o tuviera `BYPASSRLS`. El nombre de host se toma de
+`RENDER_EXTERNAL_HOSTNAME` en vez de admitir todo `*.onrender.com`. La sonda
+`/salud/` queda exenta de la redirección a HTTPS, porque los orquestadores la
+consultan por http interno.

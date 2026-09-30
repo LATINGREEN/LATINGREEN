@@ -3,7 +3,7 @@
 
 ⚠️ NUNCA en producción: trae claves conocidas y catálogos inventados para que
 las gráficas tengan qué mostrar. Todo lo inventado lleva la marca EJEMPLO. Se
-niega a correr si SIGIT_DEBUG no está activo.
+niega a correr sin SIGIT_DEBUG o SIGIT_DEMOSTRACION (despliegue de demostración).
 """
 
 from __future__ import annotations
@@ -101,8 +101,10 @@ class Command(BaseCommand):
     help = "Siembra datos de EJEMPLO (unidades, usuarios, jornadas, SIGIT). Solo en desarrollo."
 
     def handle(self, *args: object, **opciones: object) -> None:
-        if not (settings.DEBUG or settings.PRUEBAS):
-            raise CommandError("sembrar_demostracion solo corre con SIGIT_DEBUG=1.")
+        if not (settings.DEBUG or settings.PRUEBAS or settings.DEMOSTRACION):
+            raise CommandError(
+                "sembrar_demostracion solo corre con SIGIT_DEBUG=1 o SIGIT_DEMOSTRACION=1."
+            )
         call_command("sembrar")
         # Azar reproducible de la demostración, no criptográfico.
         azar = random.Random(2026)  # nosec B311

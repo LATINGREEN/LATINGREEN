@@ -21,6 +21,7 @@ def plataforma(request: HttpRequest) -> dict[str, object]:
     return {
         "NOMBRE_PLATAFORMA": settings.NOMBRE_PLATAFORMA,
         "VERSION_PLATAFORMA": settings.VERSION_PLATAFORMA,
+        "DEMOSTRACION": settings.DEMOSTRACION,
         "MINUTOS_SESION": settings.SESSION_COOKIE_AGE // 60,
         "roles_usuario": roles,
         "puede_registrar": bool(roles & {Rol.OPERADOR, Rol.ADMINISTRADOR}),
