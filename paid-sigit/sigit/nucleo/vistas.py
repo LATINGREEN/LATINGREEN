@@ -3,6 +3,7 @@ from __future__ import annotations
 from django import forms
 from django.contrib.auth import login, logout
 from django.contrib.auth.decorators import login_required
+from django.db import connection
 from django.http import HttpRequest, HttpResponse, JsonResponse
 from django.shortcuts import redirect, render
 from django.utils.http import url_has_allowed_host_and_scheme
@@ -124,3 +125,11 @@ def error_500(request: HttpRequest) -> HttpResponse:
         {"codigo": 500, "mensaje": "Ocurrió un error. Ya quedó registrado; intente de nuevo."},
         status=500,
     )
+
+
+@require_GET
+def salud(request: HttpRequest) -> JsonResponse:
+    """Sonda para el orquestador de contenedores. No expone versiones ni datos."""
+    with connection.cursor() as cursor:
+        cursor.execute("SELECT 1")
+    return JsonResponse({"estado": "sano"})

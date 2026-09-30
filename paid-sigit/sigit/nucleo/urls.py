@@ -10,4 +10,5 @@ urlpatterns = [
     path("salida/", vistas.salida, name="salida"),
     path("sesion/renovar/", vistas.renovar_sesion, name="renovar_sesion"),
     path("municipios/", vistas.municipios, name="municipios"),
+    path("salud/", vistas.salud, name="salud"),
 ]

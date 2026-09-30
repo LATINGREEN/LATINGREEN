@@ -233,6 +233,8 @@
         if (e.key === 'ArrowDown') { seleccion = Math.min(opciones.length - 1, seleccion + 1); marcar(); e.preventDefault(); }
         if (e.key === 'ArrowUp') { seleccion = Math.max(0, seleccion - 1); marcar(); e.preventDefault(); }
         if (e.key === 'Enter' && opciones[seleccion]) { window.location.assign(opciones[seleccion].href); }
+        // En un campo de búsqueda, el primer Esc solo borra el texto: se cierra a mano.
+        if (e.key === 'Escape') { e.preventDefault(); paleta.close(); }
       });
     }
     reflejarEstado();

@@ -103,8 +103,10 @@ class Pestana(models.Model):
 
 
 class JornadaTipoOperacion(Pestana):
-    tipo_operacion = models.ForeignKey(TipoOperacion, on_delete=models.PROTECT)
-    observacion = models.TextField(blank=True)
+    tipo_operacion = models.ForeignKey(
+        TipoOperacion, on_delete=models.PROTECT, verbose_name="tipo de operación"
+    )
+    observacion = models.TextField("observación", blank=True)
 
     class Meta:
         verbose_name = "tipo de operación"
@@ -115,7 +117,7 @@ class JornadaTipoOperacion(Pestana):
 
 class JornadaEntidadServicio(Pestana):
     entidad = models.ForeignKey(Entidad, on_delete=models.PROTECT)
-    observacion = models.TextField(blank=True)
+    observacion = models.TextField("observación", blank=True)
 
     class Meta:
         verbose_name = "entidad que prestó servicios"
@@ -125,7 +127,7 @@ class JornadaEntidadServicio(Pestana):
 class JornadaServicioPrestado(Pestana):
     servicio = models.ForeignKey(ServicioPrestado, on_delete=models.PROTECT)
     cantidad = models.PositiveIntegerField(validators=[MinValueValidator(1)])
-    observacion = models.TextField(blank=True)
+    observacion = models.TextField("observación", blank=True)
 
     class Meta:
         verbose_name = "servicio prestado"
@@ -139,8 +141,8 @@ class JornadaServicioPrestado(Pestana):
 
 class JornadaPoblacion(Pestana):
     grupo = models.ForeignKey(GrupoPoblacional, on_delete=models.PROTECT)
-    cantidad_personas = models.PositiveIntegerField(validators=[MinValueValidator(1)])
-    observacion = models.TextField(blank=True)
+    cantidad_personas = models.PositiveIntegerField("personas", validators=[MinValueValidator(1)])
+    observacion = models.TextField("observación", blank=True)
 
     class Meta:
         verbose_name = "población beneficiada"
@@ -154,7 +156,7 @@ class JornadaPoblacion(Pestana):
 
 class JornadaEntidadApoyada(Pestana):
     entidad = models.ForeignKey(Entidad, on_delete=models.PROTECT)
-    observacion = models.TextField(blank=True)
+    observacion = models.TextField("observación", blank=True)
 
     class Meta:
         verbose_name = "entidad apoyada"
@@ -162,7 +164,7 @@ class JornadaEntidadApoyada(Pestana):
 
 
 class JornadaMedioDifusion(Pestana):
-    medio = models.ForeignKey(MedioDifusion, on_delete=models.PROTECT)
+    medio = models.ForeignKey(MedioDifusion, on_delete=models.PROTECT, verbose_name="medio")
     detalle = models.CharField(max_length=500, blank=True)
 
     class Meta:
@@ -186,10 +188,14 @@ class JornadaMedioUtilizado(Pestana):
 
 
 class JornadaRecurso(Pestana):
-    tipo_recurso = models.ForeignKey(TipoRecurso, on_delete=models.PROTECT)
+    tipo_recurso = models.ForeignKey(
+        TipoRecurso, on_delete=models.PROTECT, verbose_name="tipo de recurso"
+    )
     cantidad = models.DecimalField(max_digits=18, decimal_places=2)
-    unidad_medida = models.CharField(max_length=40, blank=True)
-    valor = models.DecimalField(max_digits=18, decimal_places=2, null=True, blank=True)
+    unidad_medida = models.CharField("unidad de medida", max_length=40, blank=True)
+    valor = models.DecimalField(
+        "valor (COP)", max_digits=18, decimal_places=2, null=True, blank=True
+    )
     detalle = models.CharField(max_length=500, blank=True)
 
     class Meta:
@@ -207,12 +213,18 @@ class JornadaRecurso(Pestana):
 
 
 class JornadaBienDonado(Pestana):
-    tipo_bien = models.ForeignKey(TipoBienDonado, on_delete=models.PROTECT)
-    descripcion = models.CharField(max_length=500)
+    tipo_bien = models.ForeignKey(
+        TipoBienDonado, on_delete=models.PROTECT, verbose_name="tipo de bien"
+    )
+    descripcion = models.CharField("descripción", max_length=500)
     cantidad = models.DecimalField(max_digits=18, decimal_places=2)
-    unidad_medida = models.CharField(max_length=40, blank=True)
-    valor_estimado = models.DecimalField(max_digits=18, decimal_places=2, null=True, blank=True)
-    entidad_donante = models.ForeignKey(Entidad, null=True, blank=True, on_delete=models.PROTECT)
+    unidad_medida = models.CharField("unidad de medida", max_length=40, blank=True)
+    valor_estimado = models.DecimalField(
+        "valor estimado (COP)", max_digits=18, decimal_places=2, null=True, blank=True
+    )
+    entidad_donante = models.ForeignKey(
+        Entidad, null=True, blank=True, on_delete=models.PROTECT, verbose_name="entidad donante"
+    )
 
     class Meta:
         verbose_name = "bien donado"

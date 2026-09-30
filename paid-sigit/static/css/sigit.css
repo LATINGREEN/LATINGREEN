@@ -462,7 +462,12 @@ dialog::backdrop { background: rgb(0 20 52 / 0.45); backdrop-filter: blur(3px); 
   .ingreso { grid-template-columns: 1fr; }
   .ingreso-arte { padding: var(--e-5); }
   .ingreso-arte ul { display: none; }
-  .cabecera { padding: var(--e-2) var(--e-4); }
+  .cabecera { padding: var(--e-2) var(--e-4); flex-wrap: wrap; row-gap: var(--e-2); }
+  .cabecera [data-accion='plegar'] { display: none; }
+  .cabecera .migas { order: 10; flex-basis: 100%; }
+  .cabecera-acciones { flex-wrap: wrap; justify-content: flex-end; }
+  .accesibilidad .boton-icono, .cabecera .boton-icono { width: 36px; height: 36px; }
+  .encabezado .acciones { margin-left: 0; }
 }
 @media (min-width: 861px) { .solo-movil { display: none !important; } }
 @media print {
