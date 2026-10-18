@@ -1,14 +1,14 @@
 {
-  "name": "Eco-Arcade Latin Green",
+  "name": "Eco-Arcade · Escuela de Postgrados de Policía",
   "short_name": "Eco-Arcade",
-  "description": "Juego arcade educativo de separación de residuos de Latin Green E.S.P.: lanza cada residuo a la caneca blanca, negra o verde.",
+  "description": "Juego arcade educativo de separación de residuos de la Escuela de Postgrados de Policía: lanza cada residuo a la caneca blanca, negra o verde.",
   "lang": "es",
   "start_url": "./index.html",
   "scope": "./",
   "display": "fullscreen",
   "orientation": "any",
-  "background_color": "#0b1f16",
-  "theme_color": "#0b1f16",
+  "background_color": "#0f1d18",
+  "theme_color": "#0f1d18",
   "categories": ["games", "education"],
   "icons": [
     { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },

@@ -1,4 +1,10 @@
-# ♻️ Eco-Arcade Latin Green E.S.P.
+# ♻️ Eco-Arcade · Escuela de Postgrados de Policía
+
+Versión del Eco-Arcade personalizada con el escudo de la **Policía Nacional —
+Escuela de Postgrados de Policía** (*Scientia et Libertas*): el escudo aparece en
+la pantalla de inicio, en la premiación, como marca de agua en la zona de juego,
+en el pie de página y en los íconos de la app. La paleta pasó del verde lima de
+Latin Green al verde y dorado del escudo.
 
 Videojuego arcade educativo **para un jugador** en el que debes lanzar los
 residuos que llegan por la banda transportadora a la caneca correcta,
@@ -19,9 +25,9 @@ categoría** (APROVECHABLES / NO APROVECHABLES / ORGÁNICOS).
 | Archivo | Descripción |
 |---------|-------------|
 | `index.html` | El juego completo |
-| `assets/logo.svg` | Logo Latin Green E.S.P. (recreación vectorial fiel al original; puede reemplazarse por el archivo oficial conservando el nombre) |
-| `assets/latin-green.m4a` | Pista musical de Latin Green (música ambiental de la pantalla de inicio) |
-| `build-single-file.mjs` | Genera `eco-arcade-latin-green.html`: el juego en un solo archivo con logo y música incrustados |
+| `assets/logo-policia.png` | Escudo de la Escuela de Postgrados de Policía (PNG con fondo transparente; puede reemplazarse por otro archivo conservando el nombre) |
+| `assets/latin-green.m4a` | Pista musical ambiental de la pantalla de inicio (heredada del juego original) |
+| `build-single-file.mjs` | Genera `eco-arcade-policia.html`: el juego en un solo archivo con escudo y música incrustados |
 
 > 💡 Para compartir el juego, copia la carpeta completa (con `assets/`) o
 > genera la versión de un solo archivo con `node build-single-file.mjs`.
@@ -67,8 +73,8 @@ categoría** (APROVECHABLES / NO APROVECHABLES / ORGÁNICOS).
 
 ## 🔊 Sonido y música
 
-- En la **pantalla de inicio** suena la pista oficial de Latin Green como
-  música ambiental (arranca con tu primer toque o clic, como exigen los
+- En la **pantalla de inicio** suena la pista ambiental heredada del juego
+  original (`assets/latin-green.m4a`) (arranca con tu primer toque o clic, como exigen los
   navegadores).
 - Durante la **partida** suena un tema chiptune estilo arcade, y en la
   **premiación** un tema festivo especial (ambos generados con la Web Audio
@@ -82,7 +88,10 @@ navegador, queda con su propio ícono en la pantalla de inicio, abre a pantalla
 completa como cualquier app y **funciona sin internet** después de la primera
 carga. No pasa por tiendas ni necesita permisos especiales.
 
-**Dirección del juego (GitHub Pages):** https://latingreen.github.io/LATINGREEN/
+**Dirección del juego:** esta versión aún no está publicada. Ojo: GitHub Pages
+publica un solo sitio por repositorio, así que para tener esta versión en línea
+sin reemplazar el Eco-Arcade de Latin Green conviene subirla a un repositorio
+propio (o a una subcarpeta del sitio actual).
 
 | Dispositivo | Pasos |
 |-------------|-------|
@@ -96,8 +105,9 @@ dispositivo para jugar sin conexión) e `icons/` (íconos de la app). Cuando
 publiques una nueva versión del juego, sube el número de `CACHE` en `sw.js`
 para que los dispositivos ya instalados la descarguen.
 
-**Publicación automática:** cada cambio subido al repositorio se publica en
-GitHub Pages mediante `.github/workflows/pages.yml`.
+**Publicación automática:** `.github/workflows/pages.yml` solo se ejecuta en las
+ramas del juego original (`main` y `claude/waste-sorting-arcade-game-fs3mcs`), así
+que subir esta rama no reemplaza el sitio publicado.
 
 > ⚙️ **Activación inicial (una sola vez):** en GitHub abre el repositorio →
 > **Settings → Pages → Build and deployment → Source** y elige
@@ -117,7 +127,7 @@ necesita.
 - **Enlace directo** sin instalar: la misma dirección de arriba, o el artifact
   de Claude.
 - **Un solo archivo**: `node build-single-file.mjs` genera
-  `eco-arcade-latin-green.html` con todo incrustado; compártelo por WhatsApp o
+  `eco-arcade-policia.html` con todo incrustado; compártelo por WhatsApp o
   correo. En Android se abre con Chrome; en iPhone los archivos locales no
   ejecutan juegos, así que usa la instalación desde Safari.
 
@@ -128,4 +138,4 @@ fuente, reforzando qué materiales son aprovechables, cuáles no y cuáles son
 orgánicos compostables.
 
 ---
-**Latin Green E.S.P.** · Separar es cuidar el planeta 🌎
+**Policía Nacional · Escuela de Postgrados de Policía** · Separar es cuidar el planeta 🌎

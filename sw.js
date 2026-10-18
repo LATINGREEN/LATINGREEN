@@ -1,12 +1,12 @@
-// Service worker de Eco-Arcade Latin Green: permite instalar el juego como
+// Service worker de Eco-Arcade (Escuela de Postgrados de Policía): permite instalar el juego como
 // app y jugarlo sin conexión. Al cambiar el juego, sube la versión de CACHE
 // para que los dispositivos descarguen la nueva.
-const CACHE = 'eco-arcade-v1';
+const CACHE = 'eco-arcade-policia-v1';
 const ASSETS = [
   './',
   './index.html',
   './manifest.webmanifest',
-  './assets/logo.svg',
+  './assets/logo-policia.png',
   './assets/latin-green.m4a',
   './icons/icon-192.png',
   './icons/icon-512.png',

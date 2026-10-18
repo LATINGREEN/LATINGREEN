@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <!-- App instalable (PWA): Android y iOS -->
-<meta name="theme-color" content="#0b1f16">
+<meta name="theme-color" content="#0f1d18">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -12,18 +12,18 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
 <link rel="apple-touch-icon" href="icons/icon-180.png">
-<title>EcoArcade LatinGreen — ¡Lanza el residuo a la caneca correcta!</title>
+<title>Eco-Arcade · Escuela de Postgrados de Policía — ¡Lanza el residuo a la caneca correcta!</title>
 <style>
   :root {
-    --bg: #0b1f16;
-    --panel: #12291d;
+    --bg: #0f1d18;
+    --panel: #182b23;
     --accent: #4ade80;
     --white-bin: #f1f5f9;
     --black-bin: #1e293b;
     --green-bin: #22c55e;
     --danger: #ef4444;
     --gold: #fbbf24;
-    --lime: #a6ce39; /* verde de la marca Latin Green */
+    --lime: #d6b673; /* dorado del escudo de la Escuela de Postgrados de Policía */
   }
   * { margin: 0; padding: 0; box-sizing: border-box; }
   html, body {
@@ -39,9 +39,9 @@
     display: flex; align-items: center; justify-content: center;
   }
   canvas {
-    background: linear-gradient(180deg, #0e2a1c 0%, #0b1f16 60%, #08160f 100%);
+    background: linear-gradient(180deg, #172b22 0%, #0f1d18 60%, #0a1410 100%);
     border-radius: 12px;
-    box-shadow: 0 0 60px rgba(74, 222, 128, 0.15);
+    box-shadow: 0 0 60px rgba(214, 182, 115, 0.12);
     max-width: 100%;
     max-height: 100%;
     touch-action: none;       /* evita zoom y desplazamiento al tocar */
@@ -56,6 +56,7 @@
     flex-direction: column;
     align-items: center;
     justify-content: center;
+    justify-content: safe center; /* si no cabe, se desplaza sin recortar el escudo */
     background: rgba(4, 15, 10, 0.88);
     backdrop-filter: blur(6px);
     z-index: 10;
@@ -124,7 +125,7 @@
     width: 100%;
     margin: 0 auto 12px;
     padding: 9px 12px;
-    background: #0b1f16;
+    background: var(--bg);
     border: 2px solid rgba(255,255,255,0.15);
     border-radius: 8px;
     color: #f8fafc;
@@ -138,7 +139,7 @@
   .keys { display: flex; gap: 10px; justify-content: center; }
   .key-group { display: flex; flex-direction: column; align-items: center; gap: 4px; }
   kbd {
-    background: #263c2e;
+    background: #2a3d34;
     border: 1px solid rgba(255,255,255,0.2);
     border-bottom: 3px solid rgba(0,0,0,0.5);
     border-radius: 6px;
@@ -151,8 +152,8 @@
   }
   .key-label { font-size: 11px; color: #94a3b8; }
   button.big-btn {
-    background: linear-gradient(180deg, #34d399, #059669);
-    color: #052e1b;
+    background: linear-gradient(180deg, #ecd391, #b8944f);
+    color: #16251e;
     font-size: clamp(18px, 2.5vw, 26px);
     font-weight: 800;
     border: none;
@@ -160,11 +161,11 @@
     padding: 16px 52px;
     cursor: pointer;
     letter-spacing: 1px;
-    box-shadow: 0 6px 0 #036c47, 0 0 40px rgba(52, 211, 153, 0.35);
+    box-shadow: 0 6px 0 #7d6230, 0 0 40px rgba(214, 182, 115, 0.35);
     transition: transform 0.1s ease;
   }
   button.big-btn:hover { transform: scale(1.05); }
-  button.big-btn:active { transform: translateY(4px); box-shadow: 0 2px 0 #036c47; }
+  button.big-btn:active { transform: translateY(4px); box-shadow: 0 2px 0 #7d6230; }
   .result-scores {
     display: flex;
     gap: 30px;
@@ -263,14 +264,14 @@
   }
   .brand img { height: 30px; opacity: 0.85; }
   .logo-main {
-    width: min(400px, 70vw);
+    width: min(190px, 42vw, 17vh);
     margin-bottom: 6px;
-    filter: drop-shadow(0 0 24px rgba(166, 206, 57, 0.35));
+    filter: drop-shadow(0 0 24px rgba(214, 182, 115, 0.35));
   }
   .logo-award {
-    width: 260px;
+    width: min(150px, 15vh);
     margin-bottom: 10px;
-    filter: drop-shadow(0 0 18px rgba(166, 206, 57, 0.3));
+    filter: drop-shadow(0 0 18px rgba(214, 182, 115, 0.3));
   }
   #mute-btn {
     position: absolute;
@@ -318,15 +319,15 @@
     font-family: inherit;
     transition: background 0.2s ease, color 0.2s ease;
   }
-  .install-btn:hover { background: var(--lime); color: #0b1f16; }
+  .install-btn:hover { background: var(--lime); color: #0f1d18; }
   .install-hint {
     margin-top: 14px;
     max-width: 420px;
     font-size: 13px;
     color: #94a3b8;
     line-height: 1.5;
-    background: rgba(166, 206, 57, 0.08);
-    border: 1px solid rgba(166, 206, 57, 0.3);
+    background: rgba(214, 182, 115, 0.08);
+    border: 1px solid rgba(214, 182, 115, 0.3);
     border-radius: 10px;
     padding: 10px 14px;
   }
@@ -343,8 +344,8 @@
   /* menús compactos para celular: todo cabe y se puede desplazar */
   @media (max-width: 760px), (max-height: 760px) {
     .overlay { justify-content: flex-start; padding: 14px 12px 30px; }
-    .logo-main { width: 230px; margin-bottom: 2px; }
-    .logo-award { width: 170px; }
+    .logo-main { width: 118px; margin-bottom: 2px; }
+    .logo-award { width: 96px; }
     h1 { font-size: 24px; margin-bottom: 4px; }
     .subtitle { font-size: 12.5px; margin-bottom: 12px; }
     .rules { gap: 8px; margin-bottom: 14px; }
@@ -377,7 +378,7 @@
 
   <!-- Pantalla de inicio -->
   <div id="start-screen" class="overlay">
-    <img class="logo-main" src="assets/logo.svg" alt="Latin Green E.S.P." onerror="this.style.display='none'">
+    <img class="logo-main" src="assets/logo-policia.png" alt="Policía Nacional · Escuela de Postgrados de Policía" onerror="this.style.display='none'">
     <h1>♻️ ECO-ARCADE</h1>
     <p class="subtitle">¡Lanza cada residuo a la caneca correcta! · 3 rondas de 45 segundos, cada una más rápida.<br>Acierta, encadena combos y supera tu récord 🏆</p>
     <div class="rules">
@@ -434,7 +435,7 @@
 
   <!-- Pantalla de resultados -->
   <div id="end-screen" class="overlay hidden">
-    <img class="logo-award" src="assets/logo.svg" alt="Latin Green E.S.P." onerror="this.style.display='none'">
+    <img class="logo-award" src="assets/logo-policia.png" alt="Policía Nacional · Escuela de Postgrados de Policía" onerror="this.style.display='none'">
     <div class="winner-banner" id="winner-text">🏆 ¡EXCELENTE!</div>
     <p class="subtitle" id="end-subtitle">Resultados de la partida</p>
     <div class="result-scores">
@@ -455,7 +456,7 @@
   <button id="mute-btn" title="Activar/silenciar sonido (tecla M)">🔊</button>
   <div id="gamepad-status" style="display:none">🎮</div>
   <div class="brand">
-    <img src="assets/logo.svg" alt="Latin Green E.S.P." onerror="this.style.display='none'">
+    <img src="assets/logo-policia.png" alt="Policía Nacional · Escuela de Postgrados de Policía" onerror="this.style.display='none'">
     <span>SEPARAR ES CUIDAR EL PLANETA</span>
   </div>
   <audio id="brand-music" src="assets/latin-green.m4a" loop preload="auto"></audio>
@@ -465,7 +466,7 @@
 'use strict';
 
 // ============================================================
-//  ECO-ARCADE LATINGREEN — Juego arcade de separación de residuos
+//  ECO-ARCADE · ESCUELA DE POSTGRADOS DE POLICÍA — Juego arcade de separación de residuos
 //  2 jugadores · Caneca blanca (aprovechables), negra (no
 //  aprovechables) y verde (orgánicos) — código de colores CO.
 // ============================================================
@@ -531,11 +532,11 @@ const BIN_INFO = {
 const BIN_ORDER = ['white', 'black', 'green'];
 
 const ECO_TIPS = [
-  '💡 Dato LatinGreen: una botella de vidrio puede tardar más de 4.000 años en degradarse. ¡Recíclala en la caneca blanca!',
-  '💡 Dato LatinGreen: los residuos orgánicos de la caneca verde pueden convertirse en compost para nutrir la tierra.',
-  '💡 Dato LatinGreen: separar bien los residuos reduce hasta un 80% lo que llega a los rellenos sanitarios.',
-  '💡 Dato LatinGreen: el papel sucio o engrasado ya no es reciclable: va en la caneca negra.',
-  '💡 Dato LatinGreen: reciclar una lata de aluminio ahorra energía suficiente para 3 horas de televisión.',
+  '💡 Dato ambiental: una botella de vidrio puede tardar más de 4.000 años en degradarse. ¡Recíclala en la caneca blanca!',
+  '💡 Dato ambiental: los residuos orgánicos de la caneca verde pueden convertirse en compost para nutrir la tierra.',
+  '💡 Dato ambiental: separar bien los residuos reduce hasta un 80% lo que llega a los rellenos sanitarios.',
+  '💡 Dato ambiental: el papel sucio o engrasado ya no es reciclable: va en la caneca negra.',
+  '💡 Dato ambiental: reciclar una lata de aluminio ahorra energía suficiente para 3 horas de televisión.',
 ];
 
 // --- Audio: efectos y música sintetizados (Web Audio API) ----
@@ -760,13 +761,13 @@ function resetGame() {
   const name = document.getElementById('name-p1').value.trim() || 'Jugador';
   // un solo jugador con toda la pantalla; teclas de ambas manos
   players = [
-    makePlayer(1, name, 0, W, { KeyA: 0, KeyS: 1, KeyD: 2, KeyJ: 0, KeyK: 1, KeyL: 2 }, '#a6ce39'),
+    makePlayer(1, name, 0, W, { KeyA: 0, KeyS: 1, KeyD: 2, KeyJ: 0, KeyK: 1, KeyL: 2 }, '#d6b673'),
   ];
   currentRound = 1;
 }
 
 // --- Récord personal (se guarda en el dispositivo) -------------
-const RECORD_KEY = 'ecoarcade-latingreen-record';
+const RECORD_KEY = 'ecoarcade-policia-record';
 function loadRecord() {
   try { return parseInt(localStorage.getItem(RECORD_KEY), 10) || 0; } catch (e) { return 0; }
 }
@@ -1039,12 +1040,12 @@ function drawBin(x, y, type, highlight) {
   ctx.restore();
 }
 
-// Tinte de la zona de juego, en el verde de la marca
-const ZONE_TINT = { top: 'rgba(166, 206, 57, 0.12)', bottom: 'rgba(166, 206, 57, 0.02)', edge: 'rgba(166, 206, 57, 0.7)' };
+// Tinte de la zona de juego, en el dorado del escudo
+const ZONE_TINT = { top: 'rgba(214, 182, 115, 0.12)', bottom: 'rgba(214, 182, 115, 0.02)', edge: 'rgba(214, 182, 115, 0.7)' };
 
 // Logo para la marca de agua del canvas
 const logoImg = new Image();
-logoImg.src = 'assets/logo.svg';
+logoImg.src = 'assets/logo-policia.png';
 
 function drawPlayerZone(player) {
   const ox = player.xOffset;
@@ -1059,12 +1060,14 @@ function drawPlayerZone(player) {
   ctx.fillStyle = tint.edge;
   ctx.fillRect(ox + 10, 8, player.zoneW - 20, 5);
 
-  // marca de agua del logo en cada zona
+  // marca de agua del escudo en cada zona, centrada entre la banda y las canecas
   if (logoImg.complete && logoImg.naturalWidth > 0) {
     ctx.save();
-    ctx.globalAlpha = 0.07;
-    const lw = 230, lh = lw * (logoImg.naturalHeight / logoImg.naturalWidth);
-    ctx.drawImage(logoImg, ox + player.zoneW / 2 - lw / 2, H * 0.5 - 60, lw, lh);
+    ctx.globalAlpha = 0.08;
+    const top = CONVEYOR_Y + 100, bottom = BINS_Y - 95;
+    const lh = Math.min(bottom - top, player.zoneW * 0.55);
+    const lw = lh * (logoImg.naturalWidth / logoImg.naturalHeight);
+    ctx.drawImage(logoImg, ox + player.zoneW / 2 - lw / 2, (top + bottom) / 2 - lh / 2, lw, lh);
     ctx.restore();
   }
 
@@ -1075,9 +1078,9 @@ function drawPlayerZone(player) {
   }
 
   // Banda transportadora
-  ctx.fillStyle = '#1d3527';
+  ctx.fillStyle = '#1e3029';
   ctx.fillRect(ox + 20, CONVEYOR_Y + 34, player.zoneW - 40, 16);
-  ctx.fillStyle = '#294a36';
+  ctx.fillStyle = '#2c463b';
   for (let x = 24; x < player.zoneW - 40; x += 34) {
     ctx.fillRect(ox + x, CONVEYOR_Y + 36, 18, 12);
   }
@@ -1093,7 +1096,7 @@ function drawPlayerZone(player) {
   ctx.textAlign = 'center';
   bins.forEach((bx, i) => {
     const kw = 56;
-    ctx.fillStyle = 'rgba(166, 206, 57, 0.2)';
+    ctx.fillStyle = 'rgba(214, 182, 115, 0.2)';
     ctx.beginPath();
     ctx.roundRect(bx - kw / 2, BINS_Y + 72, kw, 26, 6);
     ctx.fill();
